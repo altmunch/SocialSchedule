@@ -119,7 +119,11 @@ export default function PricingCard({
 
     const yearlyPrice = item.amount / 100;
     const monthlyPrice = Math.round((yearlyPrice / 12) * 100) / 100;
-    return `${monthlyPrice}/mo`;
+    const currency = item?.currency?.toLowerCase() || "usd";
+    const currencySymbol =
+      currency === "eur" ? "€" : currency === "gbp" ? "£" : "$";
+
+    return `${currencySymbol}${monthlyPrice}/mo`;
   };
 
   return (

@@ -1,6 +1,6 @@
 import Navbar from "@/components/navbar";
 import PricingCard from "@/components/pricing-card";
-import { createClient } from "../../../supabase/server";
+import { createClient } from "@/supabase/server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default async function Pricing() {
@@ -47,6 +47,7 @@ export default async function Pricing() {
               amount: 999,
               interval: "month",
               popular: false,
+              currency: "usd",
             },
           ],
     },
@@ -54,13 +55,29 @@ export default async function Pricing() {
       name: "Team",
       plans: teamPlans.length
         ? teamPlans
-        : [{ name: "Team", amount: 2999, interval: "month", popular: true }],
+        : [
+            {
+              name: "Team",
+              amount: 2999,
+              interval: "month",
+              popular: true,
+              currency: "usd",
+            },
+          ],
     },
     {
       name: "Agency",
       plans: agencyPlans.length
         ? agencyPlans
-        : [{ name: "Agency", amount: 4999, interval: "month", popular: false }],
+        : [
+            {
+              name: "Agency",
+              amount: 4999,
+              interval: "month",
+              popular: false,
+              currency: "usd",
+            },
+          ],
     },
   ];
 
