@@ -3,6 +3,7 @@
 import { encodedRedirect } from "@/utils/utils";
 import { redirect } from "next/navigation";
 import { createClient } from "../../supabase/server";
+import { PostgrestError } from "@supabase/supabase-js";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
@@ -10,6 +11,7 @@ export const signUpAction = async (formData: FormData) => {
   const fullName = formData.get("full_name")?.toString() || '';
   const supabase = await createClient();
 
+  // Input validation
   if (!email || !password) {
     return encodedRedirect(
       "error",
@@ -18,25 +20,58 @@ export const signUpAction = async (formData: FormData) => {
     );
   }
 
-  const { data: { user }, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-        email: email,
-      }
-    },
-  });
-
-  if (error) {
-    return encodedRedirect("error", "/sign-up", error.message);
+  if (password.length < 6) {
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Password must be at least 6 characters long",
+    );
   }
 
-  if (user) {
-    try {
+  if (!email.includes('@')) {
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "Please enter a valid email address",
+    );
+  }
 
-      const { error: updateError } = await supabase
+  try {
+    // Step 1: Create auth user
+    const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          email: email,
+        }
+      },
+    });
+
+    if (signUpError) {
+      // Handle specific auth errors
+      if (signUpError.message.includes('unique')) {
+        return encodedRedirect(
+          "error",
+          "/sign-up",
+          "This email is already registered. Please sign in instead.",
+        );
+      }
+      return encodedRedirect("error", "/sign-up", signUpError.message);
+    }
+
+    if (!user) {
+      return encodedRedirect(
+        "error",
+        "/sign-up",
+        "Registration failed. Please try again.",
+      );
+    }
+
+    // Step 2: Create user profile
+    try {
+      const { error: profileError } = await supabase
         .from('users')
         .insert({
           id: user.id,
@@ -47,29 +82,54 @@ export const signUpAction = async (formData: FormData) => {
           created_at: new Date().toISOString()
         });
 
-      if (updateError) {
-        // Error handling without console.error
+      if (profileError) {
+        // Handle specific database errors
+        if (profileError.code === '23505') { // Unique violation
+          return encodedRedirect(
+            "error",
+            "/sign-up",
+            "An account with this email already exists.",
+          );
+        }
+        if (profileError.code === '42P01') { // Undefined table
+          return encodedRedirect(
+            "error",
+            "/sign-up",
+            "System configuration error. Please contact support.",
+          );
+        }
+        // Log the error code for debugging
+        console.error(`Database error code: ${profileError.code}`);
         return encodedRedirect(
           "error",
           "/sign-up",
-          "Error updating user. Please try again.",
+          "Could not create user profile. Please try again.",
         );
       }
-    } catch (err) {
-      // Error handling without console.error
+    } catch (dbError) {
+      console.error('Database error:', dbError);
       return encodedRedirect(
         "error",
         "/sign-up",
-        "Error updating user. Please try again.",
+        "Failed to create user profile. Please try again later.",
       );
     }
-  }
 
-  return encodedRedirect(
-    "success",
-    "/sign-up",
-    "Thanks for signing up! Please check your email for a verification link.",
-  );
+    // Success case
+    return encodedRedirect(
+      "success",
+      "/sign-up",
+      "Thanks for signing up! Please check your email for a verification link.",
+    );
+
+  } catch (error) {
+    console.error('Unexpected error:', error);
+    return encodedRedirect(
+      "error",
+      "/sign-up",
+      "An unexpected error occurred. Please try again later.",
+    );
+  }
 };
 
 export const signInAction = async (formData: FormData) => {
