@@ -86,19 +86,29 @@ export default async function Pricing() {
       <Navbar />
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold mb-4">
-            Simple, transparent pricing
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-dominator-blue to-dominator-magenta bg-clip-text text-transparent">
+            Simple, Transparent Pricing
           </h1>
-          <p className="text-xl text-muted-foreground">
-            Choose the perfect plan for your needs
+          <p className="text-xl text-dominator-light/80 max-w-2xl mx-auto">
+            Choose the perfect plan that fits your needs and scale with our flexible pricing options
           </p>
         </div>
 
         <Tabs defaultValue="monthly" className="w-full max-w-7xl mx-auto mb-8">
-          <div className="flex justify-center mb-8">
-            <TabsList>
-              <TabsTrigger value="monthly">Monthly</TabsTrigger>
-              <TabsTrigger value="yearly">Yearly (Save 20%)</TabsTrigger>
+          <div className="flex justify-center mb-12">
+            <TabsList className="bg-dominator-dark/50 p-1 rounded-lg border border-dominator-dark/50">
+              <TabsTrigger 
+                value="monthly"
+                className="data-[state=active]:bg-dominator-dark data-[state=active]:text-dominator-blue data-[state=active]:shadow-sm rounded-md px-6 py-2 transition-all duration-200"
+              >
+                Monthly
+              </TabsTrigger>
+              <TabsTrigger 
+                value="yearly" 
+                className="data-[state=active]:bg-dominator-dark data-[state=active]:text-dominator-green data-[state=active]:shadow-sm rounded-md px-6 py-2 transition-all duration-200"
+              >
+                Yearly <span className="ml-1.5 px-1.5 py-0.5 bg-dominator-green/10 text-dominator-green text-xs rounded-full">Save 20%</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -106,14 +116,23 @@ export default async function Pricing() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
               {tiers.map((tier, index) => (
                 <div key={index} className="flex flex-col items-center">
-                  <h2 className="text-2xl font-bold mb-6">{tier.name}</h2>
+                  <h2 className="text-2xl font-bold mb-6 text-dominator-light">
+                    {tier.name}
+                    {tier.plans.some((p: any) => p.popular) && (
+                      <span className="ml-2 px-2 py-0.5 text-xs bg-gradient-to-r from-dominator-blue to-dominator-magenta text-dominator-black rounded-full">
+                        Popular
+                      </span>
+                    )}
+                  </h2>
                   {tier.plans
                     .filter(
                       (item: any) =>
                         item.interval === "month" || !item.interval,
                     )
                     .map((item: any, i: number) => (
-                      <PricingCard key={item.id || i} item={item} user={user} />
+                      <div key={item.id || i} className="w-full">
+                        <PricingCard item={item} user={user} />
+                      </div>
                     ))}
                 </div>
               ))}
@@ -124,11 +143,20 @@ export default async function Pricing() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
               {tiers.map((tier, index) => (
                 <div key={index} className="flex flex-col items-center">
-                  <h2 className="text-2xl font-bold mb-6">{tier.name}</h2>
+                  <h2 className="text-2xl font-bold mb-6 text-dominator-light">
+                    {tier.name}
+                    {tier.plans.some((p: any) => p.popular) && (
+                      <span className="ml-2 px-2 py-0.5 text-xs bg-gradient-to-r from-dominator-blue to-dominator-magenta text-dominator-black rounded-full">
+                        Popular
+                      </span>
+                    )}
+                  </h2>
                   {tier.plans
                     .filter((item: any) => item.interval === "year")
                     .map((item: any, i: number) => (
-                      <PricingCard key={item.id || i} item={item} user={user} />
+                      <div key={item.id || i} className="w-full">
+                        <PricingCard item={item} user={user} />
+                      </div>
                     ))}
                   {/* If no yearly plan exists, show monthly with calculated yearly price */}
                   {tier.plans.filter((item: any) => item.interval === "year")
@@ -139,15 +167,16 @@ export default async function Pricing() {
                           item.interval === "month" || !item.interval,
                       )
                       .map((item: any, i: number) => (
-                        <PricingCard
-                          key={`yearly-${i}`}
-                          item={{
-                            ...item,
-                            amount: Math.round(item.amount * 12 * 0.8), // 20% discount
-                            interval: "year",
-                          }}
-                          user={user}
-                        />
+                        <div key={`yearly-${i}`} className="w-full">
+                          <PricingCard
+                            item={{
+                              ...item,
+                              amount: Math.round(item.amount * 12 * 0.8), // 20% discount
+                              interval: "year",
+                            }}
+                            user={user}
+                          />
+                        </div>
                       ))}
                 </div>
               ))}

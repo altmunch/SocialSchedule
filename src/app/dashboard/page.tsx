@@ -1,27 +1,5 @@
 import DashboardNavbar from "@/components/dashboard-navbar";
 import { createServerClient } from "@/lib/supabase";
-import { cookies } from 'next/headers';
-import { 
-  Calendar, 
-  BarChart2, 
-  Zap, 
-  Hash, 
-  Music, 
-  BookOpen, 
-  Clock, 
-  TrendingUp,
-  Users,
-  Settings,
-  Plus,
-  Search,
-  Filter,
-  MoreVertical,
-  ChevronDown,
-  ChevronRight,
-  CheckCircle2,
-  AlertCircle,
-  Clock as ClockIcon
-} from "lucide-react";
 import { redirect } from "next/navigation";
 import { SubscriptionCheck } from "@/components/subscription-check";
 import { Button } from "@/components/ui/button";
@@ -29,16 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import { BarChart2, Plus, Users, TrendingUp, Zap, Calendar, Music, BookOpen } from "lucide-react";
 
-// Mock data - replace with actual data from your API
-const mockPosts = [
-  { id: 1, platform: 'Instagram', content: 'New product launch!', status: 'scheduled', date: '2023-06-15 14:30', engagement: 78 },
-  { id: 2, platform: 'TikTok', content: 'Behind the scenes', status: 'published', date: '2023-06-14 10:15', engagement: 92 },
-  { id: 3, platform: 'Twitter', content: 'Industry insights', status: 'draft', date: '2023-06-16 16:45', engagement: 45 },
-];
-
+// Mock data
 const mockAnalytics = {
   engagementRate: 4.8,
   followers: 12450,
@@ -46,6 +17,12 @@ const mockAnalytics = {
   topPerformingPost: 'New Collection Preview',
   engagementScore: 87,
 };
+
+const mockPosts = [
+  { id: 1, platform: 'Instagram', content: 'New product launch!', status: 'scheduled', date: '2023-06-15 14:30', engagement: 78 },
+  { id: 2, platform: 'TikTok', content: 'Behind the scenes', status: 'published', date: '2023-06-14 10:15', engagement: 92 },
+  { id: 3, platform: 'Twitter', content: 'Industry insights', status: 'draft', date: '2023-06-16 16:45', engagement: 45 },
+];
 
 const mockTrendingAudios = [
   { id: 1, name: 'Upbeat Summer Vibe', creator: '@djmix', usage: '1.2M', growth: '12%' },
@@ -64,222 +41,235 @@ const mockHooks = [
 export default async function Dashboard() {
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   if (!user) {
     return redirect("/sign-in");
   }
 
   return (
-    <SubscriptionCheck>
+    <div className="min-h-screen bg-dominator-black">
       <DashboardNavbar />
-      <main className="w-full bg-muted/40">
-        <div className="container mx-auto px-4 py-6 flex flex-col gap-6">
-          {/* Header */}
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back, {user.email?.split('@')[0] || 'User'}</p>
+      <div className="p-6 md:p-8">
+        <SubscriptionCheck>
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col justify-between space-y-4 md:flex-row md:items-center md:space-y-0">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-dominator-light">Dashboard</h1>
+                <p className="text-dominator-light/80">
+                  Welcome back, <span className="text-dominator-blue">{user.email?.split('@')[0] || 'User'}</span>! Here's what's happening with your account.
+                </p>
+              </div>
+              <Button className="bg-gradient-to-r from-dominator-blue to-dominator-magenta hover:from-dominator-blue/90 hover:to-dominator-magenta/90 text-dominator-black font-medium hover:shadow-[0_0_20px_rgba(0,245,255,0.3)] transition-all">
+                <Plus className="mr-2 h-4 w-4" />
+                Create Post
+              </Button>
             </div>
-            <Button className="gap-2">
-              <Plus size={16} />
-              New Post
-            </Button>
-          </div>
 
-          {/* Stats Overview */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
-                <BarChart2 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{mockAnalytics.engagementRate}%</div>
-                <p className="text-xs text-muted-foreground">+12% from last month</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Followers</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(mockAnalytics.followers / 1000).toFixed(1)}K
-                </div>
-                <p className="text-xs text-muted-foreground">+320 this week</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Impressions</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {(mockAnalytics.impressions / 1000).toFixed(0)}K
-                </div>
-                <p className="text-xs text-muted-foreground">+12.5% from last month</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Engagement Score</CardTitle>
-                <Zap className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{mockAnalytics.engagementScore}/100</div>
-                <div className="mt-2">
-                  <Progress value={mockAnalytics.engagementScore} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            {/* Stats Overview */}
+            <Tabs defaultValue="overview" className="space-y-4">
+              <TabsList className="bg-dominator-dark/30 border border-dominator-dark/50 p-1">
+                <TabsTrigger 
+                  value="overview" 
+                  className="data-[state=active]:bg-dominator-dark/50 data-[state=active]:text-dominator-blue rounded px-3 py-1.5 text-sm"
+                >
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="analytics" 
+                  className="data-[state=active]:bg-dominator-dark/50 data-[state=active]:text-dominator-blue rounded px-3 py-1.5 text-sm"
+                >
+                  Analytics
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  {/* Engagement Rate Card */}
+                  <Card className="bg-dominator-dark/50 border-dominator-dark/50 backdrop-blur-sm">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-dominator-light/80">Engagement Rate</CardTitle>
+                      <div className="p-2 rounded-lg bg-dominator-blue/10">
+                        <BarChart2 className="h-4 w-4 text-dominator-blue" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-dominator-light">{mockAnalytics.engagementRate}%</div>
+                      <p className="text-xs text-dominator-light/60">+2.1% from last month</p>
+                    </CardContent>
+                  </Card>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            {/* Content Calendar */}
-            <Card className="col-span-4">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Content Calendar</CardTitle>
-                    <CardDescription>Upcoming scheduled posts and campaigns</CardDescription>
-                  </div>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Calendar size={14} />
-                    View All
-                  </Button>
+                  {/* Total Followers Card */}
+                  <Card className="bg-dominator-dark/50 border-dominator-dark/50 backdrop-blur-sm">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-dominator-light/80">Total Followers</CardTitle>
+                      <div className="p-2 rounded-lg bg-dominator-blue/10">
+                        <Users className="h-4 w-4 text-dominator-blue" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-dominator-light">
+                        {(mockAnalytics.followers / 1000).toFixed(1)}K
+                      </div>
+                      <p className="text-xs text-dominator-light/60">+320 this week</p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Impressions Card */}
+                  <Card className="bg-dominator-dark/50 border-dominator-dark/50 backdrop-blur-sm">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-dominator-light/80">Impressions</CardTitle>
+                      <div className="p-2 rounded-lg bg-dominator-blue/10">
+                        <TrendingUp className="h-4 w-4 text-dominator-blue" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-dominator-light">
+                        {(mockAnalytics.impressions / 1000).toFixed(0)}K
+                      </div>
+                      <p className="text-xs text-dominator-light/60">+12.5% from last month</p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Engagement Score Card */}
+                  <Card className="bg-dominator-dark/50 border-dominator-dark/50 backdrop-blur-sm">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium text-dominator-light/80">Engagement Score</CardTitle>
+                      <div className="p-2 rounded-lg bg-dominator-blue/10">
+                        <Zap className="h-4 w-4 text-dominator-blue" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-dominator-light">
+                        {mockAnalytics.engagementScore}/100
+                      </div>
+                      <div className="mt-2">
+                        <Progress value={mockAnalytics.engagementScore} className="h-2 bg-dominator-dark/30" />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockPosts.map((post) => (
-                    <div key={post.id} className="flex items-center p-3 rounded-lg border">
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-primary font-medium">
-                          {post.platform[0]}
-                        </span>
+
+                {/* Content Calendar */}
+                <Card className="bg-dominator-dark/50 border-dominator-dark/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-dominator-light">Content Calendar</CardTitle>
+                        <CardDescription className="text-dominator-light/60">Upcoming scheduled posts and campaigns</CardDescription>
                       </div>
-                      <div className="ml-4 flex-1">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium">{post.content}</h4>
-                          <Badge 
-                            variant={post.status === 'published' ? 'default' : 'outline'}
-                            className="text-xs"
-                          >
-                            {post.status}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center text-sm text-muted-foreground mt-1">
-                          <span>{post.date}</span>
-                          <span className="mx-2">•</span>
-                          <span>{post.engagement}% engagement</span>
-                        </div>
-                      </div>
+                      <Button variant="outline" size="sm" className="border-dominator-dark/50 text-dominator-light/80 hover:bg-dominator-dark/30">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        View All
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Right Sidebar */}
-            <div className="col-span-3 space-y-4">
-              {/* Trending Audios */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Music size={18} />
-                    <span>Trending Audios</span>
-                  </CardTitle>
-                  <CardDescription>Popular sounds in your niche</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {mockTrendingAudios.map((audio) => (
-                      <div key={audio.id} className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{audio.name}</p>
-                          <p className="text-sm text-muted-foreground">{audio.creator}</p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {mockPosts.map((post) => (
+                        <div key={post.id} className="flex items-center p-3 rounded-lg border border-dominator-dark/50">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-dominator-blue/10 flex items-center justify-center">
+                            <span className="text-dominator-blue font-medium">
+                              {post.platform[0]}
+                            </span>
+                          </div>
+                          <div className="ml-4 flex-1">
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-medium text-dominator-light">{post.content}</h4>
+                              <Badge 
+                                variant={post.status === 'published' ? 'default' : 'outline'}
+                                className="text-xs text-dominator-light/80 border-dominator-dark/50"
+                              >
+                                {post.status}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center text-sm text-dominator-light/60 mt-1">
+                              <span>{post.date}</span>
+                              <span className="mx-2">•</span>
+                              <span>{post.engagement}% engagement</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium">{audio.usage}</p>
-                          <p className="text-sm text-green-500">↑ {audio.growth}</p>
-                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Trending Audios */}
+                  <Card className="bg-dominator-dark/50 border-dominator-dark/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <div className="flex items-center space-x-2">
+                        <Music className="h-5 w-5 text-dominator-blue" />
+                        <CardTitle className="text-dominator-light">Trending Audios</CardTitle>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* AI Hook Generator */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen size={18} />
-                    <span>AI Hook Generator</span>
-                  </CardTitle>
-                  <CardDescription>High-converting hooks for your next post</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {mockHooks.map((hook, index) => (
-                      <div key={index} className="p-3 bg-muted/50 rounded-lg text-sm">
-                        {hook}
+                      <CardDescription className="text-dominator-light/60">Popular sounds in your niche</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {mockTrendingAudios.map((audio) => (
+                          <div key={audio.id} className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-dominator-light">{audio.name}</p>
+                              <p className="text-sm text-dominator-light/60">{audio.creator}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium text-dominator-light">{audio.usage}</p>
+                              <p className="text-sm text-green-500">↑ {audio.growth}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    <Button variant="outline" className="w-full mt-2" size="sm">
-                      Generate More Hooks
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                    </CardContent>
+                  </Card>
 
-          {/* Performance Analytics */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Performance Analytics</CardTitle>
-                  <CardDescription>Track your social media performance</CardDescription>
+                  {/* AI Hook Generator */}
+                  <Card className="bg-dominator-dark/50 border-dominator-dark/50 backdrop-blur-sm">
+                    <CardHeader>
+                      <div className="flex items-center space-x-2">
+                        <BookOpen className="h-5 w-5 text-dominator-blue" />
+                        <CardTitle className="text-dominator-light">AI Hook Generator</CardTitle>
+                      </div>
+                      <CardDescription className="text-dominator-light/60">High-converting hooks for your next post</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {mockHooks.map((hook, index) => (
+                          <div key={index} className="p-3 bg-dominator-dark/30 rounded-lg text-sm text-dominator-light/80">
+                            {hook}
+                          </div>
+                        ))}
+                        <Button 
+                          variant="outline" 
+                          className="w-full mt-2 border-dominator-dark/50 text-dominator-light/80 hover:bg-dominator-dark/30"
+                        >
+                          Generate More Hooks
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    Last 7 days
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] bg-muted/30 rounded-lg flex items-center justify-center">
-                <p className="text-muted-foreground">Performance charts will be displayed here</p>
-              </div>
-            </CardContent>
-          </Card>
+              </TabsContent>
 
-          {/* Quick Actions */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Button variant="outline" className="h-24 flex-col gap-2">
-              <Calendar className="h-6 w-6" />
-              Schedule Post
-            </Button>
-            <Button variant="outline" className="h-24 flex-col gap-2">
-              <BarChart2 className="h-6 w-6" />
-              View Analytics
-            </Button>
-            <Button variant="outline" className="h-24 flex-col gap-2">
-              <Hash className="h-6 w-6" />
-              Hashtag Research
-            </Button>
-            <Button variant="outline" className="h-24 flex-col gap-2">
-              <Settings className="h-6 w-6" />
-              Settings
-            </Button>
+              <TabsContent value="analytics" className="pt-4">
+                <Card className="bg-dominator-dark/50 border-dominator-dark/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="text-dominator-light">Analytics</CardTitle>
+                    <CardDescription className="text-dominator-light/60">
+                      Detailed performance metrics and insights
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-64 flex items-center justify-center rounded-lg bg-dominator-dark/30">
+                      <p className="text-dominator-light/60">Analytics dashboard coming soon</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
-        </div>
-      </main>
-    </SubscriptionCheck>
+        </SubscriptionCheck>
+      </div>
+    </div>
   );
 }

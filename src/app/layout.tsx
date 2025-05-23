@@ -17,10 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="dark">
       <Script src="https://api.tempolabs.ai/proxy-asset?url=https://storage.googleapis.com/tempo-public-assets/error-handling.js" />
-      <body className={inter.className}>
-        {children}
+      <body className={`${inter.className} min-h-screen bg-dominator-black`}>
+        <div className="min-h-screen flex flex-col">
+          {children}
+        </div>
         <TempoInit />
       </body>
     </html>
