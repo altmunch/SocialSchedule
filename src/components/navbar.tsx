@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '../../supabase/server'
 import { Button } from './ui/button'
-import { User, UserCircle } from 'lucide-react'
+import { User, UserCircle, Zap } from 'lucide-react'
 import UserProfile from './user-profile'
 
 export default async function Navbar() {
@@ -17,6 +17,13 @@ export default async function Navbar() {
           Logo
         </Link>
         <div className="flex gap-4 items-center">
+          <Link 
+            href="/offer" 
+            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-dominator-blue bg-dominator-blue/10 rounded-full hover:bg-dominator-blue/20 transition-colors"
+          >
+            <Zap className="h-4 w-4" />
+            Limited Offer
+          </Link>
           {user ? (
             <>
               <Link
