@@ -93,9 +93,10 @@
   /* Glow Effects */
   .glow-text {
     text-shadow: 0 0 10px hsl(183 100% 50% / 0.7);
-    -webkit-text-fill-color: transparent;
-    -webkit-background-clip: text;
-    background-clip: text;
+  }
+  
+  .glow-text .gradient-text {
+    text-shadow: none;
   }
   
   .glow-box {

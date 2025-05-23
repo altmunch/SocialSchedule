@@ -132,8 +132,8 @@ export default async function Home() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-magenta-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                 <div className="relative z-10">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-magenta-500 p-3 text-white mb-4">
-                    <item.icon className="h-6 w-6 text-white" />
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-magenta-400 p-3 text-white mb-4 shadow-lg shadow-cyan-500/30">
+                    <item.icon className="h-7 w-7 text-white" />
                   </div>
                   <p className="text-4xl font-bold text-white mb-1">{item.stat}</p>
                   <p className="text-sm font-medium text-gray-400">{item.label}</p>
