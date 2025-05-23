@@ -1,10 +1,10 @@
 import Navbar from "@/components/navbar";
 import PricingCard from "@/components/pricing-card";
-import { createClient } from "@/supabase/server";
+import { createServerClient } from "@/lib/supabase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default async function Pricing() {
-  const supabase = await createClient();
+  const supabase = await createServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -3,41 +3,32 @@
 import { encodedRedirect } from "@/utils/utils";
 import { redirect } from "next/navigation";
 import { createClient } from "../../supabase/server";
+import { createServiceClient } from "../../supabase/service";
 import { PostgrestError } from "@supabase/supabase-js";
 
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
   const fullName = formData.get("full_name")?.toString() || '';
-  const supabase = await createClient();
-
+  
   // Input validation
   if (!email || !password) {
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "Email and password are required",
-    );
+    return { error: "Email and password are required" };
   }
 
   if (password.length < 6) {
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "Password must be at least 6 characters long",
-    );
+    return { error: "Password must be at least 6 characters long" };
   }
 
   if (!email.includes('@')) {
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "Please enter a valid email address",
-    );
+    return { error: "Please enter a valid email address" };
   }
 
   try {
-    // Step 1: Create auth user
+    const supabase = await createClient();
+    const serviceClient = createServiceClient();
+
+    // Step 1: Create auth user with email confirmation redirect
     const { data: { user }, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -45,33 +36,26 @@ export const signUpAction = async (formData: FormData) => {
         data: {
           full_name: fullName,
           email: email,
-        }
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`
       },
     });
 
     if (signUpError) {
       // Handle specific auth errors
       if (signUpError.message.includes('unique')) {
-        return encodedRedirect(
-          "error",
-          "/sign-up",
-          "This email is already registered. Please sign in instead.",
-        );
+        return { error: "This email is already registered. Please sign in instead." };
       }
-      return encodedRedirect("error", "/sign-up", signUpError.message);
+      return { error: signUpError.message };
     }
 
     if (!user) {
-      return encodedRedirect(
-        "error",
-        "/sign-up",
-        "Registration failed. Please try again.",
-      );
+      return { error: "Registration failed. Please try again." };
     }
 
-    // Step 2: Create user profile
+    // Step 2: Create user profile using service role client
     try {
-      const { error: profileError } = await supabase
+      const { error: profileError } = await serviceClient
         .from('users')
         .insert({
           id: user.id,
@@ -85,50 +69,26 @@ export const signUpAction = async (formData: FormData) => {
       if (profileError) {
         // Handle specific database errors
         if (profileError.code === '23505') { // Unique violation
-          return encodedRedirect(
-            "error",
-            "/sign-up",
-            "An account with this email already exists.",
-          );
+          return { error: "An account with this email already exists." };
         }
         if (profileError.code === '42P01') { // Undefined table
-          return encodedRedirect(
-            "error",
-            "/sign-up",
-            "System configuration error. Please contact support.",
-          );
+          return { error: "System configuration error. Please contact support." };
         }
         // Log the error code for debugging
         console.error(`Database error code: ${profileError.code}`);
-        return encodedRedirect(
-          "error",
-          "/sign-up",
-          "Could not create user profile. Please try again.",
-        );
+        return { error: "Could not create user profile. Please try again." };
       }
     } catch (dbError) {
       console.error('Database error:', dbError);
-      return encodedRedirect(
-        "error",
-        "/sign-up",
-        "Failed to create user profile. Please try again later.",
-      );
+      return { error: "Failed to create user profile. Please try again later." };
     }
 
     // Success case
-    return encodedRedirect(
-      "success",
-      "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link.",
-    );
+    return { success: "Thanks for signing up! Please check your email for a verification link." };
 
   } catch (error) {
     console.error('Unexpected error:', error);
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "An unexpected error occurred. Please try again later.",
-    );
+    return { error: "An unexpected error occurred. Please try again later." };
   }
 };
 

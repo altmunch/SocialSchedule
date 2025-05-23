@@ -142,18 +142,16 @@ export default function PricingCard({
         <CardTitle className="text-2xl font-bold tracking-tight text-gray-900">
           {item?.name || "Plan"}
         </CardTitle>
-        <CardDescription className="flex flex-col mt-2">
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold text-gray-900">
-              {formatPrice()}
-            </span>
-          </div>
+        <div className="mt-2">
+          <span className="text-4xl font-bold text-gray-900">
+            {formatPrice()}
+          </span>
           {monthlyEquivalent() && (
-            <span className="text-sm text-gray-500 mt-1">
+            <CardDescription>
               ({monthlyEquivalent()} billed annually)
-            </span>
+            </CardDescription>
           )}
-        </CardDescription>
+        </div>
       </CardHeader>
       <CardContent className="relative">
         <ul className="space-y-3 mt-4">

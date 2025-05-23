@@ -62,8 +62,115 @@
 @layer base {
   * {
     @apply border-border;
+    scrollbar-color: hsl(183 100% 50% / 0.5) hsl(0 0% 10% / 0.2);
+    scrollbar-width: thin;
   }
+  
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: hsl(0 0% 10% / 0.2);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(183 100% 50% / 0.5);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(183 100% 50% / 0.7);
+  }
+  
+  /* Glow Effects */
+  .glow-text {
+    text-shadow: 0 0 10px hsl(183 100% 50% / 0.7);
+  }
+  
+  .glow-box {
+    box-shadow: 0 0 15px hsl(183 100% 50% / 0.3);
+  }
+  
+  .glow-box-hover:hover {
+    box-shadow: 0 0 25px hsl(183 100% 50% / 0.5);
+    transition: box-shadow 0.3s ease;
+  }
+  
+  /* Pulsing Animation for CTAs */
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 10px hsl(183 100% 50% / 0.5);
+    }
+    50% {
+      box-shadow: 0 0 20px hsl(183 100% 50% / 0.8);
+    }
+  }
+  
+  .pulse {
+    animation: pulse-glow 2s infinite;
+  }
+  
+  /* Neon Border Effect */
+  .neon-border {
+    position: relative;
+  }
+  
+  .neon-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(45deg, 
+      hsl(183 100% 50%), 
+      hsl(162 100% 50%), 
+      hsl(302 100% 50%));
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+  
+  /* Gradient Text */
+  .gradient-text {
+    background: linear-gradient(45deg, 
+      hsl(183 100% 50%), 
+      hsl(162 100% 50%), 
+      hsl(302 100% 50%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  
+  /* Hover Effects */
+  .hover-scale {
+    transition: transform 0.2s ease;
+  }
+  
+  .hover-scale:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Custom Button Styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 transition-all duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-200;
+  }
+  
+  /* Custom Card */
+  .card {
+    @apply rounded-xl border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow duration-200;
   }
 }
