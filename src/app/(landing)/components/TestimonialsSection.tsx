@@ -9,7 +9,7 @@ const testimonials = [
     id: 1,
     name: 'Alex Johnson',
     role: 'Content Creator',
-    image: '/avatars/alex.jpg',
+    image: '/avatars/alex.png',
     content: 'This platform has completely transformed how I manage my social media. The scheduling feature alone saves me hours every week!',
     rating: 5
   },
@@ -17,7 +17,7 @@ const testimonials = [
     id: 2,
     name: 'Taylor Smith',
     role: 'Marketing Manager',
-    image: '/avatars/taylor.jpg',
+    image: '/avatars/taylor.png',
     content: 'The analytics dashboard is incredibly insightful. I can now track my performance and adjust my strategy in real-time.',
     rating: 5
   },
@@ -25,7 +25,7 @@ const testimonials = [
     id: 3,
     name: 'Jordan Lee',
     role: 'Small Business Owner',
-    image: '/avatars/jordan.jpg',
+    image: '/avatars/jordan.png',
     content: 'As a small business owner, I needed an affordable solution that could handle all my social media needs. This platform delivers!',
     rating: 4
   },
@@ -33,7 +33,7 @@ const testimonials = [
     id: 4,
     name: 'Casey Kim',
     role: 'Social Media Influencer',
-    image: '/avatars/casey.jpg',
+    image: '/avatars/casey.png',
     content: 'The AI content suggestions are game-changing. My engagement rates have never been higher!',
     rating: 5
   }
