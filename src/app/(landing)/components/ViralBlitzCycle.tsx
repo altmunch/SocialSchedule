@@ -6,27 +6,35 @@ import { Button } from '@/components/ui/button';
 
 const steps = [
   {
-    icon: <Search className="w-6 h-6 text-blitzBlue" />,
+    icon: <Search className="w-8 h-8 text-blitzBlue" />,
     title: 'SCAN',
-    description: 'Our AI scans 1000s of posts to find the perfect trends for your niche, 48 hours before they peak.',
+    subtitle: '(Intel Gathering)',
+    description: 'AI analyzes your past posts + spies on competitors to find hidden viral patterns.',
+    proof: '@MarisaLynn grew to 500K followers after fixing drop-off points our Scan uncovered.',
     color: 'blitzBlue'
   },
   {
-    icon: <Zap className="w-6 h-6 text-surgePurple" />,
+    icon: <Zap className="w-8 h-8 text-surgePurple" />,
     title: 'ACCELERATE',
-    description: 'We optimize your content with AI to ride the wave of emerging trends at the perfect moment.',
+    subtitle: '(Content Turbocharge)',
+    description: 'Auto-generates hooks using 10,000+ proven templates and attaches rising sounds.',
+    demo: '10-second clip showing AI turning "My skincare routine" into "Derms hate this $3 trick!"',
     color: 'surgePurple'
   },
   {
-    icon: <BarChart2 className="w-6 h-6 text-thunderYellow" />,
+    icon: <Zap className="w-8 h-8 text-thunderYellow" />,
     title: 'BLITZ',
-    description: 'Your content gets maximum visibility by hitting the algorithm at peak engagement times.',
+    subtitle: '(Algorithm Strike)',
+    description: 'Posts at precise times when your audience is most addicted to scrolling.',
+    counter: '12,834 posts blitzed this hour',
     color: 'thunderYellow'
   },
   {
-    icon: <RefreshCw className="w-6 h-6 text-loopTeal" />,
+    icon: <RefreshCw className="w-8 h-8 text-loopTeal" />,
     title: 'CYCLE',
-    description: 'The system learns and improves with every post, creating a perpetual growth cycle.',
+    subtitle: '(Self-Improving Loop)',
+    description: 'Learns from every post to make your next content 27% more engaging.',
+    graphic: 'Arrow loop with metrics improving each rotation',
     color: 'loopTeal'
   }
 ];
@@ -43,10 +51,10 @@ export default function ViralBlitzCycle() {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            The <span className="text-blitzBlue">4-Step Viral Blitz Cycle</span> That Works While You Sleep
+            The <span className="text-blitzBlue">Viral Blitz Cycle</span> Explained
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-            Our AI system runs on autopilot to ensure your content gets maximum visibility with minimal effort.
+            A 4-step process that turns your content into an unstoppable growth machine
           </p>
         </div>
 
@@ -68,15 +76,43 @@ export default function ViralBlitzCycle() {
               >
                 {/* Content */}
                 <div className={`md:w-1/2 ${index % 2 === 0 ? 'md:pr-12' : 'md:pl-12'} mb-8 md:mb-0`}>
-                  <div className={`inline-flex items-center justify-center w-14 h-14 rounded-full bg-${step.color}/10 mb-4`}>
+                  <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-${step.color}/10 mb-4`}>
                     {step.icon}
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
-                  <p className="text-gray-300">{step.description}</p>
+                  <h3 className="text-2xl font-bold mb-1">{step.title} <span className="text-gray-400 text-lg font-medium">{step.subtitle}</span></h3>
+                  <p className="text-gray-300 mb-3">{step.description}</p>
+                  
+                  {step.proof && (
+                    <div className="mt-4 p-3 bg-gray-800/50 rounded-lg border-l-4 border-green-500">
+                      <p className="text-sm text-gray-300 italic">"{step.proof}"</p>
+                    </div>
+                  )}
+                  
+                  {step.demo && (
+                    <div className="mt-4 p-4 bg-gray-800/30 rounded-lg border border-dashed border-gray-700">
+                      <p className="text-sm text-gray-400 mb-2">Demo:</p>
+                      <p className="text-sm text-gray-300">{step.demo}</p>
+                    </div>
+                  )}
+                  
+                  {step.counter && (
+                    <div className="mt-4 p-3 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 rounded-lg">
+                      <p className="text-sm font-medium text-yellow-400">Live: {step.counter}</p>
+                    </div>
+                  )}
+                  
+                  {step.graphic && (
+                    <div className="mt-4 p-3 bg-gray-800/30 rounded-lg">
+                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-teal-500 to-blue-500 rounded-full flex items-center justify-center text-white text-2xl mb-2">
+                        ∞
+                      </div>
+                      <p className="text-xs text-center text-gray-400">{step.graphic}</p>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Step number */}
-                <div className={`absolute left-1/2 -ml-5 w-10 h-10 flex items-center justify-center rounded-full font-bold text-white bg-${step.color} border-4 border-stormGray`}>
+                <div className={`absolute left-1/2 -ml-5 w-10 h-10 flex items-center justify-center rounded-full font-bold text-white bg-${step.color} border-4 border-stormGray z-10`}>
                   {index + 1}
                 </div>
                 

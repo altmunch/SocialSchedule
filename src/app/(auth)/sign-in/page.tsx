@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface FormState {
@@ -63,37 +63,37 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dominator-black text-white">
+    <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-16">
         <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-          <div className="w-full max-w-md rounded-2xl bg-dominator-dark/50 p-8 backdrop-blur-sm border border-dominator-dark/50 shadow-2xl">
-            <div className="absolute inset-0 -z-10 bg-grid-dominator-dark/20 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,hsl(var(--background)))]" />
+          <div className="w-full max-w-md rounded-2xl bg-gray-900 p-8 border border-gray-700 shadow-2xl">
+            <div className="absolute inset-0 -z-10 bg-grid-gray-800/20 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,#000)]" />
             <div className="flex flex-col items-center space-y-6">
               <div className="space-y-2 text-center">
-                <h1 className="text-3xl font-bold tracking-tight text-black">Welcome back</h1>
-                <p className="text-black">Enter your credentials to sign in to your account</p>
+                <h1 className="text-3xl font-bold tracking-tight text-white">Welcome back</h1>
+                <p className="text-gray-300">Enter your credentials to sign in to your account</p>
               </div>
               
               <form action={handleSubmit} className="w-full space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-black">Email</Label>
+                  <Label htmlFor="email" className="text-gray-300">Email</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     placeholder="m@example.com"
                     required
-                    className="bg-dominator-dark/50 border-dominator-dark/50 text-black placeholder-dominator-400"
+                    className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isLoading}
                   />
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-black">Password</Label>
+                    <Label htmlFor="password" className="text-gray-300">Password</Label>
                     <Link
                       href="/forgot-password"
-                      className="text-sm text-black hover:text-gray-700 transition-colors"
+                      className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                       tabIndex={isLoading ? -1 : 0}
                     >
                       Forgot password?
@@ -104,9 +104,10 @@ export default function SignInPage() {
                     name="password"
                     type="password"
                     required
-                    className="bg-dominator-dark/50 border-dominator-dark/50 text-black"
+                    className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     disabled={isLoading}
                   />
+
                 </div>
                 
                 <SubmitButton loading={isLoading}>
@@ -128,16 +129,16 @@ export default function SignInPage() {
                 )}
               </form>
               
-              <div className="text-center text-sm text-black">
+              <p className="text-center text-sm text-gray-400">
                 Don't have an account?{" "}
                 <Link
                   href="/sign-up"
-                  className="text-black hover:text-gray-700 font-medium transition-colors"
+                  className="font-medium text-blue-400 hover:text-blue-300 hover:underline"
                   tabIndex={isLoading ? -1 : 0}
                 >
                   Sign up
                 </Link>
-              </div>
+              </p>
             </div>
           </div>
         </div>

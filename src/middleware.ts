@@ -1,25 +1,36 @@
 import { createServerClient } from '@supabase/ssr'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return req.cookies.getAll().map(({ name, value }) => ({
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options) {
+          // Forward the cookie to the response
+          response.cookies.set({
             name,
             value,
-          }))
+            ...options,
+          })
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            req.cookies.set(name, value)
-            res.cookies.set(name, value, options)
+        remove(name: string, options) {
+          // Remove the cookie from the response
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+            maxAge: 0,
           })
         },
       },
@@ -27,13 +38,31 @@ export async function middleware(req: NextRequest) {
   )
 
   // Refresh session if expired - required for Server Components
-  const { data: { session }, error } = await supabase.auth.getSession()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (error) {
-    // Auth session error handling without console.error
+  // Example: Redirect unauthenticated users from protected routes
+  const protectedRoutes = ['/dashboard', '/account']
+  const isProtectedRoute = protectedRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  )
+
+  if (isProtectedRoute && !session) {
+    const redirectUrl = new URL('/sign-in', request.url)
+    redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname)
+    return NextResponse.redirect(redirectUrl)
   }
 
-  return res
+  // Example: Redirect authenticated users away from auth pages
+  const authRoutes = ['/sign-in', '/sign-up']
+  const isAuthRoute = authRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  )
+
+  if (isAuthRoute && session) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
+  return response
 }
 
 // Ensure the middleware is only called for relevant paths
@@ -45,8 +74,9 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public (public files)
-     * - api/polar/webhook (webhook endpoints)
+     * - api/auth (auth endpoints)
+     * - api/webhooks (webhook endpoints)
      */
-    '/((?!_next/static|_next/image|favicon.ico|public|api/payments/webhook).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public|api/auth|api/webhooks).*)',
   ],
 }

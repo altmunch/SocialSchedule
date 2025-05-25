@@ -1,7 +1,27 @@
-import { SchedulerService } from '../../(apex_scheduler)/services/SchedulerService';
-import { TimeSlotManager } from '../../(apex_scheduler)/services/TimeSlotManager';
-import { PlatformAPIService } from '../../(apex_scheduler)/services/PlatformAPIService';
-import { Post } from '../../(apex_scheduler)/types';
+import { Post, ScheduleOptions, TimeSlot, PlatformPost } from '../types';
+
+// Mock implementations for services that would be implemented later
+class SchedulerService {
+  constructor(private options: ScheduleOptions) {}
+  async schedulePost(post: Post): Promise<boolean> {
+    // Implementation would go here
+    return true;
+  }
+}
+
+class TimeSlotManager {
+  findOptimalTimeSlots(): TimeSlot[] {
+    // Implementation would go here
+    return [];
+  }
+}
+
+class PlatformAPIService {
+  async publishPost(post: PlatformPost): Promise<boolean> {
+    // Implementation would go here
+    return true;
+  }
+}
 
 type PlatformType = 'instagram' | 'tiktok' | 'facebook' | 'linkedin';
 
@@ -17,8 +37,7 @@ class SchedulerIntegrationService {
     this.schedulerService = new SchedulerService({
       maxRetryAttempts: 3,
       retryDelayMs: 30000,
-      enableAnalytics: true,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     });
   }
 
@@ -32,39 +51,38 @@ class SchedulerIntegrationService {
   /**
    * Schedule a post with optimized time slots
    */
-  public async schedulePost(post: Omit<Post, 'scheduledTime'>): Promise<{ success: boolean; message: string; scheduledTime?: Date }> {
+  public async schedulePost(post: Omit<Post, 'id' | 'status'>, platform: PlatformType): Promise<string> {
+    const postId = `post_${Date.now()}`;
+    
     try {
       // Find optimal time slots for the post
-      const slots = await this.timeSlotManager.findOptimalSlots({
-        ...post,
-        scheduledTime: new Date(), // Will be overridden by the scheduler
-      });
-
-      if (slots.length === 0) {
-        return { success: false, message: 'No available time slots found' };
-      }
-
-      // Use the best available time slot
-      const bestSlot = slots[0];
-      const scheduledPost = {
-        ...post,
-        scheduledTime: bestSlot.start,
-      };
-
-      // Schedule the post
-      await this.schedulerService.schedulePost(scheduledPost);
+      const optimalSlots = this.timeSlotManager.findOptimalTimeSlots();
       
-      return { 
-        success: true, 
-        message: 'Post scheduled successfully',
-        scheduledTime: bestSlot.start
+      if (optimalSlots.length === 0) {
+        throw new Error('No optimal time slots available');
+      }
+      
+      // Schedule the post for the first optimal slot
+      const scheduledPost: Post = {
+        ...post,
+        id: postId,
+        platform,
+        scheduledTime: optimalSlots[0].start,
+        status: 'scheduled',
+        content: post.content || '',
+        metadata: post.metadata || {}
       };
+      
+      const success = await this.schedulerService.schedulePost(scheduledPost);
+      
+      if (!success) {
+        throw new Error('Failed to schedule post');
+      }
+      
+      return postId;
     } catch (error) {
       console.error('Error scheduling post:', error);
-      return { 
-        success: false, 
-        message: error instanceof Error ? error.message : 'Failed to schedule post' 
-      };
+      throw error;
     }
   }
 

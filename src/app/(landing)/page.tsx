@@ -2,22 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import HeroSection from './components/HeroSection';
+import FeaturesSection from './components/FeaturesSection';
 import ViralBlitzCycle from './components/ViralBlitzCycle';
-import SocialProof from './components/SocialProof';
-import DashboardPreview from './components/DashboardPreview';
-import GrandSlamOffer from './components/GrandSlamOffer';
-import CTAWithGuarantee from './components/CTAWithGuarantee';
+import TestimonialsSection from './components/TestimonialsSection';
+import FinalCTASection from './components/FinalCTASection';
 import Footer from './components/Footer';
 
 // Define color palette for the Viral Blitz theme
+// Color palette for the application
 export const colors = {
-  blitzBlue: '#3B82F6',
-  surgePurple: '#8B5CF6',
-  thunderYellow: '#F59E0B',
-  loopTeal: '#14B8A6',
-  stormGray: '#1F2937',
-  lightningWhite: '#F9FAFB',
+  blitzBlue: '#0066FF',
+  surgePurple: '#7F00FF',
+  thunderYellow: '#FFD700',
+  loopTeal: '#00FFCC',
+  stormGray: '#1A1A1A',
+  lightningWhite: '#F0F0F0',
   pulseRed: '#FF355E',
+  // Gradients
+  gradientBlitz: 'linear-gradient(90deg, #0066FF 0%, #7F00FF 100%)',
+  gradientCycle: 'linear-gradient(90deg, #00FFCC 0%, #0066FF 100%)',
+  gradientFull: 'linear-gradient(90deg, #0066FF 0%, #7F00FF 50%, #00FFCC 100%)',
 };
 
 export default function Home() {
@@ -70,23 +74,18 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-stormGray text-lightningWhite">
+    <div className="min-h-screen bg-black text-[#F0F0F0] overflow-x-hidden">
       <main>
         <HeroSection 
           onCTAClick={handleCTAClick}
           timeRemaining={timeRemaining}
           remainingSpots={remainingSpots}
         />
+        <FeaturesSection />
         <ViralBlitzCycle />
-        <SocialProof />
-        <DashboardPreview />
-        <GrandSlamOffer />
-        <CTAWithGuarantee 
-          onCTAClick={handleCTAClick} 
-          remainingSpots={remainingSpots}
-        />
+        <TestimonialsSection />
+        <FinalCTASection />
       </main>
-      {/* Footer */}
       <Footer />
     </div>
   );

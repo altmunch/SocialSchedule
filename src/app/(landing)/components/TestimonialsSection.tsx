@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Quote, Star } from 'lucide-react';
+import { Quote, Star, Zap } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 
 const testimonials = [
   {
@@ -41,8 +42,15 @@ const testimonials = [
 
 export default function TestimonialsSection() {
   return (
-    <section className="py-16 md:py-24 px-4 bg-gradient-to-b from-muted/20 to-background">
-      <div className="max-w-7xl mx-auto">
+    <section className="relative py-20 md:py-32 px-4 bg-black overflow-hidden">
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-black" />
+        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.02]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/90" />
+      </div>
+      <div className="relative z-10">
+      
+      <div className="max-w-7xl mx-auto relative">
         <motion.div 
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -50,46 +58,55 @@ export default function TestimonialsSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Trusted by Creators Worldwide</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Don't just take our word for it. Here's what our users have to say.
+          <div className="inline-block px-4 py-1.5 rounded-full bg-[#7F00FF]/10 border border-[#7F00FF]/20 text-[#7F00FF] text-sm font-medium mb-4">
+            Social Proof
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#F0F0F0] mb-4">Trusted by 1,203+ Creators</h2>
+          <p className="text-[#B0B0B0] max-w-2xl mx-auto text-lg">
+            Join thousands of creators who've grown their audience with our platform
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
-              className="bg-background/80 backdrop-blur-sm rounded-xl p-6 border border-border/50 hover:border-misty/30 transition-all"
+              className="group bg-[#1F1F1F] rounded-xl p-6 border border-[#333333] hover:border-[#7F00FF]/30 transition-all h-full flex flex-col"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 * index, duration: 0.5 }}
             >
-              <div className="flex items-center gap-4 mb-4">
-                <Avatar>
-                  <AvatarImage src={testimonial.image} alt={testimonial.name} />
-                  <AvatarFallback className="bg-mint/10 text-mint">
-                    {testimonial.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h4 className="font-medium text-foreground">{testimonial.name}</h4>
-                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+              <div className="flex-1">
+                <div className="flex items-center gap-4 mb-4">
+                  <Avatar className="border-2 border-[#7F00FF]/20">
+                    <AvatarImage src={testimonial.image} alt={testimonial.name} />
+                    <AvatarFallback className="bg-gradient-to-br from-[#7F00FF] to-[#00FFCC] text-white">
+                      {testimonial.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h4 className="font-medium text-[#F0F0F0]">{testimonial.name}</h4>
+                    <p className="text-sm text-[#B0B0B0]">{testimonial.role}</p>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <Quote className="absolute -top-2 -left-2 w-6 h-6 text-[#7F00FF]/20" />
+                  <p className="text-[#B0B0B0] mb-4 pl-6">"{testimonial.content}"</p>
                 </div>
               </div>
               
-              <div className="relative">
-                <Quote className="absolute -top-2 -left-2 w-6 h-6 text-mint/20" />
-                <p className="text-muted-foreground mb-3 pl-6">"{testimonial.content}"</p>
+              <div className="flex items-center justify-between mt-auto pt-4 border-t border-[#333333]">
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
                     <Star 
                       key={i} 
-                      className={`w-4 h-4 ${i < testimonial.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground/30'}`} 
+                      className={`w-4 h-4 ${i < testimonial.rating ? 'text-[#FFD700] fill-[#FFD700]' : 'text-[#333333]'}`} 
                     />
                   ))}
                 </div>
+                <Zap className="w-4 h-4 text-[#7F00FF] opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </motion.div>
           ))}
@@ -102,14 +119,29 @@ export default function TestimonialsSection() {
           viewport={{ once: true }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-mint/10 text-mint text-sm font-medium hover:bg-mint/20 transition-colors cursor-pointer">
-            <span>Read more testimonials</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <Button 
+            variant="outline" 
+            className="group border-2 border-[#333333] bg-[#1F1F1F] hover:bg-[#2A2A2A] text-[#F0F0F0] hover:text-white py-6 px-8 text-lg rounded-xl transition-all"
+          >
+            <span>Read More Testimonials</span>
+            <svg 
+              className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
               <path d="M5 12h14"/>
               <path d="m12 5 7 7-7 7"/>
             </svg>
-          </div>
+          </Button>
         </motion.div>
+      </div>
       </div>
     </section>
   );

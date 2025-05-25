@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Clock, BarChart2, RefreshCw, Search, PlayCircle } from 'lucide-react';
+import { ArrowRight, Zap, Clock, BarChart2, RefreshCw, Search, PlayCircle, CheckCircle, Star as StarIcon, Zap as Lightning } from 'lucide-react';
 
 interface HeroSectionProps {
   onCTAClick: () => void;
@@ -17,40 +17,60 @@ interface HeroSectionProps {
 
 export default function HeroSection({ onCTAClick, timeRemaining, remainingSpots }: HeroSectionProps) {
   return (
-    <section className="relative py-20 overflow-hidden bg-stormGray text-lightningWhite">
-      <div className="container mx-auto px-4">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-br from-stormGray to-black/80"></div>
-          <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5"></div>
-          
-          {/* Animated gradient orbs */}
-          <div className="absolute top-1/4 -left-20 w-96 h-96 rounded-full bg-gradient-to-r from-blitzBlue/30 to-surgePurple/30 filter blur-3xl opacity-70 animate-float"></div>
-          <div className="absolute bottom-1/4 -right-20 w-96 h-96 rounded-full bg-gradient-to-r from-loopTeal/30 to-blitzBlue/30 filter blur-3xl opacity-70 animate-float animation-delay-2000"></div>
-        </div>
+    <section className="relative py-16 md:py-24 overflow-hidden bg-black text-[#F0F0F0]">
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-black" />
+        {/* Animated gradient orbs */}
+        <div className="absolute top-1/4 -left-20 w-[30rem] h-[30rem] rounded-full bg-gradient-to-r from-[#0066FF]/20 to-[#7F00FF]/20 filter blur-[100px] opacity-70 animate-float" />
+        <div className="absolute bottom-1/4 -right-20 w-[30rem] h-[30rem] rounded-full bg-gradient-to-r from-[#00FFCC]/20 to-[#0066FF]/20 filter blur-[100px] opacity-70 animate-float animation-delay-2000" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_70%)]" />
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-[0.02]" />
+      </div>
+      <div className="container mx-auto px-4 relative z-10">
 
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          {/* Badge */}
+        <div className="max-w-5xl mx-auto text-center px-4">
+          {/* Trust Badge */}
           <motion.div 
-            className="inline-flex items-center px-4 py-1.5 rounded-full bg-blitzBlue/20 border border-blitzBlue/30 text-blitzBlue text-sm font-medium mb-6"
+            className="inline-flex items-center px-4 py-1.5 rounded-full bg-[#0066FF]/10 border border-[#0066FF]/20 text-[#0066FF] text-sm font-medium mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Zap className="w-4 h-4 mr-2" />
-            <span>Only {remainingSpots} alpha spots left!</span>
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-4 h-4 text-[#FFD700] fill-current" />
+              ))}
+              <span className="ml-2 text-[#F0F0F0]">4.9/5 from 1,203 creators</span>
+            </div>
           </motion.div>
 
           {/* Main Headline */}
           <motion.h1 
-            className="text-4xl md:text-6xl font-bold mb-6 leading-tight"
+            className="text-4xl md:text-6xl font-bold mb-6 leading-tight text-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            transition={{ duration: 0.5 }}
           >
-            Activate Your <span className="text-blitzBlue">Viral Blitz Cycle</span>—
-            <span className="text-surgePurple">AI Posts</span> for You While You Sleep
+            <span className="relative inline-block">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#0066FF] via-[#7F00FF] to-[#00FFCC] bg-[length:200%] animate-gradient">
+                Sell More with AI:
+              </span>
+            </span>
+            <br />
+            <span className="text-white">Schedule Posts That Drive Sales</span>
           </motion.h1>
+
+          {/* Subheadline */}
+          <motion.p 
+            className="text-xl text-[#B0B0B0] max-w-2xl mx-auto mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            Convert 30% more visitors into customers by posting at the perfect times.
+            Our AI optimizes your schedule for maximum sales, not just engagement.
+          </motion.p>
 
           {/* Subheadline */}
           <motion.p 
@@ -65,58 +85,100 @@ export default function HeroSection({ onCTAClick, timeRemaining, remainingSpots 
 
           {/* CTA Buttons */}
           <motion.div 
-            className="flex flex-col sm:flex-row justify-center gap-4 mb-12"
+            className="flex flex-col sm:flex-row justify-center items-center gap-6 mb-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
           >
+            <div className="relative group">
+              <Button 
+                onClick={onCTAClick}
+                className="relative z-10 bg-gradient-to-r from-[#0066FF] to-[#7F00FF] hover:from-[#7F00FF] hover:to-[#0066FF] text-white text-lg font-semibold py-6 px-10 rounded-xl transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-[#7F00FF]/40"
+                size="lg"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  Start Selling More Today
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Button>
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#0066FF] to-[#00FFCC] rounded-xl opacity-75 group-hover:opacity-100 blur transition-all duration-300 -z-10"></div>
+            </div>
+            
             <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-blitzBlue to-surgePurple hover:opacity-90 transition-all transform hover:scale-105"
-              onClick={onCTAClick}
+              variant="ghost"
+              className="text-[#B0B0B0] hover:text-white text-base font-medium transition-colors group"
             >
-              Start My Free Trial
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <span className="flex items-center gap-2 group-hover:underline">
+                <PlayCircle className="w-5 h-5" />
+                Watch Product Demo
+              </span>
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="border-gray-600 text-lightningWhite hover:bg-gray-800/50"
-            >
-              <PlayCircle className="w-5 h-5 mr-2" />
-              Watch Demo
-            </Button>
+          </motion.div>
+
+          {/* Trust Badge */}
+          <motion.div 
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm text-[#B0B0B0] mt-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="flex items-center bg-[#2A2A2A] px-3 py-1.5 rounded-full">
+              <CheckCircle className="w-4 h-4 text-[#00CC66] mr-1.5" />
+              <span>30-Day Money Back Guarantee</span>
+            </div>
+            
+            <div className="hidden sm:block h-4 w-px bg-[#333333]" />
+            
+            <div className="flex items-center">
+              {[...Array(5)].map((_, i) => (
+                <StarIcon key={i} className="w-3.5 h-3.5 text-[#FFD700] fill-current" />
+              ))}
+              <span className="ml-1.5">4.9/5 from 1,203 sellers</span>
+            </div>
           </motion.div>
 
           {/* Countdown Timer */}
           <motion.div 
-            className="mb-12 p-4 bg-stormGray/50 backdrop-blur-sm rounded-lg border border-gray-700 inline-flex items-center space-x-6"
+            className="bg-[#1F1F1F] backdrop-blur-sm border border-[#333333] rounded-2xl p-6 max-w-md mx-auto mb-16 relative overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
           >
-            <div className="text-center">
-              <div className="text-3xl font-bold text-thunderYellow">
-                {String(timeRemaining.hours).padStart(2, '0')}h
-              </div>
-              <div className="text-xs text-gray-400">Hours</div>
+            <div className="absolute -top-px left-0 right-0 h-1 bg-gradient-to-r from-[#FFD700] via-[#7F00FF] to-[#0066FF]" />
+            <div className="text-center mb-4">
+              <h3 className="text-xl font-bold text-[#F0F0F0] mb-1">Bonuses expire in:</h3>
+              <p className="text-sm text-[#B0B0B0]">Join now to get exclusive early bird benefits</p>
             </div>
-            <div className="text-2xl text-gray-500">:</div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-thunderYellow">
-                {String(timeRemaining.minutes).padStart(2, '0')}m
+            
+            <div className="flex items-center justify-center gap-3">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white bg-[#0D0D0D] p-3 rounded-lg min-w-[60px]">
+                  {String(timeRemaining.hours).padStart(2, '0')}
+                </div>
+                <div className="text-xs text-[#B0B0B0] mt-1">HOURS</div>
               </div>
-              <div className="text-xs text-gray-400">Minutes</div>
-            </div>
-            <div className="text-2xl text-gray-500">:</div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-thunderYellow">
-                {String(timeRemaining.seconds).padStart(2, '0')}s
+              <div className="text-[#7F00FF] text-2xl font-bold -mb-2">:</div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white bg-[#0D0D0D] p-3 rounded-lg min-w-[60px]">
+                  {String(timeRemaining.minutes).padStart(2, '0')}
+                </div>
+                <div className="text-xs text-[#B0B0B0] mt-1">MINUTES</div>
               </div>
-              <div className="text-xs text-gray-400">Seconds</div>
+              <div className="text-[#7F00FF] text-2xl font-bold -mb-2">:</div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white bg-[#0D0D0D] p-3 rounded-lg min-w-[60px]">
+                  {String(timeRemaining.seconds).padStart(2, '0')}
+                </div>
+                <div className="text-xs text-[#B0B0B0] mt-1">SECONDS</div>
+              </div>
             </div>
-            <div className="ml-4 pl-4 border-l border-gray-700">
-              <div className="text-sm text-gray-300">Until bonuses expire</div>
+            
+            {/* Limited spots badge */}
+            <div className="mt-4 text-center">
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#FFD700]/10 text-[#FFD700] text-xs font-medium">
+                <Zap className="w-3 h-3 mr-1.5" />
+                Only {remainingSpots} alpha spots left!
+              </div>
             </div>
           </motion.div>
 

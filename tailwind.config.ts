@@ -19,55 +19,58 @@ const config = {
     },
     extend: {
       colors: {
-        // New color scheme
-        graphite: {
-          DEFAULT: '#232C3D',
-          light: '#3A4A63',
-          dark: '#1A202C',
+        // Core Brand Colors
+        'blitz': {
+          blue: 'hsl(214, 100%, 50%)',
+          purple: 'hsl(270, 100%, 50%)',
+          yellow: 'hsl(51, 100%, 50%)',
+          teal: 'hsl(180, 100%, 50%)',
+          red: 'hsl(0, 100%, 50%)',
         },
-        misty: {
-          DEFAULT: '#8FD6FF',
-          light: '#C2E8FF',
-          dark: '#5CB2E0',
+        // Storm Gray Scale
+        'storm': {
+          DEFAULT: 'hsl(210, 25%, 12%)',
+          light: 'hsl(210, 20%, 18%)',
+          dark: 'hsl(210, 30%, 8%)',
         },
-        mint: {
-          DEFAULT: '#A2F4C5',
-          light: '#D1F8E3',
-          dark: '#7ED4A3',
+        // Lightning White Scale
+        'lightning': {
+          DEFAULT: 'hsl(0, 0%, 98%)',
+          dim: 'hsl(0, 0%, 80%)',
         },
-        // Default theme colors
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        // Theme colors mapped to CSS variables - using direct HSL values for better performance
+        border: 'hsl(210 20% 18% / 0.5)',
+        input: 'hsl(210 20% 18% / 0.8)',
+        ring: 'hsl(214 100% 50%)',
+        background: 'hsl(210 25% 12%)',
+        foreground: 'hsl(0 0% 98%)',
         primary: {
-          DEFAULT: '#232C3D', // Graphite Blue
-          foreground: '#FFFFFF',
+          DEFAULT: 'hsl(214 100% 50%)',
+          foreground: 'hsl(0 0% 98%)',
         },
         secondary: {
-          DEFAULT: '#8FD6FF', // Misty Sky Blue
-          foreground: '#232C3D',
-        },
-        accent: {
-          DEFAULT: '#A2F4C5', // Soft Mint Green
-          foreground: '#232C3D',
+          DEFAULT: 'hsl(270 100% 50%)',
+          foreground: 'hsl(0 0% 98%)',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: 'hsl(0 84% 60%)',
+          foreground: 'hsl(0 0% 98%)',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: 'hsl(210 20% 18%)',
+          foreground: 'hsl(0 0% 80%)',
+        },
+        accent: {
+          DEFAULT: 'hsl(180 100% 50%)',
+          foreground: 'hsl(0 0% 98%)',
         },
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
+          DEFAULT: 'hsl(210 20% 18%)',
+          foreground: 'hsl(0 0% 98%)',
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: 'hsl(210 20% 18%)',
+          foreground: 'hsl(0 0% 98%)',
         },
       },
       borderRadius: {

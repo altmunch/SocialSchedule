@@ -26,11 +26,26 @@ export default function LandingLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className={cn(
-      inter.className,
-      "min-h-screen bg-background text-foreground flex flex-col"
-    )}>
-      {children}
+    <div className="relative min-h-screen w-full bg-storm text-lightning">
+      {/* Grid Pattern Background */}
+      <div className="fixed inset-0 -z-10">
+        <div 
+          className="absolute inset-0 [mask-image:linear-gradient(0deg,transparent,black_1px,transparent_1px)] [mask-size:100%_40px]"
+          style={{
+            backgroundImage: "url('/grid-pattern.svg')",
+            backgroundSize: '40px 40px',
+            opacity: 0.1
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-storm to-storm-dark/90" />
+      </div>
+      
+      <main className={cn(
+        inter.className,
+        "relative w-full min-h-screen flex flex-col"
+      )}>
+        {children}
+      </main>
     </div>
   );
 }

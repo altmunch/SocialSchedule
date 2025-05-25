@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ChartBarIcon, RocketLaunchIcon, AdjustmentsHorizontalIcon, ClockIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { schedulerIntegrationService } from '../../services/SchedulerIntegrationService';
-import { Post } from '../../../(apex_scheduler)/types';
+import { Post } from '@/app/dashboard/types';
 
 type PlatformType = 'instagram' | 'tiktok' | 'facebook' | 'linkedin';
 
@@ -89,9 +89,7 @@ export default function DominateStep({
     setError(null);
     
     try {
-      const post: Post = {
-        id: `post-${Date.now()}`,
-        platform,
+      const postData = {
         content: postContent,
         scheduledTime: selectedSlot,
         metadata: {
@@ -100,16 +98,12 @@ export default function DominateStep({
         },
       };
       
-      const result = await schedulerIntegrationService.schedulePost(post);
-      
-      if (result.success) {
-        setScheduleSuccess(true);
-        setTimeout(() => onComplete(), 2000); // Move to next step after 2 seconds
-      } else {
-        setError(result.message || 'Failed to schedule post');
-      }
+      const postId = await schedulerIntegrationService.schedulePost(postData, platform);
+      setScheduleSuccess(true);
+      setTimeout(() => onComplete(), 2000); // Move to next step after 2 seconds
     } catch (err) {
-      setError('An error occurred while scheduling the post');
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred while scheduling the post';
+      setError(errorMessage);
       console.error('Scheduling error:', err);
     } finally {
       setIsScheduling(false);

@@ -9,8 +9,10 @@ export interface PostContent {
   customFields: Record<string, any>;
 }
 
+export type PostStatusType = 'draft' | 'scheduled' | 'published' | 'failed' | 'pending' | 'processing';
+
 export interface PostStatus {
-  status: 'draft' | 'scheduled' | 'published' | 'failed';
+  status: PostStatusType;
   publishedAt?: Date;
   scheduledFor?: Date;
   error?: string;
@@ -75,7 +77,7 @@ export interface QueueItem {
   postId: string;
   platform: Platform;
   scheduledFor: Date;
-  status: 'pending' | 'processing' | 'published' | 'failed';
+  status: PostStatusType;
   retryCount: number;
   lastAttempt?: Date;
   error?: string;
