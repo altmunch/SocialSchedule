@@ -16,7 +16,7 @@ const trustBadges: TrustBadge[] = [
   { id: 5, text: '24/7 Support' },
 ];
 
-export function TrustBadges() {
+export default function TrustBadges() {
   return (
     <div className="flex flex-wrap justify-center gap-6 mt-8">
       {trustBadges.map((badge) => (

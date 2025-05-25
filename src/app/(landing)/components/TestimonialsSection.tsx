@@ -39,7 +39,7 @@ const testimonials = [
   }
 ];
 
-export function TestimonialsSection() {
+export default function TestimonialsSection() {
   return (
     <section className="py-16 md:py-24 px-4 bg-gradient-to-b from-muted/20 to-background">
       <div className="max-w-7xl mx-auto">

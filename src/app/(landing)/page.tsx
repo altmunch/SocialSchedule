@@ -1,100 +1,93 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Navbar } from './components/Navbar';
-import { HeroSection } from './components/HeroSection';
-import { StatsSection } from './components/StatsSection';
-import { TrustBadges } from './components/TrustBadges';
-import { FeaturesSection } from './components/FeaturesSection';
-import { TestimonialsSection } from './components/TestimonialsSection';
-import { PricingSection } from './components/PricingSection';
-import { CountdownSection } from './components/CountdownSection';
-import { ExitIntentPopup } from '@/components/custom/ExitIntentPopup';
-import { FloatingCTA } from '@/components/custom/FloatingCTA';
-import { CreatorAvatar } from './types';
+import HeroSection from './components/HeroSection';
+import ViralBlitzCycle from './components/ViralBlitzCycle';
+import SocialProof from './components/SocialProof';
+import DashboardPreview from './components/DashboardPreview';
+import GrandSlamOffer from './components/GrandSlamOffer';
+import CTAWithGuarantee from './components/CTAWithGuarantee';
+import Footer from './components/Footer';
 
-// Generate random number between min and max
-const randomInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+// Define color palette for the Viral Blitz theme
+export const colors = {
+  blitzBlue: '#3B82F6',
+  surgePurple: '#8B5CF6',
+  thunderYellow: '#F59E0B',
+  loopTeal: '#14B8A6',
+  stormGray: '#1F2937',
+  lightningWhite: '#F9FAFB',
+  pulseRed: '#FF355E',
+};
 
-// Mock data for creator avatars
-const creatorAvatars: CreatorAvatar[] = [
-  { id: '1', name: 'Alex' },
-  { id: '2', name: 'Taylor' },
-  { id: '3', name: 'Jordan' },
-  { id: '4', name: 'Casey' },
-  { id: '5', name: 'Riley' },
-  { id: '6', name: 'Quinn' },
-];
-
-export default function LandingPage() {
-  const [stats, setStats] = useState({
-    postsScheduled: 0,
-    totalViews: 0,
-    alphaSpots: 0,
-    totalUsers: 0,
+export default function Home() {
+  const [mounted, setMounted] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState({
+    hours: 23,
+    minutes: 59,
+    seconds: 59,
   });
+  
+  const remainingSpots = 27; // This would come from your backend in a real app
 
+  // Countdown timer effect
   useEffect(() => {
-    // Only run on client side
-    setStats({
-      postsScheduled: randomInRange(12000, 15000),
-      totalViews: parseFloat(`${randomInRange(2, 4)}.${randomInRange(1, 9)}`),
-      alphaSpots: randomInRange(5, 20),
-      totalUsers: randomInRange(12000, 15000), // Keep consistent with the value in HeroSection
-    });
+    setMounted(true);
+    
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => {
+        const newSeconds = prev.seconds - 1;
+        const newMinutes = newSeconds < 0 ? prev.minutes - 1 : prev.minutes;
+        const newHours = newMinutes < 0 ? prev.hours - 1 : prev.hours;
+        
+        if (newHours < 0) {
+          clearInterval(timer);
+          return { hours: 0, minutes: 0, seconds: 0 };
+        }
+        
+        return {
+          hours: newHours,
+          minutes: newMinutes < 0 ? 59 : newMinutes,
+          seconds: newSeconds < 0 ? 59 : newSeconds,
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const handleCTAClick = () => {
-    const element = document.getElementById('pricing');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
+    // Handle CTA click - this would typically redirect to signup or open a modal
+    window.location.href = '/sign-up';
   };
 
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stormGray">
+        <div className="animate-pulse text-blitzBlue">Loading...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-graphite to-graphite-dark">
-      {/* Exit Intent Popup */}
-      <ExitIntentPopup />
-      
-      {/* Floating CTA */}
-      <FloatingCTA onClick={handleCTAClick} />
-      
-      {/* Navbar */}
-      <Navbar />
-      
-      <main className="flex-1">
-        {/* Hero Section */}
+    <div className="min-h-screen bg-stormGray text-lightningWhite">
+      <main>
         <HeroSection 
-          stats={{ 
-            totalUsers: stats.totalUsers,
-            postsScheduled: stats.postsScheduled,
-            totalViews: stats.totalViews,
-            alphaSpots: stats.alphaSpots,
-          }} 
-          creatorAvatars={creatorAvatars} 
-          onCTAClick={handleCTAClick} 
+          onCTAClick={handleCTAClick}
+          timeRemaining={timeRemaining}
+          remainingSpots={remainingSpots}
         />
-        
-        {/* Stats Section */}
-        <StatsSection />
-        
-        {/* Trust Badges */}
-        <TrustBadges />
-        
-        {/* Features Section */}
-        <FeaturesSection />
-        
-        {/* Testimonials Section */}
-        <TestimonialsSection />
-        
-        {/* Pricing Section */}
-        <PricingSection />
-        
-        {/* Countdown Section */}
-        <CountdownSection onCTAClick={handleCTAClick} />
+        <ViralBlitzCycle />
+        <SocialProof />
+        <DashboardPreview />
+        <GrandSlamOffer />
+        <CTAWithGuarantee 
+          onCTAClick={handleCTAClick} 
+          remainingSpots={remainingSpots}
+        />
       </main>
-      
-      {/* Footer would go here */}
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

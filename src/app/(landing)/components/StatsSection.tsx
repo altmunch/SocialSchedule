@@ -47,7 +47,7 @@ function AnimatedCounter({ value }: { value: number }) {
   );
 }
 
-export function StatsSection() {
+export default function StatsSection() {
   const stats = {
     postsScheduled: 1250000,
     activeUsers: 25000,

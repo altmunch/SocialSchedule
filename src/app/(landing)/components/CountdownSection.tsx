@@ -9,7 +9,7 @@ interface CountdownSectionProps {
   onCTAClick?: () => void;
 }
 
-export function CountdownSection({ onCTAClick }: CountdownSectionProps) {
+export default function CountdownSection({ onCTAClick }: CountdownSectionProps) {
   const handleClick = () => {
     if (onCTAClick) {
       onCTAClick();

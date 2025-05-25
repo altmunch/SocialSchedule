@@ -57,7 +57,7 @@ const plans = [
   }
 ];
 
-export function PricingSection() {
+export default function PricingSection() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [isYearly, setIsYearly] = useState(false);
   
