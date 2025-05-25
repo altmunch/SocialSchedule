@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, PlayCircle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,24 @@ import { CreatorAvatar } from '../types';
 interface HeroSectionProps {
   stats: {
     totalUsers: number;
+    postsScheduled?: number;
+    totalViews?: number;
+    alphaSpots?: number;
   };
   creatorAvatars?: CreatorAvatar[];
   onCTAClick?: () => void;
 }
 
 export function HeroSection({ stats, creatorAvatars = [], onCTAClick }: HeroSectionProps) {
+  // Use state to ensure the number is only rendered on the client side
+  const [isClient, setIsClient] = useState(false);
+  const [displayNumber, setDisplayNumber] = useState('12,000');
+  
+  useEffect(() => {
+    setIsClient(true);
+    // Update with the actual number on client side
+    setDisplayNumber(stats.totalUsers.toLocaleString());
+  }, [stats.totalUsers]);
   return (
     <section className="relative pt-32 pb-20 px-4 overflow-hidden bg-gradient-to-b from-graphite to-graphite-dark">
       <div className="absolute inset-0">
@@ -25,7 +38,7 @@ export function HeroSection({ stats, creatorAvatars = [], onCTAClick }: HeroSect
       <div className="relative max-w-7xl mx-auto">
         <div className="text-center">
           <Badge className="mb-6 bg-misty/10 text-misty border border-misty/20 hover:bg-misty/20 px-4 py-1.5 text-sm font-medium">
-            🚀 Join {stats.totalUsers.toLocaleString()}+ creators growing with us
+            🚀 Join {displayNumber}+ creators growing with us
           </Badge>
           
           <motion.h1 

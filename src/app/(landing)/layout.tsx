@@ -20,21 +20,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default function LandingLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={cn(
-        inter.className,
-        "min-h-screen bg-dominator-black text-dominator-light antialiased"
-      )}>
-        <div className="min-h-screen flex flex-col">
-          {children}
-        </div>
-      </body>
-    </html>
+    <div className={cn(
+      inter.className,
+      "min-h-screen bg-background text-foreground flex flex-col"
+    )}>
+      {children}
+    </div>
   );
 }

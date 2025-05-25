@@ -27,12 +27,22 @@ const creatorAvatars: CreatorAvatar[] = [
 ];
 
 export default function LandingPage() {
-  const [stats] = useState({
-    postsScheduled: randomInRange(12000, 15000),
-    totalViews: parseFloat(`${randomInRange(2, 4)}.${randomInRange(1, 9)}`),
-    alphaSpots: randomInRange(5, 20),
-    totalUsers: randomInRange(10000, 15000),
+  const [stats, setStats] = useState({
+    postsScheduled: 0,
+    totalViews: 0,
+    alphaSpots: 0,
+    totalUsers: 0,
   });
+
+  useEffect(() => {
+    // Only run on client side
+    setStats({
+      postsScheduled: randomInRange(12000, 15000),
+      totalViews: parseFloat(`${randomInRange(2, 4)}.${randomInRange(1, 9)}`),
+      alphaSpots: randomInRange(5, 20),
+      totalUsers: randomInRange(12000, 15000), // Keep consistent with the value in HeroSection
+    });
+  }, []);
 
   const handleCTAClick = () => {
     const element = document.getElementById('pricing');
@@ -55,7 +65,12 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <HeroSection 
-          stats={{ totalUsers: stats.totalUsers }} 
+          stats={{ 
+            totalUsers: stats.totalUsers,
+            postsScheduled: stats.postsScheduled,
+            totalViews: stats.totalViews,
+            alphaSpots: stats.alphaSpots,
+          }} 
           creatorAvatars={creatorAvatars} 
           onCTAClick={handleCTAClick} 
         />

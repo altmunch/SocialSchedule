@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useFormState, useFormStatus } from "react-dom";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-interface LoginProps {
-  searchParams: { message?: string; type?: 'success' | 'error' | 'info' | 'warning' };
+interface FormState {
+  error: string | null;
+  success: boolean;
 }
 
 function SubmitButton({ 
@@ -20,35 +20,43 @@ function SubmitButton({
   children: React.ReactNode; 
   loading?: boolean 
 }) {
-  const { pending } = useFormStatus();
-  
   return (
     <Button 
       type="submit" 
       className="w-full bg-gradient-to-r from-dominator-blue to-dominator-magenta hover:from-dominator-blue/90 hover:to-dominator-magenta/90 text-white font-semibold py-2.5 rounded-lg transition-all hover:shadow-[0_0_20px_rgba(0,245,255,0.5)]"
-      disabled={loading || pending}
+      disabled={loading}
     >
-      {(loading || pending) ? 'Signing in...' : children}
+      {loading ? 'Signing in...' : children}
     </Button>
   );
 }
 
-export default function SignInPage({ searchParams }: LoginProps) {
+export default function SignInPage() {
   const router = useRouter();
-  const [state, formAction] = useFormState(signInAction, null);
+  const searchParams = useSearchParams();
+  const formRef = useRef<HTMLFormElement>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { pending } = useFormStatus();
+  const [error, setError] = useState<string | null>(null);
+  const message = searchParams.get('message');
+  const type = searchParams.get('type') as 'success' | 'error' | 'info' | 'warning' | null;
 
-  useEffect(() => {
-    if (state?.success) {
-      router.push("/dashboard");
-    }
-  }, [state, router]);
-
-  const handleFormAction = async (formData: FormData) => {
+  const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
+    setError(null);
+    
     try {
-      await formAction(formData);
+      const result = await signInAction({}, formData);
+      
+      if (result?.error) {
+        setError(result.error);
+      } else if (result?.success) {
+        router.push("/dashboard");
+      } else {
+        setError('An unknown error occurred');
+      }
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      setError('An error occurred during sign in');
     } finally {
       setIsLoading(false);
     }
@@ -62,30 +70,30 @@ export default function SignInPage({ searchParams }: LoginProps) {
             <div className="absolute inset-0 -z-10 bg-grid-dominator-dark/20 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,hsl(var(--background)))]" />
             <div className="flex flex-col items-center space-y-6">
               <div className="space-y-2 text-center">
-                <h1 className="text-3xl font-bold tracking-tight text-white">Welcome back</h1>
-                <p className="text-dominator-300">Enter your credentials to sign in to your account</p>
+                <h1 className="text-3xl font-bold tracking-tight text-black">Welcome back</h1>
+                <p className="text-black">Enter your credentials to sign in to your account</p>
               </div>
               
-              <form action={handleFormAction} className="w-full space-y-4">
+              <form action={handleSubmit} className="w-full space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-black">Email</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     placeholder="m@example.com"
                     required
-                    className="bg-dominator-dark/50 border-dominator-dark/50 text-white placeholder-dominator-400"
+                    className="bg-dominator-dark/50 border-dominator-dark/50 text-black placeholder-dominator-400"
                     disabled={isLoading}
                   />
                 </div>
                 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password" className="text-black">Password</Label>
                     <Link
                       href="/forgot-password"
-                      className="text-sm text-dominator-300 hover:text-dominator-100 transition-colors"
+                      className="text-sm text-black hover:text-gray-700 transition-colors"
                       tabIndex={isLoading ? -1 : 0}
                     >
                       Forgot password?
@@ -96,7 +104,7 @@ export default function SignInPage({ searchParams }: LoginProps) {
                     name="password"
                     type="password"
                     required
-                    className="bg-dominator-dark/50 border-dominator-dark/50 text-white"
+                    className="bg-dominator-dark/50 border-dominator-dark/50 text-black"
                     disabled={isLoading}
                   />
                 </div>
@@ -105,26 +113,26 @@ export default function SignInPage({ searchParams }: LoginProps) {
                   Sign In to Your Account
                 </SubmitButton>
                 
-                {state?.error && (
+                {error && (
                   <div className="text-red-400 text-sm text-center">
-                    {state.error}
+                    {error}
                   </div>
                 )}
                 
-                {searchParams.message && (
+                {message && (
                   <div className={`text-sm text-center ${
-                    searchParams.type === 'error' ? 'text-red-400' : 'text-green-400'
+                    type === 'error' ? 'text-red-400' : 'text-green-400'
                   }`}>
-                    {searchParams.message}
+                    {message}
                   </div>
                 )}
               </form>
               
-              <div className="text-center text-sm text-dominator-300">
+              <div className="text-center text-sm text-black">
                 Don't have an account?{" "}
                 <Link
                   href="/sign-up"
-                  className="text-dominator-100 hover:text-white font-medium transition-colors"
+                  className="text-black hover:text-gray-700 font-medium transition-colors"
                   tabIndex={isLoading ? -1 : 0}
                 >
                   Sign up

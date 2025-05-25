@@ -53,12 +53,14 @@ export function Navbar() {
                 {link.name}
               </a>
             ))}
-            <Button 
-              className="ml-4 bg-gradient-to-r from-misty to-mint text-graphite hover:opacity-90 transition-opacity hover:text-graphite"
-              onClick={() => window.location.href = '#cta'}
-            >
-              Get Started <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <Link href="/sign-in" passHref>
+              <Button 
+                className="ml-4 bg-gradient-to-r from-misty to-mint text-graphite hover:opacity-90 transition-opacity hover:text-graphite"
+                asChild
+              >
+                <span>Get Started <ArrowRight className="ml-2 h-4 w-4 inline" /></span>
+              </Button>
+            </Link>
           </nav>
 
           {/* Mobile menu button */}
@@ -96,15 +98,15 @@ export function Navbar() {
               {link.name}
             </a>
           ))}
-          <Button 
-            className="w-full mt-2 bg-gradient-to-r from-misty to-mint text-graphite hover:opacity-90 transition-opacity hover:text-graphite"
-            onClick={() => {
-              window.location.href = '#cta';
-              setIsMenuOpen(false);
-            }}
-          >
-            Get Started <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <Link href="/sign-in" passHref>
+            <Button 
+              className="w-full mt-2 bg-gradient-to-r from-misty to-mint text-graphite hover:opacity-90 transition-opacity hover:text-graphite"
+              onClick={() => setIsMenuOpen(false)}
+              asChild
+            >
+              <span>Get Started <ArrowRight className="ml-2 h-4 w-4 inline" /></span>
+            </Button>
+          </Link>
         </div>
       </div>
     </header>

@@ -42,7 +42,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-background text-foreground antialiased`}>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body className={`${inter.className} bg-background text-foreground min-h-screen`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -50,7 +54,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            {children}
+            <div id="root">
+              {children}
+            </div>
           </AuthProvider>
         </ThemeProvider>
       </body>
