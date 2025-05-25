@@ -21,6 +21,8 @@ create a dashboard template /
 
 link apex scheduler with dashboard template /
 
-settle all the auth
+settle all the auth/ 
 
+setup the database /
 
+testing 
