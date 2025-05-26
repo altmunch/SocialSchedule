@@ -1,7 +1,34 @@
 // difficult: Service for analyzing post metrics and extracting insights
 import { PostMetrics } from '../types';
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
-import { format, parseISO } from 'date-fns';
+import { formatInTimeZone, toZonedTime, getTimezoneOffset } from 'date-fns-tz';
+import { format, isValid } from 'date-fns';
+
+// Helper function to parse and validate dates
+const parseDate = (date: string | Date, timezone?: string): Date => {
+  const parsedDate = typeof date === 'string' ? new Date(date) : new Date(date);
+  
+  if (!isValid(parsedDate)) {
+    throw new Error(`Invalid date: ${date}`);
+  }
+  
+  // If timezone is provided, adjust the date to that timezone
+  if (timezone) {
+    const offset = getTimezoneOffset(timezone, parsedDate);
+    return new Date(parsedDate.getTime() + (parsedDate.getTimezoneOffset() * 60000) + offset);
+  }
+  
+  return parsedDate;
+};
+
+// Validate IANA timezone format
+const isValidTimezone = (timezone: string): boolean => {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: timezone });
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
 
 // Type definitions for time slot analysis
 interface TimeSlotEngagement {
@@ -21,6 +48,17 @@ interface TimeSlotSummary {
   timeLabel: string;
   engagementScore: number;
   timezone: string;
+}
+
+interface HashtagStats {
+  hashtag: string;
+  avgEngagement: number;
+  count: number;
+}
+
+interface EngagementStats {
+  totalEngagement: number;
+  count: number;
 }
 
 // Platform-specific engagement weights
@@ -50,8 +88,6 @@ const ENGAGEMENT_WEIGHTS = {
 
 // Base engagement rate calculation
 const BASE_ENGAGEMENT_RATE = 0.05; // 5% baseline
-
-
 
 export class PostAnalyzer {
   private platformWeights: Record<string, any>;
@@ -193,22 +229,33 @@ export class PostAnalyzer {
   /**
    * Convert a date to the specified timezone
    * @param date Input date (string or Date object)
-   * @param timezone Target timezone (e.g., 'Asia/Singapore')
+   * @param targetTimezone Target IANA timezone (e.g., 'Asia/Singapore')
+   * @param sourceTimezone Optional source IANA timezone if date is not in local time
    * @returns Object with converted date components
+   * @throws Error if timezone is invalid
    */
-  private convertToTimezone(date: string | Date, timezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  private convertToTimezone(
+    date: string | Date, 
+    targetTimezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone,
+    sourceTimezone?: string
+  ) {
+    // Validate target timezone
+    if (!isValidTimezone(targetTimezone)) {
+      throw new Error(`Invalid target timezone: ${targetTimezone}`);
+    }
+
     try {
-      // Parse the date if it's a string
-      const dateObj = typeof date === 'string' ? parseISO(date) : new Date(date);
+      // Parse the date, adjusting for source timezone if provided
+      const dateObj = parseDate(date, sourceTimezone);
       
       // Convert to the target timezone
-      const zonedDate = toZonedTime(dateObj, timezone);
+      const zonedDate = toZonedTime(dateObj, targetTimezone);
       
-      // Format the date components
-      const dayOfWeek = format(zonedDate, 'EEEE'); // Full day name (e.g., 'Monday')
+      // Format date components using the target timezone
+      const dayOfWeek = formatInTimeZone(zonedDate, targetTimezone, 'EEEE');
       const hour = zonedDate.getHours();
-      const day = zonedDate.getDay(); // 0-6 (Sunday-Saturday)
-      const timeLabel = format(zonedDate, 'h:mma'); // e.g., '2:30PM'
+      const day = zonedDate.getDay();
+      const timeLabel = formatInTimeZone(zonedDate, targetTimezone, 'h:mma');
       
       return { 
         zonedDate, 
@@ -216,44 +263,42 @@ export class PostAnalyzer {
         hour, 
         day, 
         timeLabel,
-        timezone
+        timezone: targetTimezone
       };
     } catch (error) {
-      console.error('Error converting date to timezone:', date, timezone, error);
-      // Fallback to local timezone if conversion fails
-      const fallbackDate = typeof date === 'string' ? new Date(date) : date;
-      const dayOfWeek = format(fallbackDate, 'EEEE');
-      const hour = fallbackDate.getHours();
-      const day = fallbackDate.getDay();
-      const timeLabel = format(fallbackDate, 'h:mma');
+      console.error('Error converting date to timezone:', { 
+        date, 
+        targetTimezone, 
+        sourceTimezone,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       
-      return {
-        zonedDate: fallbackDate,
-        dayOfWeek,
-        hour,
-        day,
-        timeLabel,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      };
+      throw new Error(`Failed to convert date to timezone: ${targetTimezone}. ${error instanceof Error ? error.message : ''}`);
     }
   }
 
   /**
    * Find peak engagement times using the weighted engagement score
-   * @param timezone Optional timezone (defaults to user's local timezone)
+   * @param targetTimezone Optional target IANA timezone (defaults to system timezone)
    * @returns Array of peak time slots with engagement data
+   * @throws Error if timezone conversion fails
    */
-  findPeakTimes(timezone?: string): TimeSlotSummary[] {
+  findPeakTimes(targetTimezone?: string): TimeSlotSummary[] {
     if (this.posts.length === 0) return [];
 
-    // Use provided timezone or detect user's timezone
-    const detectedTimezone = timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    // Use provided timezone or system timezone
+    const detectedTimezone = targetTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
     const timeSlots: Record<string, TimeSlotEngagement> = {};
     
     // Process each post's timestamp in the target timezone
     this.posts.forEach(post => {
       try {
-        const { hour, day, dayOfWeek, timeLabel } = this.convertToTimezone(post.timestamp, detectedTimezone);
+        const { hour, day, dayOfWeek, timeLabel } = this.convertToTimezone(
+          post.timestamp, 
+          detectedTimezone,
+          post.timezone // Use post's timezone if available
+        );
+        
         const key = `${day}-${hour}`;
         
         if (!timeSlots[key]) {
@@ -271,7 +316,11 @@ export class PostAnalyzer {
         timeSlots[key].engagement += this.calculateWeightedEngagement(post);
         timeSlots[key].count++;
       } catch (error) {
-        console.error('Error processing post timestamp:', post.timestamp, error);
+        console.error('Error processing post timestamp:', { 
+          postId: post.id, 
+          timestamp: post.timestamp,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
       }
     });
 
@@ -288,16 +337,16 @@ export class PostAnalyzer {
       .sort((a, b) => b.engagementScore - a.engagementScore)
       .slice(0, 5); // Return top 5 peak times
   }
-  }
 
   /**
    * Find top performing posts using the weighted engagement score
    * @param limit Maximum number of posts to return (default: 5)
    * @returns Array of top performing posts
    */
-  findTopPerformingPosts(limit = 5): PostMetrics[] {
+  public findTopPerformingPosts(limit: number = 5): PostMetrics[] {
+    if (!this.posts || !Array.isArray(this.posts) || this.posts.length === 0) return [];
     return [...this.posts]
-      .sort((a, b) => this.calculateWeightedEngagement(b) - this.calculateWeightedEngagement(a))
+      .sort((a: PostMetrics, b: PostMetrics) => this.calculateWeightedEngagement(b) - this.calculateWeightedEngagement(a))
       .slice(0, limit);
   }
 
@@ -305,71 +354,91 @@ export class PostAnalyzer {
    * Analyze hashtag performance across all posts
    * @returns Array of hashtags with their average engagement and count
    */
-  analyzeHashtags(): Array<{ hashtag: string; avgEngagement: number; count: number }> {
-    const hashtagStats: Record<string, { totalEngagement: number; count: number }> = {};
+  public analyzeHashtags(): HashtagStats[] {
+    if (!this.posts || !Array.isArray(this.posts) || this.posts.length === 0) return [];
+    const hashtagStats: Record<string, EngagementStats> = {};
     
-    this.posts.forEach(post => {
-      post.hashtags?.forEach((hashtag: string) => {
+    this.posts.forEach((post: PostMetrics) => {
+      // Skip if post or hashtags are not defined
+      if (!post || !Array.isArray(post.hashtags)) return;
+      
+      post.hashtags.forEach((hashtag: string) => {
+        if (!hashtag) return; // Skip empty hashtags
+        
         if (!hashtagStats[hashtag]) {
           hashtagStats[hashtag] = { totalEngagement: 0, count: 0 };
         }
-        hashtagStats[hashtag].totalEngagement += this.calculateWeightedEngagement(post);
-        hashtagStats[hashtag].count++;
+        
+        const engagement = this.calculateWeightedEngagement(post);
+        if (isFinite(engagement)) {
+          hashtagStats[hashtag].totalEngagement += engagement;
+          hashtagStats[hashtag].count++;
+        }
       });
     });
-
     return Object.entries(hashtagStats)
       .map(([hashtag, { totalEngagement, count }]) => ({
         hashtag,
         avgEngagement: totalEngagement / count,
         count
       }))
-      .sort((a, b) => b.avgEngagement - a.avgEngagement);
+      .sort((a: HashtagStats, b: HashtagStats) => b.avgEngagement - a.avgEngagement);
   }
 
   /**
    * Detect anomalies in post performance using IQR method
-   * @param threshold IQR multiplier for anomaly detection (default: 1.5)
+   * @param thresholdValue IQR multiplier for anomaly detection (default: 1.5)
    * @returns Array of posts that are statistical anomalies
    */
-  detectAnomalies(threshold = 1.5): PostMetrics[] {
-    if (this.posts.length < 3) return [];
+  public detectAnomalies(thresholdValue: number = 1.5): PostMetrics[] {
+    if (!this.posts || !Array.isArray(this.posts) || this.posts.length < 3) return [];
     
-    const engagementRates = this.posts.map(p => this.calculateWeightedEngagement(p));
-    const sorted = [...engagementRates].sort((a, b) => a - b);
+    // Filter out invalid posts and calculate engagement
+    const engagementRates = this.posts
+      .filter((post: PostMetrics) => post !== undefined && post !== null)
+      .map((post: PostMetrics) => ({
+        post,
+        engagement: this.calculateWeightedEngagement(post)
+      }));
+
+    if (engagementRates.length < 3) return [];
+
+    // Sort by engagement
+    const sortedEngagement = [...engagementRates].sort((a, b) => a.engagement - b.engagement);
+    const sortedValues = sortedEngagement.map((item) => item.engagement).filter(Number.isFinite);
+    
+    if (sortedValues.length === 0) return [];
     
     // Calculate Q1, Q3, and IQR
-    const q1 = this.calculatePercentile(sorted, 25);
-    const q3 = this.calculatePercentile(sorted, 75);
+    const q1 = this.calculatePercentile(sortedValues, 25);
+    const q3 = this.calculatePercentile(sortedValues, 75);
     const iqr = q3 - q1;
-    const lowerBound = q1 - threshold * iqr;
-    const upperBound = q3 + threshold * iqr;
+    
+    // Calculate bounds using the provided threshold
+    const lowerBound = q1 - thresholdValue * iqr;
+    const upperBound = q3 + thresholdValue * iqr;
     
     // Find posts with engagement rates outside the bounds
-    return this.posts.filter(
-      post => this.calculateWeightedEngagement(post) < lowerBound || 
-              this.calculateWeightedEngagement(post) > upperBound
-    );
+    return sortedEngagement
+      .filter(({ engagement }) => engagement < lowerBound || engagement > upperBound)
+      .map(({ post }) => post);
   }
 
   /**
    * Calculate percentile value from a sorted array
-   * @param arr Sorted array of numbers
-   * @param percentile Percentile to calculate (0-100)
+   * @param values Sorted array of numbers
+   * @param percentileValue Percentile to calculate (0-100)
    * @returns The value at the given percentile
    */
-  private calculatePercentile(arr: number[], percentile: number): number {
-    if (arr.length === 0) return 0;
-    if (percentile <= 0) return arr[0];
-    if (percentile >= 100) return arr[arr.length - 1];
-    
-    const index = (percentile / 100) * (arr.length - 1);
+  private calculatePercentile(values: number[], percentileValue: number): number {
+    if (!values || values.length === 0) return 0;
+    if (percentileValue <= 0) return values[0];
+    if (percentileValue >= 100) return values[values.length - 1];
+    const index = (percentileValue / 100) * (values.length - 1);
     const lower = Math.floor(index);
     const upper = Math.ceil(index);
-    
-    if (lower === upper) return arr[lower];
-    
+    if (lower === upper) return values[lower];
     // Linear interpolation
-    return arr[lower] + (arr[upper] - arr[lower]) * (index - lower);
+    return values[lower] + (values[upper] - values[lower]) * (index - lower);
   }
 }

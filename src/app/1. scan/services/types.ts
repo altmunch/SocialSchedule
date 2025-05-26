@@ -30,6 +30,20 @@ export type ApiResponse<T> = {
   };
 };
 
+// Helper to validate IANA timezone format
+const timezoneSchema = z.string().refine(
+  (tz) => {
+    try {
+      // This will throw if the timezone is invalid
+      Intl.DateTimeFormat(undefined, { timeZone: tz });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+  { message: 'Invalid IANA timezone format' }
+);
+
 export const PostMetricsSchema = z.object({
   id: z.string().min(1, 'Post ID is required'),
   platform: PlatformSchema,
@@ -39,7 +53,8 @@ export const PostMetricsSchema = z.object({
   shares: z.number().int().nonnegative(),
   watchTime: z.number().nonnegative().optional(),
   engagementRate: z.number().min(0).max(100),
-  timestamp: z.date(),
+  timestamp: z.union([z.date(), z.string().datetime()]).transform(val => new Date(val)),
+  timezone: timezoneSchema.optional(),
   caption: z.string().optional(),
   hashtags: z.array(z.string()).optional(),
   url: z.string().url('Invalid post URL'),
