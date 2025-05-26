@@ -1,7 +1,23 @@
 // difficult: Service for analyzing post metrics and extracting insights
 import { Platform, PostMetrics } from '../types';
 import { formatInTimeZone, toZonedTime, getTimezoneOffset } from 'date-fns-tz';
-import { format, isValid } from 'date-fns';
+import { format, isValid, differenceInMilliseconds, addMinutes } from 'date-fns';
+
+// Cache configuration interface
+interface CacheConfig {
+  enabled: boolean;
+  ttl: number; // in milliseconds
+  maxSize: number;
+  cleanupInterval: number; // in milliseconds
+}
+
+// Cache entry interface
+interface CacheEntry<T> {
+  value: T;
+  timestamp: number;
+  expiresAt: number;
+  accessCount: number;
+}
 
 // Helper function to parse and validate dates
 const parseDate = (date: string | Date, timezone?: string): Date => {
@@ -98,10 +114,30 @@ export class PostAnalyzer {
     shares: number;
     watchTime?: number;
   };
+  
+  // Cache implementation
+  private cache: Map<string, CacheEntry<any>> = new Map();
+  private cacheHits: number = 0;
+  private cacheMisses: number = 0;
+  private lastCleanup: number = Date.now();
+  private cacheConfig: CacheConfig = {
+    enabled: true,
+    ttl: 5 * 60 * 1000, // 5 minutes default TTL
+    maxSize: 1000,
+    cleanupInterval: 5 * 60 * 1000 // 5 minutes
+  };
 
-  constructor(private posts: PostMetrics[]) {
+  constructor(private posts: PostMetrics[], cacheConfig?: Partial<CacheConfig>) {
     this.platformWeights = this.calculatePlatformWeights();
     this.averageMetrics = this.calculateAverageMetrics();
+    
+    // Initialize cache with provided config or defaults
+    if (cacheConfig) {
+      this.cacheConfig = { ...this.cacheConfig, ...cacheConfig };
+    }
+    
+    // Setup periodic cache cleanup
+    setInterval(() => this.cleanupCache(), this.cacheConfig.cleanupInterval);
   }
 
   private calculatePlatformWeights() {
@@ -175,6 +211,9 @@ export class PostAnalyzer {
    * Calculate weighted engagement score for a post
    */
   calculateWeightedEngagement(post: PostMetrics): number {
+    const cacheKey = `engagement_${post.id}_${post.platform}`;
+    const cached = this.getFromCache<number>(cacheKey);
+    if (cached !== null) return cached;
     const platform = post.platform;
     const weights = ENGAGEMENT_WEIGHTS[platform as keyof typeof ENGAGEMENT_WEIGHTS] || 
                    ENGAGEMENT_WEIGHTS.instagram; // Default to Instagram weights
@@ -208,10 +247,11 @@ export class PostAnalyzer {
     const platformWeight = this.platformWeights[platform] || 1;
     score *= platformWeight;
 
-    // Cap the score at 100%
-    return Math.min(score, 1) * 100;
+    // Cap the score at 100% and cache the result
+    const result = Math.min(score, 1) * 100;
+    this.setCache(cacheKey, result, 60 * 60 * 1000); // Cache for 1 hour
+    return result;
   }
-
 
   /**
    * Calculate average engagement rate across all posts using the new weighted formula
@@ -286,7 +326,12 @@ export class PostAnalyzer {
   findPeakTimes(targetTimezone?: string): TimeSlotSummary[] {
     if (this.posts.length === 0) return [];
 
-    // Use provided timezone or system timezone
+    // Check cache first
+    const cacheKey = `peak_times_${targetTimezone || 'default'}`;
+    const cached = this.getFromCache<TimeSlotSummary[]>(cacheKey);
+    if (cached !== null) return cached;
+
+    // Use provided timezone or detect user's timezone
     const detectedTimezone = targetTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
     const timeSlots: Record<string, TimeSlotEngagement> = {};
     
@@ -325,7 +370,7 @@ export class PostAnalyzer {
     });
 
     // Convert to array, calculate averages, and sort by engagement score
-    return Object.values(timeSlots)
+    const result = Object.values(timeSlots)
       .map(slot => ({
         hour: slot.hour,
         day: slot.day,
@@ -336,6 +381,10 @@ export class PostAnalyzer {
       }))
       .sort((a, b) => b.engagementScore - a.engagementScore)
       .slice(0, 5); // Return top 5 peak times
+    
+    // Cache the result for 1 hour
+    this.setCache(cacheKey, result, 60 * 60 * 1000);
+    return result;
   }
 
   /**
@@ -345,9 +394,18 @@ export class PostAnalyzer {
    */
   public findTopPerformingPosts(limit: number = 5): PostMetrics[] {
     if (!this.posts || !Array.isArray(this.posts) || this.posts.length === 0) return [];
-    return [...this.posts]
+    
+    const cacheKey = `top_posts_${limit}`;
+    const cached = this.getFromCache<PostMetrics[]>(cacheKey);
+    if (cached !== null) return cached;
+    
+    const result = [...this.posts]
       .sort((a: PostMetrics, b: PostMetrics) => this.calculateWeightedEngagement(b) - this.calculateWeightedEngagement(a))
       .slice(0, limit);
+    
+    // Cache the result for 1 hour
+    this.setCache(cacheKey, result, 60 * 60 * 1000);
+    return result;
   }
 
   /**
@@ -355,6 +413,9 @@ export class PostAnalyzer {
    * @returns Array of hashtags with their average engagement and count
    */
   public analyzeHashtags(): HashtagStats[] {
+    const cacheKey = 'hashtag_stats';
+    const cached = this.getFromCache<HashtagStats[]>(cacheKey);
+    if (cached !== null) return cached;
     if (!this.posts || !Array.isArray(this.posts) || this.posts.length === 0) return [];
     const hashtagStats: Record<string, EngagementStats> = {};
     
@@ -376,13 +437,17 @@ export class PostAnalyzer {
         }
       });
     });
-    return Object.entries(hashtagStats)
+    const result = Object.entries(hashtagStats)
       .map(([hashtag, { totalEngagement, count }]) => ({
         hashtag,
         avgEngagement: totalEngagement / count,
         count
       }))
       .sort((a: HashtagStats, b: HashtagStats) => b.avgEngagement - a.avgEngagement);
+    
+    // Cache the result for 1 hour
+    this.setCache(cacheKey, result, 60 * 60 * 1000);
+    return result;
   }
 
   /**
@@ -391,6 +456,9 @@ export class PostAnalyzer {
    * @returns Array of posts that are statistical anomalies
    */
   public detectAnomalies(thresholdValue: number = 1.5): PostMetrics[] {
+    const cacheKey = `anomalies_${thresholdValue}`;
+    const cached = this.getFromCache<PostMetrics[]>(cacheKey);
+    if (cached !== null) return cached;
     if (!this.posts || !Array.isArray(this.posts) || this.posts.length < 3) return [];
     
     // Filter out invalid posts and calculate engagement
@@ -419,9 +487,13 @@ export class PostAnalyzer {
     const upperBound = q3 + thresholdValue * iqr;
     
     // Find posts with engagement rates outside the bounds
-    return sortedEngagement
+    const result = sortedEngagement
       .filter(({ engagement }) => engagement < lowerBound || engagement > upperBound)
       .map(({ post }) => post);
+    
+    // Cache the result for 30 minutes
+    this.setCache(cacheKey, result, 30 * 60 * 1000);
+    return result;
   }
 
   /**
@@ -440,5 +512,96 @@ export class PostAnalyzer {
     if (lower === upper) return values[lower];
     // Linear interpolation
     return values[lower] + (values[upper] - values[lower]) * (index - lower);
-}
+  }
+
+  /**
+   * Get cache statistics
+   */
+  public getCacheStats() {
+    this.cleanupCache();
+    return {
+      size: this.cache.size,
+      hits: this.cacheHits,
+      misses: this.cacheMisses,
+      hitRate: this.cacheHits / (this.cacheHits + this.cacheMisses) || 0,
+      enabled: this.cacheConfig.enabled,
+      lastCleanup: new Date(this.lastCleanup).toISOString()
+    };
+  }
+
+  /**
+   * Clear the entire cache
+   */
+  public clearCache(): void {
+    this.cache.clear();
+    this.cacheHits = 0;
+    this.cacheMisses = 0;
+  }
+
+  /**
+   * Clean up expired cache entries
+   */
+  private cleanupCache(): number {
+    const now = Date.now();
+    let deletedCount = 0;
+    
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.expiresAt < now) {
+        this.cache.delete(key);
+        deletedCount++;
+      }
+    }
+    
+    this.lastCleanup = now;
+    return deletedCount;
+  }
+
+  /**
+   * Get a value from cache
+   */
+  private getFromCache<T>(key: string): T | null {
+    if (!this.cacheConfig.enabled) return null;
+    
+    const entry = this.cache.get(key);
+    if (!entry) {
+      this.cacheMisses++;
+      return null;
+    }
+    
+    if (entry.expiresAt < Date.now()) {
+      this.cache.delete(key);
+      this.cacheMisses++;
+      return null;
+    }
+    
+    // Update last accessed time and increment access count
+    entry.accessCount++;
+    this.cacheHits++;
+    return entry.value as T;
+  }
+
+  /**
+   * Set a value in the cache
+   */
+  private setCache<T>(key: string, value: T, ttl?: number): void {
+    if (!this.cacheConfig.enabled) return;
+    
+    // Clean up if we're approaching max size
+    if (this.cache.size >= this.cacheConfig.maxSize) {
+      // Remove 10% of least recently used items
+      const entries = Array.from(this.cache.entries())
+        .sort((a, b) => a[1].accessCount - b[1].accessCount);
+      
+      const toRemove = Math.ceil(this.cacheConfig.maxSize * 0.1);
+      entries.slice(0, toRemove).forEach(([k]) => this.cache.delete(k));
+    }
+    
+    const now = Date.now();
+    this.cache.set(key, {
+      value,
+      timestamp: now,
+      expiresAt: now + (ttl || this.cacheConfig.ttl),
+      accessCount: 0
+    });
+  }
 }
