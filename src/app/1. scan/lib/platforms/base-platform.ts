@@ -6,8 +6,8 @@ import { ApiConfig, ApiCredentials, ApiResponse } from './types';
 export abstract class BasePlatformClient {
   protected config: ApiConfig;
   protected credentials: ApiCredentials;
-  private rateLimitQueue: Array<() => Promise<void>> = [];
-  private isProcessingQueue = false;
+  protected rateLimitQueue: Array<() => Promise<void>> = [];
+  protected isProcessingQueue = false;
 
   constructor(config: ApiConfig, credentials: ApiCredentials) {
     this.config = config;

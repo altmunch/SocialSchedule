@@ -44,18 +44,23 @@ export class SchedulerCore {
 
   async schedulePost(post: Omit<Post, 'id' | 'status'>): Promise<string> {
     const postId = `post_${Date.now()}`;
-    const priorityScore = this.calculatePriorityScore(post);
-    
-    const postWithId: Post = {
+    // Ensure all required fields are present
+    const completePost: Post = {
       ...post,
       id: postId,
       status: 'queued',
+      scheduledTime: post.scheduledTime || new Date(),
+      viralityScore: post.viralityScore || 0,
+      trendVelocity: post.trendVelocity || 0,
+      platform: post.platform, // This is required by the Post interface
     };
+    
+    const priorityScore = this.calculatePriorityScore(completePost);
 
     await this.redis.zadd(
       this.QUEUE_KEY,
       priorityScore.toString(),
-      JSON.stringify(postWithId)
+      JSON.stringify(completePost)
     );
 
     return postId;

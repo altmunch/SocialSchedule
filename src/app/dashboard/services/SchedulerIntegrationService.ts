@@ -3,7 +3,13 @@ import { Post, ScheduleOptions, TimeSlot, PlatformPost } from '../types';
 // Mock implementations for services that would be implemented later
 class SchedulerService {
   constructor(private options: ScheduleOptions) {}
-  async schedulePost(post: Post): Promise<boolean> {
+  
+  async schedulePost(post: Omit<Post, 'id' | 'status'>): Promise<string> {
+    // Implementation would go here
+    return `post-${Date.now()}`;
+  }
+  
+  async cancelPost(postId: string): Promise<boolean> {
     // Implementation would go here
     return true;
   }
@@ -11,6 +17,11 @@ class SchedulerService {
 
 class TimeSlotManager {
   findOptimalTimeSlots(): TimeSlot[] {
+    // Implementation would go here
+    return [];
+  }
+  
+  findOptimalSlots(post: Omit<Post, 'priorityScore'>, lookaheadDays: number): TimeSlot[] {
     // Implementation would go here
     return [];
   }
@@ -107,10 +118,12 @@ class SchedulerIntegrationService {
    */
   public async getAvailableSlots(platform: PlatformType, lookaheadDays: number = 7) {
     // Create a temporary post with required fields
-    const tempPost: Post = {
+    const tempPost: Omit<Post, 'priorityScore'> = {
       id: `temp-${Date.now()}`,
       platform,
       content: '',
+      scheduledTime: new Date(),
+      status: 'draft',
       metadata: {}
     };
     

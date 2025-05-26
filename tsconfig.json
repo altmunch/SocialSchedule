@@ -25,8 +25,9 @@
       "@/components/*": ["./src/components/*"],
       "@/app/*": ["./src/app/*"]
     },
-    "types": ["node", "react", "react-dom", "next"],
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "types": ["node", "react", "react-dom", "next", "jest"],
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "strictNullChecks": true
   },
   "include": [
     "**/*.ts",

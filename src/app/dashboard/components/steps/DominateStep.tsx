@@ -47,7 +47,8 @@ export default function DominateStep({
   const [selectedStrategies, setSelectedStrategies] = useState<string[]>(['peak-times']);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizationComplete, setOptimizationComplete] = useState(false);
-  const [availableSlots, setAvailableSlots] = useState<Array<{start: Date, end: Date, score: number}>>([]);
+  // Update type to match TimeSlot interface with optional score
+  const [availableSlots, setAvailableSlots] = useState<Array<{start: Date, end: Date, score?: number}>>([]);
   const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isScheduling, setIsScheduling] = useState(false);
@@ -91,7 +92,10 @@ export default function DominateStep({
     try {
       const postData = {
         content: postContent,
+        platform, // Add the required platform property
         scheduledTime: selectedSlot,
+        viralityScore: 0, // Provide default values for required fields
+        trendVelocity: 0,
         metadata: {
           ...postMetadata,
           optimizationStrategies: selectedStrategies,
@@ -189,9 +193,11 @@ export default function DominateStep({
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-900">
                       {formatTime(slot.start)}
-                      <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-                        {Math.round(slot.score * 100)}% optimal
-                      </span>
+                      {slot.score !== undefined && (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                          {Math.round(slot.score * 100)}% optimal
+                        </span>
+                      )}
                     </p>
                     <p className="text-xs text-gray-500">
                       {formatDate(slot.start)}

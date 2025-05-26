@@ -14,7 +14,20 @@ export class InstagramClient extends BasePlatformClient {
     }
   };
 
-  private userId: string | null = null;
+  private _userId: string | null = null;
+  
+  // Getter with type assertion to ensure non-null when accessed
+  protected get userId(): string {
+    if (!this._userId) {
+      throw new Error('User ID not initialized. Call ensureUserId() first.');
+    }
+    return this._userId;
+  }
+  
+  // Setter to maintain type safety
+  protected set userId(value: string) {
+    this._userId = value;
+  }
 
   constructor(credentials: ApiCredentials, config: Partial<ApiConfig> = {}) {
     super({ ...InstagramClient.DEFAULT_CONFIG, ...config }, credentials);

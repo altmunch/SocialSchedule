@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LightningBoltIcon, ClockIcon, CalendarIcon, ChartBarIcon } from '@heroicons/react/24/outline';
-import { SchedulerIntegrationService } from '../../services/SchedulerService';
+import { BoltIcon, ClockIcon, CalendarIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { schedulerIntegrationService } from '@/app/dashboard/services/SchedulerIntegrationService';
 
 type PlatformType = 'instagram' | 'tiktok' | 'facebook' | 'linkedin';
 
@@ -120,7 +120,7 @@ export default function BlitzPage() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
-            <LightningBoltIcon className="h-8 w-8 text-blue-600" />
+            <BoltIcon className="h-8 w-8 text-blue-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Blitz Scheduler</h1>
           <p className="text-lg text-gray-600">
