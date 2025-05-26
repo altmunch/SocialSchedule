@@ -1,5 +1,5 @@
 // difficult: Service for analyzing post metrics and extracting insights
-import { PostMetrics } from '../types';
+import { Platform, PostMetrics } from '../types';
 import { formatInTimeZone, toZonedTime, getTimezoneOffset } from 'date-fns-tz';
 import { format, isValid } from 'date-fns';
 
@@ -440,5 +440,5 @@ export class PostAnalyzer {
     if (lower === upper) return values[lower];
     // Linear interpolation
     return values[lower] + (values[upper] - values[lower]) * (index - lower);
-  }
+}
 }
