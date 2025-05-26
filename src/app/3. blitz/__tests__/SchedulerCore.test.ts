@@ -16,19 +16,20 @@ describe('SchedulerCore', () => {
     const post = {
       content: 'Test post',
       platform: 'instagram' as const,
-      scheduledTime: new Date(Date.now() + 3600000), // 1 hour from now
-      viralityScore: 0.8,
-      trendVelocity: 0.6,
+      scheduledTime: new Date(Date.now() + 3600000),
     };
 
-    const postId = await scheduler.schedulePost(post);
+    const { postId } = await scheduler.schedulePost(post);
     expect(postId).toBeDefined();
 
     const nextPost = await scheduler.getNextScheduledPost();
     expect(nextPost).toMatchObject({
-      content: 'Test post',
+      content: {
+        text: 'Test post',
+      },
       platform: 'instagram',
-      status: 'queued'
+      status: 'scheduled',
+      internalStatus: 'queued',
     });
   });
 });
