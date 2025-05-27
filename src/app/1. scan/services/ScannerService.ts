@@ -6,6 +6,13 @@ import { YouTubeClient } from './platforms/YouTubeClient';
 import { PostAnalyzer } from './analysis/PostAnalyzer';
 import { Cache } from './utils/Cache';
 
+interface ScanMetrics {
+  totalPosts: number;
+  averageEngagement: number;
+  peakTimes: Array<{ hour: number; engagementScore: number }>;
+  topPerformingPosts: PostMetrics[];
+}
+
 export class ScannerService {
   // Cache configuration
   private static readonly CACHE_CONFIG = {
@@ -21,7 +28,9 @@ export class ScannerService {
 
   private readonly platformClients: Map<Platform, TikTokClient | InstagramClient | YouTubeClient> = new Map();
   private readonly scanResults: Map<string, ScanResult> = new Map();
-  private readonly SCAN_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly SCAN_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+  private cleanupInterval?: NodeJS.Timeout;
+  private readonly SCAN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minute timeout for scans
   
   // Cache for storing post data with platform-specific namespacing
   private readonly postCache: Cache<string, PostMetrics[]>;
@@ -46,7 +55,7 @@ export class ScannerService {
     });
     
     this.scanResultCache = new Cache({
-      ttl: this.SCAN_EXPIRY_MS,
+      ttl: this.SCAN_EXPIRATION_MS,
       maxSize: ScannerService.CACHE_CONFIG.maxScanResults,
       version: 'v1'
     });
@@ -56,11 +65,22 @@ export class ScannerService {
   }
 
   private scheduleCleanup(): void {
+    // Clear any existing interval to prevent duplicates
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
+    
     // Initial cleanup
-    this.cleanupExpiredScans();
+    this.cleanupExpiredScans().catch(error => 
+      console.error('Error during initial cleanup:', error)
+    );
     
     // Schedule periodic cleanup every hour
-    setInterval(() => this.cleanupExpiredScans(), 60 * 60 * 1000);
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupExpiredScans().catch(error =>
+        console.error('Error during scheduled cleanup:', error)
+      );
+    }, 60 * 60 * 1000);
   }
 
   /**
@@ -125,8 +145,6 @@ export class ScannerService {
     return scanId;
   }
 
-
-
   private async getUserPosts(platform: Platform, userId: string, lookbackDays: number): Promise<PostMetrics[]> {
     const cacheKey = `user_posts_${platform}_${userId}`;
     
@@ -169,70 +187,100 @@ export class ScannerService {
     }
   }
 
+  private async performScan(scan: ScanResult, options: ScanOptions): Promise<{
+    totalPosts: number;
+    averageEngagement: number;
+    peakTimes: Array<{ hour: number; engagementScore: number }>;
+    topPerformingPosts: PostMetrics[];
+  }> {
+    // 1. Collect posts from all sources
+    const allPosts: PostMetrics[] = [];
+    
+    // Get posts for each platform
+    for (const platform of options.platforms) {
+      const client = this.platformClients.get(platform);
+      if (!client) {
+        throw new Error(`No client configured for platform: ${platform}`);
+      }
+
+      // Get user's posts
+      if (options.includeOwnPosts) {
+        const userPosts = await this.getUserPosts(platform, scan.userId, options.lookbackDays);
+        allPosts.push(...userPosts);
+      }
+
+      // Get competitor posts
+      if (options.competitors?.length) {
+        await Promise.all(
+          options.competitors.map(async (competitorId) => {
+            try {
+              const competitorPosts = await this.getCompetitorPosts(platform, competitorId, options.lookbackDays);
+              allPosts.push(...competitorPosts);
+            } catch (error) {
+              console.error(`Failed to fetch posts for competitor ${competitorId}:`, error);
+              // Continue with other competitors even if one fails
+            }
+          })
+        );
+      }
+    }
+
+    // 2. Analyze the collected data
+    const analyzer = new PostAnalyzer(allPosts);
+    
+    // Calculate metrics with error handling
+    return {
+      totalPosts: allPosts.length,
+      averageEngagement: analyzer.calculateAverageEngagement(),
+      peakTimes: analyzer.findPeakTimes(),
+      topPerformingPosts: analyzer.findTopPerformingPosts(10),
+    };
+  }
+
   private async processScan(scanId: string, options: ScanOptions): Promise<void> {
     const scan = this.scanResults.get(scanId);
     if (!scan) {
-      throw new Error('Scan not found');
+      throw new Error(`Scan ${scanId} not found`);
     }
 
     try {
-      scan.status = 'in_progress' as const;
-      this.scanResultCache.set(scanId, scan);
-
-      // 1. Collect posts from all sources
-      const allPosts: PostMetrics[] = [];
+      // Update scan status to in progress
+      scan.status = 'in_progress';
+      await this.scanResultCache.set(scanId, scan);
       
-      // Get posts for each platform
-      for (const platform of options.platforms) {
-        const client = this.platformClients.get(platform);
-        if (!client) {
-          throw new Error(`No client configured for platform: ${platform}`);
-        }
-
-        // Get user's posts
-        if (options.includeOwnPosts) {
-          const userPosts = await this.getUserPosts(platform, scan.userId, options.lookbackDays);
-          allPosts.push(...userPosts);
-        }
-
-        // Get competitor posts
-        if (options.competitors?.length) {
-          for (const competitorId of options.competitors) {
-            const competitorPosts = await this.getCompetitorPosts(platform, competitorId, options.lookbackDays);
-            allPosts.push(...competitorPosts);
-          }
-        }
-      }
-
-      // 2. Analyze the collected data
-      const analyzer = new PostAnalyzer(allPosts);
+      // Set up timeout for the scan with proper cleanup
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        const timer = setTimeout(() => {
+          reject(new Error(`Scan ${scanId} timed out after ${this.SCAN_TIMEOUT_MS}ms`));
+        }, this.SCAN_TIMEOUT_MS);
+        
+        // Clean up the timeout if the promise resolves/rejects
+        return () => clearTimeout(timer);
+      });
       
-      // Calculate metrics with error handling
-      const metrics = {
-        totalPosts: allPosts.length,
-        averageEngagement: analyzer.calculateAverageEngagement(),
-        peakTimes: analyzer.findPeakTimes(),
-        topPerformingPosts: analyzer.findTopPerformingPosts(10),
-      };
+      // Run the scan with timeout
+      const metrics = await Promise.race([
+        this.performScan(scan, options),
+        timeoutPromise
+      ]);
       
-      // 3. Update scan result with metrics
+      // Update scan result with metrics
       scan.metrics = metrics;
       scan.status = 'completed';
       scan.endTime = new Date();
       
       // Update cache with the completed scan
-      this.scanResultCache.set(scanId, scan);
+      await this.scanResultCache.set(scanId, scan);
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error(`Scan ${scanId} failed:`, errorMessage, error);
       
       // Update scan with error
-      if (scan) {
-        scan.status = 'failed';
-        scan.error = errorMessage;
-        this.scanResultCache.set(scanId, scan);
-      }
+      scan.status = 'failed';
+      scan.error = errorMessage;
+      scan.endTime = new Date();
+      await this.scanResultCache.set(scanId, scan);
       
       // Re-throw to allow caller to handle the error
       throw error;
@@ -247,21 +295,29 @@ export class ScannerService {
       // Find expired scans
       for (const [id, scan] of this.scanResults.entries()) {
         const scanAge = now.getTime() - scan.startTime.getTime();
-        if (scanAge > this.SCAN_EXPIRY_MS) {
+        if (scanAge > this.SCAN_EXPIRATION_MS) {
           expiredScanIds.push(id);
         }
       }
 
       // Remove expired scans
-      expiredScanIds.forEach(id => {
-        this.scanResults.delete(id);
-        this.scanResultCache.delete(id);
-      });
-
-      // Schedule next cleanup in 1 hour
-      setTimeout(() => this.cleanupExpiredScans(), 60 * 60 * 1000);
+      await Promise.all(
+        expiredScanIds.map(async (id) => {
+          this.scanResults.delete(id);
+          await this.scanResultCache.delete(id);
+        })
+      );
     } catch (error) {
       console.error('Error during cleanup:', error);
+      throw error; // Re-throw to be handled by the caller
+    }
+  }
+  
+  // Properly clean up resources when the service is no longer needed
+  public async destroy(): Promise<void> {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = undefined;
     }
   }
   
@@ -269,14 +325,30 @@ export class ScannerService {
    * Get a scan result, trying cache first
    */
   async getScanResult(scanId: string): Promise<ScanResult | undefined> {
-    // Try to get from cache first
-    const cachedResult = await this.scanResultCache.get(scanId);
-    if (cachedResult) {
-      return cachedResult;
+    try {
+      // Try to get from cache first
+      const cachedResult = await this.scanResultCache.get(scanId);
+      if (cachedResult) {
+        // If we have a cached result but it's not in memory, update our in-memory map
+        if (!this.scanResults.has(scanId)) {
+          this.scanResults.set(scanId, cachedResult);
+        }
+        return cachedResult;
+      }
+      
+      // Fall back to in-memory map
+      const inMemoryResult = this.scanResults.get(scanId);
+      if (inMemoryResult) {
+        // Update cache if we found it in memory but not in cache
+        await this.scanResultCache.set(scanId, inMemoryResult);
+      }
+      
+      return inMemoryResult;
+    } catch (error) {
+      console.error(`Error getting scan result for ${scanId}:`, error);
+      // Fall back to in-memory map if cache fails
+      return this.scanResults.get(scanId);
     }
-    
-    // Fall back to in-memory map
-    return this.scanResults.get(scanId);
   }
   
   /**
