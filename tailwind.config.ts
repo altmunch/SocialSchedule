@@ -1,14 +1,12 @@
 import type { Config } from "tailwindcss";
 
-const config = {
-  darkMode: ["class"],
+const config: Config = {
+  darkMode: "class",
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
@@ -39,7 +37,12 @@ const config = {
           dim: 'hsl(0, 0%, 80%)',
         },
         // Theme colors mapped to CSS variables - using direct HSL values for better performance
-        border: 'hsl(210 20% 18% / 0.5)',
+        border: {
+          DEFAULT: 'hsl(210 20% 18% / 0.5)',
+        },
+        borderColor: {
+          DEFAULT: 'hsl(210 20% 18% / 0.5)',
+        },
         input: 'hsl(210 20% 18% / 0.8)',
         ring: 'hsl(214 100% 50%)',
         background: 'hsl(210 25% 12%)',
@@ -94,7 +97,11 @@ const config = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/forms'),
+  ],
 } satisfies Config;
 
 export default config;

@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import HeroSection from './components/HeroSection';
-import FeaturesSection from './components/FeaturesSection';
-import ViralBlitzCycle from './components/ViralBlitzCycle';
-import TestimonialsSection from './components/TestimonialsSection';
-import FinalCTASection from './components/FinalCTASection';
-import Footer from './components/Footer';
+import dynamic from 'next/dynamic';
 
-// Define color palette for the Viral Blitz theme
+// Dynamically import components
+const HeroSection = dynamic(() => import('./components/HeroSection'));
+const FeaturesSection = dynamic(() => import('./components/FeaturesSection'));
+const ViralBlitzCycle = dynamic(() => import('./components/ViralBlitzCycle'));
+const TestimonialsSection = dynamic(() => import('./components/TestimonialsSection'));
+const FinalCTASection = dynamic(() => import('./components/FinalCTASection'));
+const Footer = dynamic(() => import('./components/Footer'));
+
 // Color palette for the application
 export const colors = {
   blitzBlue: '#0066FF',
@@ -18,14 +20,12 @@ export const colors = {
   stormGray: '#1A1A1A',
   lightningWhite: '#F0F0F0',
   pulseRed: '#FF355E',
-  // Gradients
   gradientBlitz: 'linear-gradient(90deg, #0066FF 0%, #7F00FF 100%)',
   gradientCycle: 'linear-gradient(90deg, #00FFCC 0%, #0066FF 100%)',
   gradientFull: 'linear-gradient(90deg, #0066FF 0%, #7F00FF 50%, #00FFCC 100%)',
 };
 
 export default function Home() {
-  const [mounted, setMounted] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState({
     hours: 23,
     minutes: 59,
@@ -36,7 +36,6 @@ export default function Home() {
 
   // Countdown timer effect
   useEffect(() => {
-    setMounted(true);
     
     const timer = setInterval(() => {
       setTimeRemaining(prev => {
@@ -64,14 +63,6 @@ export default function Home() {
     // Handle CTA click - this would typically redirect to signup or open a modal
     window.location.href = '/sign-up';
   };
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stormGray">
-        <div className="animate-pulse text-blitzBlue">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-black text-[#F0F0F0] overflow-x-hidden">
