@@ -1,5 +1,12 @@
 // difficult
 // Audio Trend Detection Service: TikTok API, Librosa, CNN, Shazam
+import { Sound, AudioClient, LibrosaClient, CNNModel, ShazamClient } from '../types/audio';
+
+/**
+ * Service for analyzing and filtering trending audio for content acceleration.
+ * Implements TikTok trending fetch, BPM analysis, mood classification, copyright check.
+ * Each analysis step is modular and robustly logged for maintainability.
+ */
 export class AudioTrendService {
   /**
    * Get trending audio for a platform, filter by velocity, analyze BPM/mood, and check copyright.
@@ -8,38 +15,86 @@ export class AudioTrendService {
    * @param librosa Librosa audio analysis client
    * @param cnnModel CNN model for mood classification
    * @param shazamClient Shazam API client
+   * @returns Promise with array of filtered and analyzed audio tracks
    */
   async getTrendingAudio(
     platform: string,
-    tiktokClient: any,
-    librosa: any,
-    cnnModel: any,
-    shazamClient: any
-  ): Promise<any[]> {
+    tiktokClient: AudioClient,
+    librosa: LibrosaClient,
+    cnnModel: CNNModel,
+    shazamClient: ShazamClient
+  ): Promise<Sound[]> {
     try {
       // Step 1: Get trending sounds from TikTok API
       const trending = await tiktokClient.getTrendingSounds(platform); // [{sound_id, url, velocity, ...}]
+      console.log(`[AudioTrendService] Fetched ${trending.length} trending sounds for ${platform}`);
       // Step 2: Filter for velocity > 15% daily growth
-      const fastGrowing = trending.filter(a => a.velocity > 0.15);
+      const fastGrowing = trending.filter((sound: Sound) => sound.velocity > 0.15);
+      console.log(`[AudioTrendService] ${fastGrowing.length} sounds are growing >15% daily`);
       // Step 3: Analyze BPM, mood, and copyright for each sound
-      const results = await Promise.all(fastGrowing.map(async sound => {
+      const results = await Promise.all(fastGrowing.map(async (sound: Sound) => {
+        let bpm = null, mood = null, isCopyrightSafe = false;
         try {
-          const bpm = await librosa.getBPM(sound.url);
-          const mood = await cnnModel.classifyMood(sound.url);
-          // Cross-check copyright with Shazam
-          const shazamResult = await shazamClient.checkCopyright(sound.url);
-          const isCopyrightSafe = shazamResult && shazamResult.status === 'clear';
-          return { ...sound, bpm, mood, isCopyrightSafe };
+          bpm = await this.analyzeBPM(sound.url, librosa, sound.sound_id);
+          mood = await this.analyzeMood(sound.url, cnnModel, sound.sound_id);
+          isCopyrightSafe = await this.checkCopyright(sound.url, shazamClient, sound.sound_id);
         } catch (err) {
-          console.error('Audio analysis error for sound', sound.sound_id, err);
-          return { ...sound, bpm: null, mood: null, isCopyrightSafe: false };
+          console.error(`[AudioTrendService] Analysis error for sound ${sound.sound_id}:`, err);
         }
+        return { ...sound, bpm, mood, isCopyrightSafe };
       }));
       // Only return copyright-safe sounds
-      return results.filter(r => r.isCopyrightSafe);
+      const safeResults = results.filter(r => r.isCopyrightSafe);
+      console.log(`[AudioTrendService] Returning ${safeResults.length} copyright-safe sounds`);
+      return safeResults;
     } catch (err) {
-      console.error('AudioTrendService error:', err);
+      console.error('[AudioTrendService] Failed to get trending audio:', err);
       return [];
+    }
+  }
+
+  /**
+   * Analyze BPM for a sound URL.
+   */
+  private async analyzeBPM(url: string, librosa: any, soundId: string): Promise<number|null> {
+    try {
+      const bpm = await librosa.getBPM(url);
+      console.log(`[AudioTrendService] BPM for sound ${soundId}:`, bpm);
+      return bpm;
+    } catch (err) {
+      console.error(`[AudioTrendService] BPM analysis failed for sound ${soundId}:`, err);
+      return null;
+    }
+  }
+
+  /**
+   * Analyze mood for a sound URL.
+   */
+  private async analyzeMood(url: string, cnnModel: any, soundId: string): Promise<string|null> {
+    try {
+      const mood = await cnnModel.classifyMood(url);
+      console.log(`[AudioTrendService] Mood for sound ${soundId}:`, mood);
+      return mood;
+    } catch (err) {
+      console.error(`[AudioTrendService] Mood analysis failed for sound ${soundId}:`, err);
+      return null;
+    }
+  }
+
+  /**
+   * Check copyright for a sound URL using Shazam.
+   */
+  private async checkCopyright(url: string, shazamClient: any, soundId: string): Promise<boolean> {
+    try {
+      const shazamResult = await shazamClient.checkCopyright(url);
+      const isSafe = shazamResult && shazamResult.status === 'clear';
+      if (!isSafe) {
+        console.warn(`[AudioTrendService] Copyright risk for sound ${soundId}`);
+      }
+      return isSafe;
+    } catch (err) {
+      console.error(`[AudioTrendService] Copyright check failed for sound ${soundId}:`, err);
+      return false;
     }
   }
 }

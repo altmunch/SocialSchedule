@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "@/app/globals.css";
 import { cn } from "@/lib/utils";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "SocialSchedule - AI-Powered Social Media Scheduler",
@@ -41,7 +38,7 @@ export default function LandingLayout({
       </div>
       
       <main className={cn(
-        inter.className,
+        "min-h-screen bg-background font-sans antialiased",
         "relative w-full min-h-screen flex flex-col"
       )}>
         {children}

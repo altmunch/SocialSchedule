@@ -1,9 +1,22 @@
 // SEO & Keyword Integration Service
-import { SEMrushClient } from '../utils/semrush-client';
-import { KeyBERTClient } from '../utils/keybert-client';
+import { semrushClient } from '../utils/semrush-client';
+import { keybertClient } from '../utils/keybert-client';
+
+type KeywordData = {
+  keyword: string;
+  search_volume?: number;
+  trend_velocity?: number;
+  relevance?: number;
+  source: string;
+  score?: number;
+  positionScore?: number;
+};
 
 export class SEOKeywordService {
-  constructor(private semrush: SEMrushClient, private keybert: KeyBERTClient) {}
+  constructor(
+    private semrush = semrushClient,
+    private keybert = keybertClient
+  ) {}
 
   /**
    * Get optimized keywords for a piece of text using SEMrush (trending) and KeyBERT (context-aware).
@@ -12,38 +25,65 @@ export class SEOKeywordService {
   async getOptimizedKeywords(text: string): Promise<string[]> {
     try {
       // Get trending keywords from SEMrush
-      const trending = await this.semrush.getTrendingKeywords(text); // [{keyword, search_volume, trend_velocity}]
+      const trending = await this.semrush.getTrendingKeywords(text);
       // Get context-aware keywords from KeyBERT
-      const extracted = await this.keybert.extract(text); // [{keyword, relevance}]
+      const extracted = await this.keybert.extract(text);
 
       // Merge and deduplicate
-      const allKeywords = new Map<string, any>();
+      const allKeywords = new Map<string, KeywordData>();
+      
+      // Add SEMrush keywords
       for (const k of trending) {
-        allKeywords.set(k.keyword, { ...k, source: 'semrush' });
+        allKeywords.set(k.keyword, { 
+          ...k, 
+          source: 'semrush',
+          relevance: 0 // Will be updated if also found by KeyBERT
+        });
       }
+      
+      // Add or update with KeyBERT keywords
       for (const k of extracted) {
-        if (!allKeywords.has(k.keyword)) {
-          allKeywords.set(k.keyword, { ...k, search_volume: 0, trend_velocity: 0, source: 'keybert' });
+        const existing = allKeywords.get(k.keyword);
+        if (existing) {
+          // Update existing keyword with relevance from KeyBERT
+          existing.relevance = k.relevance;
+        } else {
+          // Add new keyword from KeyBERT
+          allKeywords.set(k.keyword, { 
+            keyword: k.keyword, 
+            search_volume: 0, 
+            trend_velocity: 0, 
+            relevance: k.relevance,
+            source: 'keybert' 
+          });
         }
       }
 
-      // Dynamic weighting
-      const scored = Array.from(allKeywords.values()).map(k => ({
-        ...k,
-        score: (k.search_volume * 0.6) + (k.trend_velocity * 0.4) + (k.relevance || 0)
-      }));
-
-      // Positional encoding: prioritize keywords that appear early in text
-      for (const k of scored) {
-        const pos = text.indexOf(k.keyword);
-        k.positionScore = pos >= 0 && pos < 50 ? 1 : 0;
-        k.score += k.positionScore * 10; // boost for early appearance
+      // Calculate scores with dynamic weighting
+      const scored: KeywordData[] = [];
+      for (const keywordData of allKeywords.values()) {
+        const { search_volume = 0, trend_velocity = 0, relevance = 0 } = keywordData;
+        const pos = text.toLowerCase().indexOf(keywordData.keyword.toLowerCase());
+        const positionScore = pos >= 0 && pos < 50 ? 1 : 0;
+        
+        // Calculate score with weighted factors
+        const score = (search_volume * 0.6) + 
+                     (trend_velocity * 0.4) + 
+                     (relevance * 100) + // Scale relevance to be comparable
+                     (positionScore * 10); // Boost for early appearance
+        
+        scored.push({
+          ...keywordData,
+          score,
+          positionScore
+        });
       }
 
-      // Sort by score descending
-      scored.sort((a, b) => b.score - a.score);
-      // Return top 10 keywords
-      return scored.slice(0, 10).map(k => k.keyword);
+      // Sort by score descending and return top 10 keywords
+      return scored
+        .sort((a, b) => (b.score || 0) - (a.score || 0))
+        .slice(0, 10)
+        .map(k => k.keyword);
     } catch (err) {
       console.error('SEOKeywordService error:', err);
       return [];

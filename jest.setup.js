@@ -1,5 +1,6 @@
 // Global test setup
-const { TextEncoder, TextDecoder } = require('util');
+import { TextEncoder, TextDecoder } from 'util';
+import nodeFetch from 'node-fetch';
 
 // Add missing globals for Node.js test environment
 global.TextEncoder = TextEncoder;
@@ -7,7 +8,7 @@ global.TextDecoder = TextDecoder;
 
 // Mock global fetch if not available
 if (!global.fetch) {
-  global.fetch = require('node-fetch');
+  global.fetch = nodeFetch;
 }
 
 // Mock console methods to keep test output clean

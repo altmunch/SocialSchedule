@@ -1,13 +1,12 @@
 {
-  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "jest --config=jest.config.cjs",
-    "test:watch": "jest --watch --config=jest.config.cjs",
-    "test:coverage": "jest --coverage --config=jest.config.cjs"
+    "test": "jest --config=jest.config.js",
+    "test:watch": "jest --watch --config=jest.config.js",
+    "test:coverage": "jest --coverage --config=jest.config.js"
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
@@ -64,6 +63,7 @@
     "@next/eslint-plugin-next": "^15.4.0-canary.51",
     "@swc/core": "^1.11.29",
     "@swc/jest": "^0.2.38",
+    "@tailwindcss/postcss": "^4.1.7",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
@@ -88,7 +88,7 @@
     "node-fetch": "^2.7.0",
     "postcss": "^8.5.3",
     "tailwind-merge": "^2",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.1.7",
     "tailwindcss-animate": "^1",
     "ts-jest": "^29.3.4",
     "typescript": "^5.8.3"

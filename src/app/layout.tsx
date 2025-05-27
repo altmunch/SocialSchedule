@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/providers/AuthProvider';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const viewport = {
   themeColor: [
@@ -46,7 +43,7 @@ export default function RootLayout({
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body className={`${inter.className} bg-background text-foreground min-h-screen`}>
+      <body className="bg-background text-foreground min-h-screen">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
