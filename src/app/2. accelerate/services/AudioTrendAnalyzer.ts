@@ -1,25 +1,34 @@
 // difficult: Audio trend analysis and matching for social media content
 import axios from 'axios';
 import * as tf from '@tensorflow/tfjs';
-import * as tfNode from '@tensorflow/tfjs-node';
 import * as ffmpeg from 'fluent-ffmpeg';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 import { createClient } from 'redis';
 
+// Set FFmpeg path if available
+try {
+  const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+  ffmpeg.setFfmpegPath(ffmpegPath);
+} catch (error) {
+  console.warn('FFmpeg installer not found, using system FFmpeg if available');
+}
+
+export type AudioMood = 'happy' | 'energetic' | 'calm' | 'intense' | 'sad';
+
 export interface AudioAnalysisResult {
   bpm: number;
-  mood: 'happy' | 'energetic' | 'calm' | 'intense' | 'sad';
+  mood: AudioMood;
   key: string;
-  energy: number; // 0-1 scale
-  valence: number; // 0-1 scale (positive/negative emotion)
+  energy: number;
+  valence: number;
 }
 
 export interface AudioMatchOptions {
   targetBpm?: number;
-  targetMood?: string;
-  minVelocity?: number; // Minimum trend velocity (0-1)
+  targetMood?: AudioMood;
+  minVelocity?: number;
   maxResults?: number;
 }
 
@@ -27,39 +36,57 @@ export interface TrendingAudio {
   id: string;
   title: string;
   artist: string;
-  url: string;
   bpm: number;
-  mood: string;
-  velocity: number; // Trend velocity (0-1)
-  platform: 'tiktok' | 'instagram' | 'youtube';
-  duration: number; // in seconds
-  popularity: number; // 0-1 scale
+  mood: AudioMood;
+  popularity: number;
+  velocity: number;
+  url: string;
+  platform: string;
+}
+
+export interface AudioTrendAnalyzerOptions {
+  redisUrl?: string;
+  cacheTtl?: number;
 }
 
 export class AudioTrendAnalyzer {
-  private redisClient: ReturnType<typeof createClient>;
-  private readonly CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours
-  private readonly MODEL_URL = 'https://storage.googleapis.com/tfjs-models/tfjs/speech-commands/v0.5/browser_fft/18w/'; // Example model
+  private readonly CACHE_TTL_MS: number;
+  private readonly MODEL_URL: string;
   private model: tf.LayersModel | null = null;
-  private readonly TIKTOK_TRENDING_API = 'https://api.tiktok.com/v1/music/trending';
-  private readonly INSTAGRAM_TRENDING_API = 'https://graph.facebook.com/v12.0/ig_hashtag_search';
+  private readonly TIKTOK_TRENDING_API: string;
+  private readonly INSTAGRAM_TRENDING_API: string;
+  private redisClient: ReturnType<typeof createClient>;
+  private cacheTtl: number;
 
-  constructor(redisUrl: string = 'redis://localhost:6379') {
+  constructor(options: AudioTrendAnalyzerOptions = {}) {
+    const { redisUrl = 'redis://localhost:6379', cacheTtl = 6 * 60 * 60 * 1000 } = options;
     this.redisClient = createClient({ url: redisUrl });
-    this.redisClient.on('error', (err) => 
+    this.cacheTtl = cacheTtl;
+    this.CACHE_TTL_MS = cacheTtl;
+    this.MODEL_URL = 'https://storage.googleapis.com/tfjs-models/tfjs/speech-commands/v0.5/browser_fft/18w/';
+    this.TIKTOK_TRENDING_API = 'https://api.tiktok.com/v1/music/trending';
+    this.INSTAGRAM_TRENDING_API = 'https://graph.facebook.com/v12.0/ig_hashtag_search';
+
+    this.redisClient.on('error', (err: Error) => 
       console.error('Redis Client Error', err)
     );
   }
 
+  /**
+   * Initialize the analyzer
+   */
   async initialize(): Promise<void> {
-    try {
+    if (!this.redisClient.isOpen) {
       await this.redisClient.connect();
-      // Load audio analysis model
-      // this.model = await tf.loadLayersModel(`${this.MODEL_URL}model.json`);
-      console.log('AudioTrendAnalyzer initialized');
-    } catch (error) {
-      console.error('Failed to initialize AudioTrendAnalyzer:', error);
-      throw error;
+    }
+  }
+
+  /**
+   * Clean up resources
+   */
+  async cleanup(): Promise<void> {
+    if (this.redisClient.isOpen) {
+      await this.redisClient.quit();
     }
   }
 
