@@ -18,7 +18,7 @@ export async function GET(
       );
     }
 
-    const scanResult = scannerService.getScanResult(scanId);
+    const scanResult = await scannerService.getScanResult(scanId);
     
     if (!scanResult) {
       return NextResponse.json(
