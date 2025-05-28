@@ -1,199 +1,113 @@
 'use client';
 
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Zap, Sparkles, Rocket } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Check, ChevronRight } from 'lucide-react';
 
-const features = [
-  'Unlimited scheduled posts',
-  'AI-powered content suggestions',
-  'Analytics dashboard',
-  'Multi-platform support',
-  'Team collaboration',
-  'Priority support',
-  'Custom branding',
-  'API access'
-];
+interface PricingSectionProps {
+  onGetStarted: () => void;
+}
 
-const plans = [
-  {
-    name: 'Starter',
-    price: {
-      monthly: 19,
-      yearly: 15
-    },
-    description: 'Perfect for individuals getting started',
-    features: [0, 1, 2, 3],
-    featured: false,
-    cta: 'Get Started',
-    popular: false
-  },
-  {
-    name: 'Professional',
-    price: {
-      monthly: 49,
-      yearly: 39
-    },
-    description: 'For growing businesses and professionals',
-    features: [0, 1, 2, 3, 4, 5],
-    featured: true,
-    cta: 'Start Free Trial',
-    popular: true
-  },
-  {
-    name: 'Business',
-    price: {
-      monthly: 99,
-      yearly: 79
-    },
-    description: 'For teams and agencies',
-    features: [0, 1, 2, 3, 4, 5, 6, 7],
-    featured: false,
-    cta: 'Contact Sales',
-    popular: false
-  }
-];
-
-export default function PricingSection() {
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [isYearly, setIsYearly] = useState(false);
-  
-  const toggleBillingCycle = () => {
-    setIsYearly(!isYearly);
-    setBillingCycle(isYearly ? 'monthly' : 'yearly');
-  };
+export default function PricingSection({ onGetStarted }: PricingSectionProps) {
+  const features = [
+    'Content Accelerator Optimizing Engine',
+    'Precise Automated Posting ("Blitz")',
+    'Viral Cycle of Improvements ("Cycle")',
+    'Comprehensive Field Research ("Scan")',
+    'Retention-Boosting Hashtag & Template Generator',
+    'Custom Brand Voice AI',
+    'Direct e-commerce platform integration',
+    'Priority seller support',
+  ];
 
   return (
-    <section id="pricing" className="py-16 md:py-24 px-4 bg-gradient-to-b from-background to-muted/20">
-      <div className="max-w-7xl mx-auto">
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-            Choose the perfect plan for your needs. Start with a 14-day free trial, no credit card required.
-          </p>
+    <section className="py-16 md:py-24 bg-white" id="pricing">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <motion.span 
+            className="inline-block text-sm font-semibold text-[#FF7F50] uppercase tracking-wider mb-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            Value & Pricing
+          </motion.span>
           
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <span className={`font-medium ${!isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-              Monthly
-            </span>
-            <Switch 
-              id="billing-cycle" 
-              checked={isYearly}
-              onCheckedChange={toggleBillingCycle}
-              className="data-[state=checked]:bg-mint"
-            />
-            <div className="flex items-center gap-2">
-              <span className={`font-medium ${isYearly ? 'text-foreground' : 'text-muted-foreground'}`}>
-                Yearly
-              </span>
-              <span className="px-2 py-1 text-xs font-medium rounded-full bg-mint/10 text-mint">
-                Save 20%
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, index) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 * index, duration: 0.5 }}
-              className={`relative ${plan.featured ? 'z-10' : ''}`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-misty to-mint text-white text-xs font-medium px-4 py-1 rounded-full">
-                  Most Popular
-                </div>
-              )}
-              <div className={`h-full rounded-xl border overflow-hidden ${
-                plan.featured 
-                  ? 'border-mint/50 bg-gradient-to-b from-mint/5 to-transparent shadow-lg' 
-                  : 'border-border/50 bg-background/50 backdrop-blur-sm'
-              }`}>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold text-foreground">{plan.name}</h3>
-                    {plan.name === 'Professional' && <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400" />}
-                    {plan.name === 'Business' && <Rocket className="w-4 h-4 text-purple-400" />}
-                  </div>
-                  <p className="text-muted-foreground text-sm mb-6">{plan.description}</p>
-                  
-                  <div className="mb-8">
-                    <span className="text-4xl font-bold text-foreground">
-                      ${billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly}
-                    </span>
-                    <span className="text-muted-foreground">
-                      /{billingCycle === 'monthly' ? 'month' : 'year'}
-                    </span>
-                    {billingCycle === 'yearly' && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Billed annually (${plan.price.monthly * 12 - plan.price.yearly * 12} saved)
-                      </p>
-                    )}
-                  </div>
-
-                  <Button 
-                    className={`w-full mb-6 ${
-                      plan.featured 
-                        ? 'bg-gradient-to-r from-misty to-mint text-graphite hover:opacity-90' 
-                        : 'bg-foreground text-background hover:bg-foreground/90'
-                    }`}
-                  >
-                    {plan.cta}
-                  </Button>
-
-                  <div className="space-y-3">
-                    {features.map((feature, i) => (
-                      <div key={i} className={`flex items-center gap-3 ${
-                        plan.features.includes(i) ? 'opacity-100' : 'opacity-40'
-                      }`}>
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                          plan.features.includes(i) 
-                            ? 'bg-mint/10 text-mint' 
-                            : 'bg-muted-foreground/10 text-muted-foreground/30'
-                        }`}>
-                          <Check className="w-3 h-3" />
-                        </div>
-                        <span className="text-sm">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+          <motion.h2 
+            className="text-3xl md:text-4xl font-bold text-[#333333] mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            Exceptional Value for E-Commerce Sellers
+          </motion.h2>
+          
+          <motion.p 
+            className="text-xl text-[#444444] max-w-3xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            $3300+ value for less than 10% of the cost. All features included. No hidden fees.
+          </motion.p>
         </div>
 
-        <motion.div 
-          className="mt-16 text-center"
+        <motion.div
+          className="bg-white border-2 border-[#007BFF] rounded-xl overflow-hidden max-w-xl mx-auto shadow-xl"
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-6 bg-muted/50 rounded-xl border border-border/50 max-w-2xl mx-auto">
-            <div className="p-3 rounded-full bg-mint/10 text-mint">
-              <Sparkles className="w-6 h-6" />
+          {/* Popular badge */}
+          <div className="bg-[#007BFF] text-white text-center py-2 font-semibold">
+            RECOMMENDED FOR SELLERS
+          </div>
+          
+          <div className="p-8 md:p-10">
+            <div className="flex items-baseline justify-center mb-6">
+              <h3 className="text-4xl md:text-5xl font-bold text-[#333333]">$297</h3>
+              <span className="text-[#666666] ml-2">/month</span>
             </div>
-            <div>
-              <h4 className="font-medium text-foreground">Need a custom plan?</h4>
-              <p className="text-muted-foreground text-sm">Contact our sales team for enterprise solutions and custom pricing.</p>
+            
+            <p className="text-center text-[#666666] mb-6">
+              <span className="line-through">$497</span> <span className="text-[#28A745] font-semibold">Save 40%</span>
+            </p>
+            
+            <div className="bg-blue-50 rounded-lg p-4 text-center mb-8 border border-blue-100">
+              <p className="text-[#333333]">Value of hiring a dedicated specialist: <span className="text-[#28A745] font-semibold">$3,300/mo</span></p>
+              <p className="text-[#666666] text-sm">You save over $3,000 per month</p>
             </div>
-            <Button variant="outline" className="whitespace-nowrap">
-              Contact Sales
-            </Button>
+            
+            <motion.button
+              onClick={onGetStarted}
+              className="w-full bg-[#007BFF] hover:bg-[#0070E0] text-white py-4 rounded-md font-semibold text-lg shadow-md transition-all mb-8"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Start Your 14-Day Trial <ChevronRight className="ml-1 h-5 w-5 inline" />
+            </motion.button>
+            
+            <div className="text-center text-sm text-[#666666] mb-8">
+              Cancel anytime during the trial period and you won't be charged
+            </div>
+            
+            <div className="space-y-4">
+              {features.map((feature, index) => (
+                <motion.div 
+                  key={index} 
+                  className="flex items-center"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ 
+                    duration: 0.3, 
+                    delay: 0.2 + (index * 0.05),
+                    ease: "easeOut"
+                  }}
+                >
+                  <Check className="h-5 w-5 text-[#28A745] mr-3 flex-shrink-0" />
+                  <span className="text-[#444444]">{feature}</span>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </motion.div>
       </div>

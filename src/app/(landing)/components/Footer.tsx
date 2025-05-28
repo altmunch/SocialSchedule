@@ -1,8 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, Zap } from 'lucide-react';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { Facebook, Instagram, Twitter, Linkedin, Mail } from 'lucide-react';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -13,145 +14,127 @@ export default function Footer() {
       links: [
         { name: 'Features', href: '#features' },
         { name: 'Pricing', href: '#pricing' },
+        { name: 'How It Works', href: '#how-it-works' },
         { name: 'Testimonials', href: '#testimonials' },
-        { name: 'Updates', href: '/updates' },
+        { name: 'FAQ', href: '#faq' },
+      ],
+    },
+    {
+      title: 'Resources',
+      links: [
+        { name: 'E-commerce Guide', href: '#' },
+        { name: 'Blog', href: '#' },
+        { name: 'Case Studies', href: '#' },
+        { name: 'Support', href: '#' },
       ],
     },
     {
       title: 'Company',
       links: [
-        { name: 'About Us', href: '/about' },
-        { name: 'Careers', href: '/careers' },
-        { name: 'Blog', href: '/blog' },
-        { name: 'Press', href: '/press' },
-      ],
-    },
-    {
-      title: 'Support',
-      links: [
-        { name: 'Help Center', href: '/help' },
-        { name: 'Contact Us', href: '/contact' },
-        { name: 'Privacy Policy', href: '/privacy' },
-        { name: 'Terms of Service', href: '/terms' },
+        { name: 'About Us', href: '#' },
+        { name: 'Careers', href: '#' },
+        { name: 'Privacy Policy', href: '#' },
+        { name: 'Terms of Service', href: '#' },
       ],
     },
   ];
 
   const socialLinks = [
-    { name: 'Facebook', icon: Facebook, href: 'https://facebook.com' },
-    { name: 'Twitter', icon: Twitter, href: 'https://twitter.com' },
-    { name: 'Instagram', icon: Instagram, href: 'https://instagram.com' },
-    { name: 'LinkedIn', icon: Linkedin, href: 'https://linkedin.com' },
-    { name: 'YouTube', icon: Youtube, href: 'https://youtube.com' },
+    { icon: Facebook, href: '#', label: 'Facebook' },
+    { icon: Instagram, href: '#', label: 'Instagram' },
+    { icon: Twitter, href: '#', label: 'Twitter' },
+    { icon: Linkedin, href: '#', label: 'LinkedIn' },
   ];
 
   return (
-    <footer className="bg-stormGray border-t border-gray-800">
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
-          {/* Brand info */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center mb-4">
-              <Zap className="w-8 h-8 text-blitzBlue" />
-              <span className="text-2xl font-bold ml-2 bg-gradient-to-r from-blitzBlue to-surgePurple bg-clip-text text-transparent">
-                SocialSchedule
-              </span>
-            </div>
-            <p className="text-gray-400 mb-6">
-              AI-powered social media scheduling that helps you grow your audience, 
-              save time, and boost engagement—on autopilot.
+    <footer className="bg-[#F8F9FA] border-t border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12">
+          {/* Logo and company info */}
+          <div className="md:col-span-2">
+            <Link href="/" className="inline-block mb-4">
+              <div className="flex items-center">
+                <div className="relative w-10 h-10 mr-2">
+                  <Image
+                    src="/logo.png"
+                    alt="SocialSchedule Logo"
+                    width={40}
+                    height={40}
+                    className="rounded"
+                  />
+                </div>
+                <span className="text-xl font-bold text-[#333333]">SocialSchedule</span>
+              </div>
+            </Link>
+            <p className="text-[#666666] mb-6 max-w-md">
+              Helping e-commerce sellers turn social media content into direct sales through automated scheduling, optimization, and revenue tracking.
             </p>
-            
-            {/* Social links */}
-            <div className="flex space-x-4 mb-8">
+            <div className="flex space-x-4">
               {socialLinks.map((social, index) => (
                 <motion.a
-                  key={social.name}
+                  key={index}
                   href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-blitzBlue transition-colors"
-                  whileHover={{ y: -2 }}
-                  aria-label={social.name}
+                  className="bg-white p-2 rounded-full border border-gray-200 text-[#666666] hover:text-[#007BFF] hover:border-[#007BFF] transition-colors"
+                  aria-label={social.label}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <social.icon className="w-5 h-5" />
+                  <social.icon size={18} />
                 </motion.a>
               ))}
             </div>
-            
-            <div className="text-sm text-gray-500">
-              © {currentYear} SocialSchedule. All rights reserved.
-            </div>
           </div>
-          
-          {/* Footer links */}
-          {footerLinks.map((column, index) => (
-            <div key={index}>
-              <h3 className="text-lg font-semibold text-white mb-4">{column.title}</h3>
+
+          {/* Quick links */}
+          {footerLinks.map((column, columnIndex) => (
+            <div key={columnIndex}>
+              <h3 className="font-semibold text-[#333333] mb-4">{column.title}</h3>
               <ul className="space-y-3">
                 {column.links.map((link, linkIndex) => (
-                  <motion.li 
-                    key={linkIndex}
-                    whileHover={{ x: 5 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
+                  <li key={linkIndex}>
                     <Link 
                       href={link.href}
-                      className="text-gray-400 hover:text-blitzBlue transition-colors"
+                      className="text-[#666666] hover:text-[#007BFF] transition-colors"
                     >
                       {link.name}
                     </Link>
-                  </motion.li>
+                  </li>
                 ))}
               </ul>
             </div>
           ))}
-          
-          {/* Newsletter */}
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Stay Updated</h3>
-            <p className="text-gray-400 mb-4">
-              Subscribe to our newsletter for the latest updates and tips.
-            </p>
-            <form className="flex">
-              <input
-                type="email"
-                placeholder="Your email"
-                className="bg-gray-800 text-white px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blitzBlue w-full"
-                required
-              />
-              <button
-                type="submit"
-                className="bg-gradient-to-r from-blitzBlue to-surgePurple text-white px-4 py-2 rounded-r-lg hover:opacity-90 transition-opacity"
-              >
-                Subscribe
-              </button>
-            </form>
-            <p className="text-xs text-gray-500 mt-2">
-              We respect your privacy. Unsubscribe at any time.
-            </p>
+        </div>
+
+        {/* Contact and newsletter */}
+        <div className="border-t border-gray-200 mt-12 pt-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div className="mb-6 md:mb-0">
+              <h3 className="font-semibold text-[#333333] mb-3">Stay updated with seller strategies</h3>
+              <div className="flex max-w-md">
+                <input 
+                  type="email" 
+                  placeholder="Enter your email" 
+                  className="flex-grow px-4 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#007BFF] focus:border-transparent"
+                />
+                <button className="bg-[#007BFF] hover:bg-[#0070E0] text-white font-medium px-4 py-2 rounded-r-md transition-colors">
+                  Subscribe
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <Mail size={18} className="text-[#666666] mr-2" />
+              <a href="mailto:support@socialschedule.com" className="text-[#666666] hover:text-[#007BFF] transition-colors">
+                support@socialschedule.com
+              </a>
+            </div>
           </div>
         </div>
-        
-        {/* Bottom bar */}
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex flex-wrap justify-center gap-4 mb-4 md:mb-0">
-            <Link href="/privacy" className="text-sm text-gray-400 hover:text-white transition-colors">
-              Privacy Policy
-            </Link>
-            <span className="text-gray-600">•</span>
-            <Link href="/terms" className="text-sm text-gray-400 hover:text-white transition-colors">
-              Terms of Service
-            </Link>
-            <span className="text-gray-600">•</span>
-            <Link href="/cookies" className="text-sm text-gray-400 hover:text-white transition-colors">
-              Cookies
-            </Link>
-          </div>
-          
-          <div className="text-sm text-gray-500">
-            Made with ❤️ by the SocialSchedule team
-          </div>
+
+        {/* Copyright */}
+        <div className="border-t border-gray-200 mt-8 pt-8 text-center">
+          <p className="text-sm text-[#666666]">
+            © {currentYear} SocialSchedule. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>
