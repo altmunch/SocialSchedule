@@ -29,21 +29,116 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-storm-dark text-lightning-DEFAULT overflow-x-hidden scroll-smooth">
       <NavigationBar />
-      <main>
-        <HeroSection onGetStarted={handleGetStarted} onDemo={handleDemo} />
-        <SocialProofBar />
-        <ProblemSolutionSection />
-        <FeaturesSection />
-        <ViralBlitzCycle />
-        <ResultsSection />
-        <TestimonialsSection />
-        <GuaranteeSection onGetStarted={handleGetStarted} />
-        <PricingSection onGetStarted={handleGetStarted} />
-        <FAQSection />
+      <main className="bg-gradient-to-b from-storm-dark to-storm-darker">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <HeroSection onGetStarted={handleGetStarted} onDemo={handleDemo} />
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
+          <SocialProofBar />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <ProblemSolutionSection />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          id="features"
+        >
+          <FeaturesSection />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="py-16 md:py-24"
+        >
+          <ViralBlitzCycle />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="py-16 md:py-24"
+        >
+          <ResultsSection />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="py-16 md:py-24"
+        >
+          <TestimonialsSection />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="py-16 md:py-24"
+        >
+          <GuaranteeSection onGetStarted={handleGetStarted} />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="py-16 md:py-24"
+          id="pricing"
+        >
+          <PricingSection onGetStarted={handleGetStarted} />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="py-16 md:py-24"
+          id="faq"
+        >
+          <FAQSection />
+        </motion.div>
       </main>
-      <Footer />
+      
+      <motion.footer
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6 }}
+      >
+        <Footer />
+      </motion.footer>
     </div>
   );
 }

@@ -44,31 +44,34 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-white" id="faq">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-storm-darker to-storm-darkest" id="faq">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <motion.span 
-            className="inline-block text-sm font-semibold text-[#FF7F50] uppercase tracking-wider mb-3"
+            className="inline-block text-sm font-semibold text-blitz-yellow uppercase tracking-wider mb-3"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
             Questions & Answers
           </motion.span>
           
           <motion.h2 
-            className="text-3xl md:text-4xl font-bold text-[#333333] mb-6"
+            className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-6"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             Frequently Asked Questions
           </motion.h2>
           
           <motion.p 
-            className="text-xl text-[#444444] max-w-3xl mx-auto"
+            className="text-xl text-lightning-dim/80 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             Everything you need to know about turning your content into sales
@@ -79,19 +82,28 @@ export default function FAQSection() {
           {faqs.map((faq, index) => (
             <motion.div
               key={index}
-              className="border-2 border-gray-100 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              className="border-2 border-storm-light/10 rounded-xl overflow-hidden bg-gradient-to-br from-storm-dark to-storm-darker hover:border-blitz-blue/30 transition-all duration-300 group"
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 * index }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.05 * index }}
+              whileHover={{ 
+                y: -2,
+                boxShadow: '0 10px 25px -5px rgba(0, 119, 255, 0.1)'
+              }}
             >
               <button
-                className="flex justify-between items-center w-full p-6 text-left bg-white"
+                className="flex justify-between items-center w-full p-6 text-left"
                 onClick={() => toggleQuestion(index)}
               >
-                <h3 className="text-lg font-semibold text-[#333333]">{faq.question}</h3>
-                <ChevronDown 
-                  className={`w-5 h-5 text-[#007BFF] transition-transform duration-300 ${openIndex === index ? 'transform rotate-180' : ''}`} 
-                />
+                <h3 className="text-lg font-semibold text-lightning-DEFAULT pr-4">
+                  {faq.question}
+                </h3>
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blitz-blue/10 to-blitz-purple/10 flex items-center justify-center transition-all ${openIndex === index ? 'bg-blitz-blue/20' : ''} group-hover:bg-blitz-blue/20`}>
+                  <ChevronDown 
+                    className={`w-4 h-4 text-blitz-blue transition-transform duration-300 ${openIndex === index ? 'transform rotate-180' : ''}`} 
+                  />
+                </div>
               </button>
               
               <AnimatePresence>
@@ -100,11 +112,13 @@ export default function FAQSection() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <div className="p-6 pt-0 text-[#444444] border-t border-gray-100">
-                      {faq.answer}
+                    <div className="px-6 pb-6 -mt-2 text-lightning-dim/90 border-t border-storm-light/10">
+                      <div className="border-l-2 border-blitz-blue/50 pl-4">
+                        {faq.answer}
+                      </div>
                     </div>
                   </motion.div>
                 )}

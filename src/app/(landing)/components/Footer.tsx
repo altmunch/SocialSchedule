@@ -47,14 +47,14 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-[#F8F9FA] border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 md:gap-12">
+    <footer className="bg-gradient-to-b from-storm-darkest to-storm-darker border-t border-storm-light/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-12">
           {/* Logo and company info */}
           <div className="md:col-span-2">
-            <Link href="/" className="inline-block mb-4">
+            <Link href="/" className="inline-block mb-6">
               <div className="flex items-center">
-                <div className="relative w-10 h-10 mr-2">
+                <div className="relative w-10 h-10 mr-3">
                   <Image
                     src="/logo.png"
                     alt="SocialSchedule Logo"
@@ -63,20 +63,22 @@ export default function Footer() {
                     className="rounded"
                   />
                 </div>
-                <span className="text-xl font-bold text-[#333333]">SocialSchedule</span>
+                <span className="text-xl font-bold bg-gradient-to-r from-blitz-blue to-blitz-purple bg-clip-text text-transparent">
+                  SocialSchedule
+                </span>
               </div>
             </Link>
-            <p className="text-[#666666] mb-6 max-w-md">
+            <p className="text-lightning-dim/80 mb-8 max-w-md leading-relaxed">
               Helping e-commerce sellers turn social media content into direct sales through automated scheduling, optimization, and revenue tracking.
             </p>
-            <div className="flex space-x-4">
+            <div className="flex space-x-3">
               {socialLinks.map((social, index) => (
                 <motion.a
                   key={index}
                   href={social.href}
-                  className="bg-white p-2 rounded-full border border-gray-200 text-[#666666] hover:text-[#007BFF] hover:border-[#007BFF] transition-colors"
+                  className="p-2.5 rounded-full border border-storm-light/10 bg-storm-light/5 backdrop-blur-sm text-lightning-dim/70 hover:text-blitz-blue hover:border-blitz-blue/30 transition-all"
                   aria-label={social.label}
-                  whileHover={{ scale: 1.1 }}
+                  whileHover={{ y: -3, boxShadow: '0 5px 15px -5px rgba(0, 119, 255, 0.3)' }}
                   whileTap={{ scale: 0.95 }}
                 >
                   <social.icon size={18} />
@@ -87,18 +89,25 @@ export default function Footer() {
 
           {/* Quick links */}
           {footerLinks.map((column, columnIndex) => (
-            <div key={columnIndex}>
-              <h3 className="font-semibold text-[#333333] mb-4">{column.title}</h3>
-              <ul className="space-y-3">
+            <div key={columnIndex} className="relative">
+              <h3 className="font-semibold text-lightning-DEFAULT mb-5 text-lg">
+                {column.title}
+              </h3>
+              <ul className="space-y-3.5">
                 {column.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
+                  <motion.li 
+                    key={linkIndex}
+                    whileHover={{ x: 5 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                  >
                     <Link 
                       href={link.href}
-                      className="text-[#666666] hover:text-[#007BFF] transition-colors"
+                      className="text-lightning-dim/70 hover:text-blitz-blue transition-colors flex items-center group"
                     >
+                      <span className="w-1.5 h-1.5 rounded-full bg-blitz-blue/0 group-hover:bg-blitz-blue mr-2 transition-colors"></span>
                       {link.name}
                     </Link>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
             </div>
@@ -106,24 +115,33 @@ export default function Footer() {
         </div>
 
         {/* Contact and newsletter */}
-        <div className="border-t border-gray-200 mt-12 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div className="mb-6 md:mb-0">
-              <h3 className="font-semibold text-[#333333] mb-3">Stay updated with seller strategies</h3>
-              <div className="flex max-w-md">
+        <div className="border-t border-storm-light/10 mt-16 pt-12">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            <div className="w-full md:max-w-md">
+              <h3 className="font-semibold text-lightning-DEFAULT mb-4 text-lg">
+                Stay updated with seller strategies
+              </h3>
+              <div className="flex w-full">
                 <input 
                   type="email" 
                   placeholder="Enter your email" 
-                  className="flex-grow px-4 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#007BFF] focus:border-transparent"
+                  className="flex-grow px-5 py-3.5 rounded-l-xl border border-storm-light/10 bg-storm-light/5 backdrop-blur-sm text-lightning-dim/90 placeholder-lightning-dim/40 focus:outline-none focus:ring-2 focus:ring-blitz-blue/50 focus:border-transparent transition-all"
                 />
-                <button className="bg-[#007BFF] hover:bg-[#0070E0] text-white font-medium px-4 py-2 rounded-r-md transition-colors">
+                <motion.button 
+                  className="bg-gradient-to-r from-blitz-blue to-blitz-purple hover:from-blitz-blue/90 hover:to-blitz-purple/90 text-lightning-DEFAULT font-medium px-6 py-3.5 rounded-r-xl transition-all"
+                  whileHover={{ boxShadow: '0 5px 15px -5px rgba(0, 119, 255, 0.3)' }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   Subscribe
-                </button>
+                </motion.button>
               </div>
             </div>
-            <div className="flex items-center">
-              <Mail size={18} className="text-[#666666] mr-2" />
-              <a href="mailto:support@socialschedule.com" className="text-[#666666] hover:text-[#007BFF] transition-colors">
+            <div className="flex items-center bg-storm-light/5 backdrop-blur-sm border border-storm-light/10 rounded-xl px-5 py-3.5">
+              <Mail size={18} className="text-blitz-blue mr-3" />
+              <a 
+                href="mailto:support@socialschedule.com" 
+                className="text-lightning-dim/90 hover:text-blitz-blue transition-colors font-medium"
+              >
                 support@socialschedule.com
               </a>
             </div>
@@ -131,8 +149,8 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-200 mt-8 pt-8 text-center">
-          <p className="text-sm text-[#666666]">
+        <div className="border-t border-storm-light/10 mt-12 pt-8 text-center">
+          <p className="text-sm text-lightning-dim/60">
             © {currentYear} SocialSchedule. All rights reserved.
           </p>
         </div>

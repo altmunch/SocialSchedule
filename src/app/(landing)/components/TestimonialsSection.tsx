@@ -33,22 +33,24 @@ export default function TestimonialsSection() {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-white" id="testimonials">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-storm-darker to-storm-darkest" id="testimonials">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <motion.h2 
-            className="text-3xl md:text-4xl font-bold text-[#333333] mb-6"
+            className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-6"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
             Success Stories From E-Commerce Sellers
           </motion.h2>
           
           <motion.p 
-            className="text-xl text-[#444444] max-w-3xl mx-auto"
+            className="text-xl text-lightning-dim/80 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             Join thousands of e-commerce sellers who have transformed their social media 
@@ -56,58 +58,68 @@ export default function TestimonialsSection() {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <motion.div 
-              key={index}
-              className="bg-white p-8 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition-shadow"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 * (index + 1) }}
-            >
-              {/* Stars */}
-              <div className="flex mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-500 fill-current" />
-                ))}
-              </div>
-              
-              {/* Quote */}
-              <p className="text-[#444444] mb-6 italic">"{testimonial.quote}"</p>
-              
-              {/* Author */}
-              <div className="flex items-center mt-4">
-                <div className="w-12 h-12 rounded-full bg-blue-50 mr-4 relative overflow-hidden border border-gray-200">
-                  {/* In a real implementation, you would use actual avatar images */}
-                  <div className="absolute inset-0 flex items-center justify-center text-[#007BFF] font-bold">
-                    {testimonial.author.charAt(0)}
+        <div className="relative">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 -z-10 opacity-10">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#3b82f6,transparent_70%)]" />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+            {testimonials.map((testimonial, index) => (
+              <motion.div 
+                key={index}
+                className="group p-8 rounded-xl border border-storm-light/10 bg-storm-light/5 backdrop-blur-sm hover:border-blitz-blue/50 transition-all duration-300 shadow-lg hover:shadow-blitz-blue/10"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 * (index + 1) }}
+                whileHover={{ y: -8 }}
+              >
+                {/* Stars */}
+                <div className="flex mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-5 h-5 text-blitz-yellow fill-current" />
+                  ))}
+                </div>
+                
+                {/* Quote */}
+                <p className="text-lightning-dim/90 mb-6 italic">"{testimonial.quote}"</p>
+                
+                {/* Author */}
+                <div className="flex items-center mt-6">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blitz-blue/20 to-blitz-purple/20 mr-4 relative overflow-hidden border border-storm-light/20 flex-shrink-0">
+                    <div className="absolute inset-0 flex items-center justify-center text-blitz-blue font-bold">
+                      {testimonial.author.charAt(0)}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lightning-DEFAULT">{testimonial.author}</p>
+                    <p className="text-lightning-dim/60">{testimonial.role}</p>
                   </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-[#333333]">{testimonial.author}</p>
-                  <p className="text-[#666666]">{testimonial.role}</p>
+                
+                <div className="mt-6 pt-4 border-t border-storm-light/10">
+                  <div className="flex items-center font-medium mb-2">
+                    <span className="bg-gradient-to-r from-blitz-blue/10 to-blitz-purple/10 text-blitz-blue px-3 py-1.5 rounded-full text-sm font-medium">
+                      {testimonial.highlight}
+                    </span>
+                  </div>
+                  <p className="text-sm text-lightning-dim/60">Platform: <span className="text-lightning-dim/90">{testimonial.platform}</span></p>
                 </div>
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center text-[#007BFF] font-medium mb-2">
-                  <span className="bg-blue-50 px-2 py-1 rounded text-sm">{testimonial.highlight}</span>
-                </div>
-                <p className="text-sm text-[#666666]">Platform: {testimonial.platform}</p>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         <motion.div 
-          className="mt-12 text-center"
+          className="mt-16 text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <p className="text-lg text-[#444444]">
-            <span className="font-semibold text-[#333333]">These are just a few examples.</span> We have thousands of success stories from sellers just like you.
+          <p className="text-lg text-lightning-dim/80">
+            <span className="font-semibold text-lightning-DEFAULT">These are just a few examples.</span> We have thousands of success stories from sellers just like you.
           </p>
         </motion.div>
       </div>

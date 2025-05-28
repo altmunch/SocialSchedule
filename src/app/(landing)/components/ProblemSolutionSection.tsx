@@ -5,24 +5,35 @@ import { XCircle, CheckCircle } from 'lucide-react';
 
 export default function ProblemSolutionSection() {
   return (
-    <section className="bg-white py-16 md:py-24">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-storm-darker to-storm-dark">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#333333] mb-4">Stop Creating Content That Only Gets Views</h2>
-          <p className="text-xl text-[#444444] max-w-3xl mx-auto">Our platform is specifically built for <span className="font-semibold">sellers</span>, not just creators.</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-4">
+            Stop Creating Content That Only Gets Views
+          </h2>
+          <p className="text-xl text-lightning-dim/80 max-w-3xl mx-auto">
+            Our platform is specifically built for{' '}
+            <span className="font-semibold text-lightning-DEFAULT">sellers</span>, not just creators.
+          </p>
         </div>
         
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16"
+          className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, staggerChildren: 0.2 }}
         >
           {/* Problem Side */}
-          <div className="bg-white p-8 rounded-xl border border-red-100 shadow-md">
+          <motion.div 
+            className="p-8 rounded-xl border border-red-900/30 bg-storm-light/5 backdrop-blur-sm shadow-lg"
+            whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(239, 68, 68, 0.1)' }}
+            transition={{ duration: 0.3 }}
+          >
             <div className="flex items-center mb-6">
-              <XCircle className="h-8 w-8 text-red-500 mr-3" />
-              <h3 className="text-xl md:text-2xl font-bold text-[#333333]">Generic Creator Tools</h3>
+              <XCircle className="h-8 w-8 text-red-400/90 mr-3" />
+              <h3 className="text-xl md:text-2xl font-bold text-lightning-DEFAULT">
+                Generic Creator Tools
+              </h3>
             </div>
             
             <ul className="space-y-4">
@@ -33,19 +44,33 @@ export default function ProblemSolutionSection() {
                 'One-size-fits-all approach to content scheduling',
                 'No competitor research tools specific to your product niche',
               ].map((item, index) => (
-                <li key={index} className="flex items-start">
-                  <XCircle className="h-5 w-5 text-red-500 mr-3 flex-shrink-0 mt-0.5" />
-                  <p className="text-[#444444]">{item}</p>
-                </li>
+                <motion.li 
+                  key={index} 
+                  className="flex items-start group"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <XCircle className="h-5 w-5 text-red-400/80 mr-3 flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                  <p className="text-lightning-dim/90 group-hover:text-lightning-DEFAULT transition-colors">
+                    {item}
+                  </p>
+                </motion.li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Solution Side */}
-          <div className="bg-white p-8 rounded-xl border border-green-100 shadow-md">
+          <motion.div 
+            className="p-8 rounded-xl border border-emerald-900/30 bg-storm-light/5 backdrop-blur-sm shadow-lg"
+            whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.1)' }}
+            transition={{ duration: 0.3 }}
+          >
             <div className="flex items-center mb-6">
-              <CheckCircle className="h-8 w-8 text-[#28A745] mr-3" />
-              <h3 className="text-xl md:text-2xl font-bold text-[#333333]">SocialSchedule for Sellers</h3>
+              <CheckCircle className="h-8 w-8 text-emerald-400/90 mr-3" />
+              <h3 className="text-xl md:text-2xl font-bold text-lightning-DEFAULT">
+                SocialSchedule for Sellers
+              </h3>
             </div>
             
             <ul className="space-y-4">
@@ -56,13 +81,21 @@ export default function ProblemSolutionSection() {
                 'Precise "Blitz" scheduling based on when your audience buys most',
                 'Advanced "Scan" feature to analyze top-performing competitor content in your niche',
               ].map((item, index) => (
-                <li key={index} className="flex items-start">
-                  <CheckCircle className="h-5 w-5 text-[#28A745] mr-3 flex-shrink-0 mt-0.5" />
-                  <p className="text-[#444444]">{item}</p>
-                </li>
+                <motion.li 
+                  key={index} 
+                  className="flex items-start group"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <CheckCircle className="h-5 w-5 text-emerald-400/80 mr-3 flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                  <p className="text-lightning-dim/90 group-hover:text-lightning-DEFAULT transition-colors">
+                    {item}
+                  </p>
+                </motion.li>
               ))}
             </ul>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>

@@ -11,55 +11,55 @@ interface HeroSectionProps {
 
 export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) {
   return (
-    <section className="bg-white pt-32 pb-20 md:pt-36 md:pb-28 relative overflow-hidden">
+    <section className="bg-gradient-to-b from-storm-dark to-storm-darker pt-32 pb-20 md:pt-36 md:pb-28 relative overflow-hidden">
       {/* Background pattern - subtle grid */}
-      <div className="absolute inset-0 z-0 opacity-5">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('/patterns/grid.svg')]" />
+      <div className="absolute inset-0 z-0 opacity-10">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('/patterns/grid.svg')] opacity-30" style={{ filter: 'invert(1)' }} />
       </div>
       
       {/* Subtle accent glow */}
-      <div className="absolute top-32 left-1/4 w-64 h-64 bg-[#007BFF] rounded-full filter blur-[120px] opacity-5" />
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-[#FF7F50] rounded-full filter blur-[150px] opacity-5" />
+      <div className="absolute top-32 left-1/4 w-64 h-64 bg-blitz-blue/20 rounded-full filter blur-[120px]" />
+      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-blitz-purple/20 rounded-full filter blur-[150px]" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-4xl mx-auto">
           {/* Trust badge */}
           <motion.div 
-            className="inline-flex items-center bg-white px-4 py-1.5 rounded-full mb-6 border border-gray-200 shadow-sm"
+            className="inline-flex items-center bg-storm-light/5 backdrop-blur-sm px-4 py-1.5 rounded-full mb-6 border border-storm-light/10 shadow-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 text-yellow-500 fill-current" />
+                <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
               ))}
-              <span className="ml-2 text-sm font-medium text-[#444444]">Trusted by 10,000+ sellers</span>
+              <span className="ml-2 text-sm font-medium text-lightning-dim">Trusted by 10,000+ sellers</span>
             </div>
           </motion.div>
 
           {/* Main headline */}
           <motion.h1 
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#333333] mb-6 leading-tight"
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-lightning-DEFAULT mb-6 leading-tight"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             Turn Every Short Into{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#007BFF] to-[#1E90FF]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blitz-blue to-blitz-purple">
               a Sale
             </span>
           </motion.h1>
 
           {/* Subheading */}
           <motion.p 
-            className="text-xl text-[#444444] mb-8 max-w-3xl mx-auto"
+            className="text-xl text-lightning-dim/80 mb-8 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             Automate, optimize, and grow your business with shorts that do the selling for you. 
-            Outperform generic creator tools—get features built for <span className="font-bold text-[#333333]">conversions, not just views</span>.
+            Outperform generic creator tools—get features built for <span className="font-bold text-lightning-DEFAULT">conversions, not just views</span>.
           </motion.p>
 
           {/* CTA buttons */}
@@ -71,8 +71,8 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
           >
             <motion.button
               onClick={onGetStarted}
-              className="bg-[#007BFF] hover:bg-[#0070E0] text-white px-8 py-4 rounded-md font-semibold text-lg shadow-md transform transition-all"
-              whileHover={{ scale: 1.02 }}
+              className="bg-gradient-to-r from-blitz-blue to-blitz-purple hover:from-blitz-blue/90 hover:to-blitz-purple/90 text-lightning-DEFAULT px-8 py-4 rounded-md font-semibold text-lg shadow-lg shadow-blitz-blue/20 transform transition-all"
+              whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -5px rgba(0, 119, 255, 0.3)' }}
               whileTap={{ scale: 0.98 }}
             >
               <span className="flex items-center justify-center">
@@ -82,8 +82,8 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             </motion.button>
             <motion.button
               onClick={onDemo}
-              className="border border-[#007BFF] text-[#007BFF] hover:bg-blue-50 px-8 py-4 rounded-md font-semibold text-lg"
-              whileHover={{ backgroundColor: '#F0F7FF' }}
+              className="border border-storm-light/20 bg-storm-light/5 hover:bg-storm-light/10 text-lightning-dim hover:text-lightning-DEFAULT px-8 py-4 rounded-md font-semibold text-lg transition-all duration-300"
+              whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
               whileTap={{ scale: 0.98 }}
             >
               See Live Demo

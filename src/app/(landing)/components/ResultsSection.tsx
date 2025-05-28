@@ -11,41 +11,59 @@ export default function ResultsSection() {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-white border-y border-gray-100">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-storm-dark to-storm-darker border-y border-storm-light/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <motion.h2 
-            className="text-3xl md:text-4xl font-bold text-[#333333] mb-6"
+            className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-6"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
             Real Sales Results for E-Commerce Sellers
           </motion.h2>
           
           <motion.p 
-            className="text-xl text-[#444444] max-w-3xl mx-auto"
+            className="text-xl text-lightning-dim/80 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             Our platform is driving actual product sales, not just views and likes
           </motion.p>
         </div>
 
-        <motion.div 
-          className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-white p-8 rounded-xl border border-gray-200 shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-4xl md:text-5xl font-bold text-[#007BFF] mb-2">{stat.value}</div>
-              <div className="text-[#444444] font-medium">{stat.label}</div>
-            </div>
-          ))}
-        </motion.div>
+        <div className="relative">
+          {/* Decorative background elements */}
+          <div className="absolute inset-0 -z-10 opacity-20">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#3b82f6,transparent_70%)]" />
+          </div>
+          
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center relative"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            {stats.map((stat, index) => (
+              <motion.div 
+                key={index} 
+                className="group p-6 rounded-xl border border-storm-light/10 bg-storm-light/5 backdrop-blur-sm hover:border-blitz-blue/50 transition-all duration-300 shadow-lg hover:shadow-blitz-blue/10"
+                whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(0, 119, 255, 0.1)' }}
+              >
+                <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blitz-blue to-blitz-purple bg-clip-text text-transparent mb-2">
+                  {stat.value}
+                </div>
+                <div className="text-lightning-dim/80 font-medium group-hover:text-lightning-DEFAULT transition-colors">
+                  {stat.label}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
 
         <motion.div 
           className="mt-16 text-center max-w-3xl mx-auto"
@@ -54,10 +72,10 @@ export default function ResultsSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <p className="text-lg text-[#444444]">
-            <span className="font-semibold text-[#333333]">These aren't just vanity metrics.</span> Our platform focuses exclusively on revenue-generating actions and sales conversion.
+          <p className="text-lg text-lightning-dim/80">
+            <span className="font-semibold text-lightning-DEFAULT">These aren't just vanity metrics.</span> Our platform focuses exclusively on revenue-generating actions and sales conversion.
           </p>
-          <p className="text-lg text-[#444444] mt-2">
+          <p className="text-lg text-lightning-dim/80 mt-4">
             Why settle for likes when you could be generating actual income?
           </p>
         </motion.div>

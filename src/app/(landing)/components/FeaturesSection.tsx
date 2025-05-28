@@ -42,11 +42,11 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
   ];
 
   return (
-    <section className="py-16 md:py-24 bg-white" id="features">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-storm-dark to-storm-darker" id="features">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <motion.span 
-            className="inline-block text-sm font-semibold text-[#FF7F50] uppercase tracking-wider mb-3"
+            className="inline-block text-sm font-semibold text-blitz-yellow uppercase tracking-wider mb-3"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -56,7 +56,7 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
           </motion.span>
           
           <motion.h2 
-            className="text-3xl md:text-4xl font-bold text-[#333333] mb-6"
+            className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -66,7 +66,7 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
           </motion.h2>
           
           <motion.p 
-            className="text-xl text-[#444444] max-w-3xl mx-auto"
+            className="text-xl text-lightning-dim/80 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -77,22 +77,26 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
             <motion.div 
               key={feature.title}
-              className="bg-white p-6 rounded-xl border border-gray-200 hover:border-[#007BFF] transition-all shadow-sm hover:shadow-md"
+              className="group p-6 rounded-xl border border-storm-light/10 bg-storm-light/5 backdrop-blur-sm hover:border-blitz-blue/50 transition-all duration-300 shadow-lg hover:shadow-blitz-blue/10"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 * index }}
-              whileHover={{ y: -5 }}
+              whileHover={{ y: -8, boxShadow: '0 10px 25px -5px rgba(0, 119, 255, 0.1)' }}
             >
-              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
-                <feature.icon className="h-6 w-6 text-[#007BFF]" />
+              <div className="w-12 h-12 bg-gradient-to-br from-blitz-blue/10 to-blitz-purple/10 rounded-lg flex items-center justify-center mb-4 group-hover:shadow-lg group-hover:shadow-blitz-blue/20 transition-all">
+                <feature.icon className="h-6 w-6 text-blitz-blue" />
               </div>
-              <h3 className="text-xl font-bold text-[#333333] mb-2">{feature.title}</h3>
-              <p className="text-[#444444]">{feature.description}</p>
+              <h3 className="text-xl font-bold text-lightning-DEFAULT mb-3 group-hover:text-blitz-blue transition-colors">
+                {feature.title}
+              </h3>
+              <p className="text-lightning-dim/80 group-hover:text-lightning-dim transition-colors">
+                {feature.description}
+              </p>
             </motion.div>
           ))}
         </div>
@@ -104,12 +108,14 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <button 
+          <motion.button 
             onClick={onGetStarted}
-            className="bg-[#007BFF] hover:bg-[#0070E0] text-white px-8 py-3 rounded-md font-semibold text-lg shadow-md transition-all"
+            className="bg-gradient-to-r from-blitz-blue to-blitz-purple hover:from-blitz-blue/90 hover:to-blitz-purple/90 text-lightning-DEFAULT px-8 py-3.5 rounded-md font-semibold text-lg shadow-lg shadow-blitz-blue/20 transition-all duration-300"
+            whileHover={{ scale: 1.03, boxShadow: '0 10px 25px -5px rgba(0, 119, 255, 0.3)' }}
+            whileTap={{ scale: 0.98 }}
           >
             Start Selling Smarter with AI
-          </button>
+          </motion.button>
         </motion.div>
       </div>
     </section>
