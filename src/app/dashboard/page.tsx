@@ -1,150 +1,126 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
-import DashboardLayout from './components/DashboardLayout';
-import ProgressTracker from './components/ProgressTracker';
-import ScanStep from './components/steps/ScanStep';
-import ArmStep from './components/steps/ArmStep';
-import DominateStep from './components/steps/DominateStep';
-import RepeatStep from './components/steps/RepeatStep';
-import { Loader2 } from 'lucide-react';
-
-type Step = 'scan' | 'arm' | 'dominate' | 'repeat';
-
-const steps: { id: Step; name: string; description: string }[] = [
-  { id: 'scan', name: 'Scan', description: 'Analyze trends and opportunities' },
-  { id: 'arm', name: 'Arm', description: 'Prepare content and strategy' },
-  { id: 'dominate', name: 'Dominate', description: 'Execute and optimize' },
-  { id: 'repeat', name: 'Repeat', description: 'Analyze and iterate' },
-];
+import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Search, Zap, BarChart3, RefreshCw, ArrowRight } from 'lucide-react';
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user, loading } = useAuth();
-  const [currentStep, setCurrentStep] = useState<Step>('scan');
-  const [completedSteps, setCompletedSteps] = useState<Step[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [greeting, setGreeting] = useState('Hello');
 
-  // Redirect to sign-in if not authenticated
   useEffect(() => {
-    if (!loading && !user) {
-      router.push(`/auth/sign-in?redirected=true`);
-    } else if (user) {
-      setIsLoading(false);
-    }
-  }, [user, loading, router]);
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 18) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+  }, []);
 
-  // Handle any auth errors from the URL
-  useEffect(() => {
-    const authError = searchParams.get('error');
-    if (authError) {
-      setError('Authentication error. Please sign in again.');
-      // Clear the error from the URL
-      const newParams = new URLSearchParams(searchParams.toString());
-      newParams.delete('error');
-      router.replace(`/dashboard?${newParams.toString()}`);
-    }
-  }, [searchParams, router]);
-
-  const handleStepComplete = (step: Step) => {
-    if (!completedSteps.includes(step)) {
-      setCompletedSteps([...completedSteps, step]);
-    }
-    
-    // Move to next step
-    const currentIndex = steps.findIndex(s => s.id === step);
-    if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1].id as Step);
-    }
-  };
-
-  const renderStep = () => {
-    if (isLoading) {
-      return (
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    switch (currentStep) {
-      case 'scan':
-        return <ScanStep onComplete={() => handleStepComplete('scan')} />;
-      case 'arm':
-        return <ArmStep onComplete={() => handleStepComplete('arm')} />;
-      case 'dominate':
-        return (
-          <DominateStep 
-            platform="instagram" 
-            postContent="" 
-            postMetadata={{}}
-            onComplete={() => handleStepComplete('dominate')} 
-          />
-        );
-      case 'repeat':
-        return <RepeatStep onComplete={() => handleStepComplete('repeat')} />;
-      default:
-        return <ScanStep onComplete={() => handleStepComplete('scan')} />;
-    }
-  };
+  // Feature cards for the dashboard
+  const features = [
+    {
+      title: 'Scan',
+      description: 'Analyze trends and opportunities in your niche',
+      icon: Search,
+      href: '/dashboard/scan',
+      color: 'bg-blue-500',
+    },
+    {
+      title: 'Accelerate',
+      description: 'Optimize your content for maximum engagement',
+      icon: Zap,
+      href: '/dashboard/accelerate',
+      color: 'bg-purple-500',
+    },
+    {
+      title: 'Blitz',
+      description: 'Schedule posts at optimal times for visibility',
+      icon: BarChart3,
+      href: '/dashboard/blitz',
+      color: 'bg-green-500',
+    },
+    {
+      title: 'Cycle',
+      description: 'Analyze performance and generate new content ideas',
+      icon: RefreshCw,
+      href: '/dashboard/cycle',
+      color: 'bg-orange-500',
+    },
+  ];
 
   return (
-    <DashboardLayout>
-      <main className="flex-1">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Auto-Domination Mode</h1>
-          <p className="text-gray-600">Follow the steps to optimize your social media presence</p>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold tracking-tight">
+          {greeting}, {user?.email?.split('@')[0] || 'User'}
+        </h1>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {features.map((feature) => (
+          <Card key={feature.title} className="overflow-hidden">
+            <CardHeader className="pb-0">
+              <div className={`p-2 rounded-md w-10 h-10 flex items-center justify-center ${feature.color} text-white mb-2`}>
+                <feature.icon className="h-6 w-6" />
+              </div>
+              <CardTitle>{feature.title}</CardTitle>
+              <CardDescription>{feature.description}</CardDescription>
+            </CardHeader>
+            <CardFooter className="pt-4">
+              <Button asChild variant="ghost" className="w-full justify-between">
+                <Link href={feature.href}>
+                  Get Started <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Your latest platform activity</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="border rounded-md p-4">
+                <p className="text-sm text-gray-500">No recent activity found</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         
-        {/* Progress Tracker */}
-        <div className="mb-8 bg-white p-6 rounded-lg shadow-sm">
-          <ProgressTracker 
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-            onStepClick={(step) => {
-              // Only allow clicking on completed steps or the next step
-              const currentIndex = steps.findIndex(s => s.id === currentStep);
-              const stepIndex = steps.findIndex(s => s.id === step);
-              
-              if (stepIndex <= currentIndex || completedSteps.includes(steps[stepIndex - 1]?.id)) {
-                setCurrentStep(step as Step);
-              }
-            }} 
-          />
-        </div>
-        
-        {/* Current Step Content */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          {renderStep()}
-        </div>
-      </main>
-    </DashboardLayout>
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Stats</CardTitle>
+            <CardDescription>Your performance overview</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="border rounded-md p-4">
+                <p className="text-sm font-medium">Total Posts</p>
+                <p className="text-2xl font-bold">0</p>
+              </div>
+              <div className="border rounded-md p-4">
+                <p className="text-sm font-medium">Total Engagement</p>
+                <p className="text-2xl font-bold">0</p>
+              </div>
+              <div className="border rounded-md p-4">
+                <p className="text-sm font-medium">Scans Completed</p>
+                <p className="text-2xl font-bold">0</p>
+              </div>
+              <div className="border rounded-md p-4">
+                <p className="text-sm font-medium">Content Optimized</p>
+                <p className="text-2xl font-bold">0</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 }
-
-

@@ -27,8 +27,8 @@ export const colors = {
 
 export default function Home() {
   const handleCTAClick = () => {
-    // Handle CTA click - this would typically redirect to signup or open a modal
-    window.location.href = '/sign-up';
+    // Navigate directly to the dashboard
+    window.location.href = '/dashboard';
   };
 
   return (

@@ -78,7 +78,7 @@ export default function HeroSection({ onCTAClick }: HeroSectionProps) {
                 size="lg"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  Try It Risk-Free
+                  Try Now
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Button>
