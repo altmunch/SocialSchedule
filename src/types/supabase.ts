@@ -9,6 +9,68 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      pricing_tiers: {
+        Row: {
+          id: string;
+          name: string;
+          price: number;
+          currency: string;
+          order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          price: number;
+          currency: string;
+          order: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          price?: number;
+          currency?: string;
+          order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      tier_benefits: {
+        Row: {
+          id: string;
+          tier_id: string;
+          description: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tier_id: string;
+          description: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tier_id?: string;
+          description?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "tier_benefits_tier_id_fkey";
+            columns: ["tier_id"];
+            isOneToOne: false;
+            referencedRelation: "pricing_tiers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       subscriptions: {
         Row: {
           amount: number | null
@@ -94,7 +156,7 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
-      }
+      },
       users: {
         Row: {
           avatar_url: string | null
