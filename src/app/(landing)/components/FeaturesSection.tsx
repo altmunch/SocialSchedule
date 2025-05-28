@@ -6,46 +6,46 @@ import { Card, CardContent } from '@/components/ui/card';
 
 const features = [
   {
-    icon: <Calendar className="w-6 h-6" />,
-    title: 'Product Launch Scheduler',
-    description: 'Coordinate your product drops and flash sales with precision timing for maximum impact.',
-    color: 'from-[#0066FF] to-[#7F00FF]',
-    highlight: 'Increase launch sales by 40%'
-  },
-  {
-    icon: <ShoppingBag className="w-6 h-6" />,
-    title: 'Shoppable Posts',
-    description: 'Tag products directly in your posts and stories to drive traffic to your store.',
-    color: 'from-[#7F00FF] to-[#00FFCC]',
-    highlight: '3x higher conversion rate'
-  },
-  {
     icon: <BarChart2 className="w-6 h-6" />,
-    title: 'Sales Analytics',
-    description: 'Track ROI per post and see exactly which content drives the most revenue.',
-    color: 'from-[#00FFCC] to-[#0066FF]',
-    highlight: 'Data-driven decisions'
+    title: 'AI-Optimized Posting Times',
+    description: 'Automatically post when your audience is most likely to buy, not just engage. Our AI analyzes patterns to maximize conversions.',
+    color: 'from-[#0066FF] to-[#7F00FF]',
+    highlight: '30% more sales'
   },
   {
     icon: <Zap className="w-6 h-6" />,
-    title: 'Flash Sale Automation',
-    description: 'Automate time-sensitive promotions with countdown timers and limited-stock alerts.',
-    color: 'from-[#0066FF] to-[#7F00FF]',
-    highlight: 'Boost urgency & sales'
+    title: 'Viral Trend Prediction',
+    description: 'Get ahead of trends with our AI that spots viral content 48 hours before it peaks. Schedule posts to ride the wave at the perfect moment.',
+    color: 'from-[#7F00FF] to-[#00FFCC]',
+    highlight: '48h trend advantage'
+  },
+  {
+    icon: <Calendar className="w-6 h-6" />,
+    title: 'Smart Scheduling',
+    description: 'Plan and automate your entire content calendar. Our AI suggests the best times to post for maximum reach and engagement.',
+    color: 'from-[#00FFCC] to-[#0066FF]',
+    highlight: '2x engagement'
   },
   {
     icon: <MessageCircle className="w-6 h-6" />,
-    title: 'Customer Engagement',
-    description: 'Automate responses to common questions and direct messages about your products.',
-    color: 'from-[#7F00FF] to-[#00FFCC]',
-    highlight: '24/7 customer support'
+    title: 'Engagement Booster',
+    description: 'Automatically engage with your audience at optimal times to keep the conversation going and boost your visibility.',
+    color: 'from-[#0066FF] to-[#7F00FF]',
+    highlight: '40% more engagement'
   },
   {
-    icon: <ShoppingCart className="w-6 h-6" />,
-    title: 'E-commerce Integrations',
-    description: 'Connect with Shopify, WooCommerce, and more to sync inventory and product details.',
+    icon: <ShoppingBag className="w-6 h-6" />,
+    title: 'Performance Analytics',
+    description: 'Track what works with detailed analytics on views, engagement, and conversions. See exactly which content drives sales.',
+    color: 'from-[#7F00FF] to-[#00FFCC]',
+    highlight: 'Data-driven insights'
+  },
+  {
+    icon: <Rocket className="w-6 h-6" />,
+    title: 'Results Guarantee',
+    description: 'See a 30% increase in views within 10 days or get your next month free. We stand behind our platform.',
     color: 'from-[#00FFCC] to-[#0066FF]',
-    highlight: 'Seamless setup'
+    highlight: '30-day guarantee'
   }
 ];
 
@@ -67,13 +67,13 @@ export default function FeaturesSection() {
           transition={{ duration: 0.5 }}
         >
           <div className="inline-block px-4 py-1.5 rounded-full bg-[#0066FF]/10 border border-[#0066FF]/20 text-[#0066FF] text-sm font-medium mb-4">
-            Features
+            Why Choose Us
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-[#F0F0F0] mb-6">
-            Built for <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0066FF] via-[#7F00FF] to-[#00FFCC]">E-commerce Sellers</span>
+            The Complete <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0066FF] via-[#7F00FF] to-[#00FFCC]">Social Growth</span> System
           </h2>
           <p className="text-[#B0B0B0] max-w-2xl mx-auto text-lg">
-            Everything you need to turn social media into your #1 sales channel.
+            Everything you need to grow your audience, engage followers, and drive sales—all on autopilot.
           </p>
         </motion.div>
 
