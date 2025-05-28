@@ -109,8 +109,7 @@ Below is a detailed list of improvements, categorized by aesthetics and persuasi
 This comprehensive approach ensures the landing page is both visually appealing and conversion-driven, aligning with the user’s critique and the target audience’s needs.
 
 #  user flow
-landing page
-"get started"
+
 
 # stripe
 Set up Stripe:
