@@ -14,7 +14,7 @@ export default function NavigationBar() {
   const navItems = [
     { label: 'How It Works', href: '#how-it-works' },
     { label: 'Features', href: '#features' },
-    { label: 'Pricing', href: '#pricing' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'Testimonials', href: '#testimonials' },
     { label: 'FAQ', href: '#faq' }
   ];

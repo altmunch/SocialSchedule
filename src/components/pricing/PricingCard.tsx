@@ -43,10 +43,10 @@ export default function PricingCard({ tier, previousTierName }: PricingCardProps
         className="w-full block"
       >
         <Button className="w-full group" size="lg">
-          <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+          <span className="bg-clip-text text-transparent text-[#3D7BF4]">
             {tier.stripePriceId ? 'Get Started' : 'Contact Sales'}
           </span>
-          <Zap className="w-4 h-4 ml-2 text-blue-400 group-hover:text-purple-400 transition-colors" />
+          <Zap className="w-4 h-4 ml-2 text-[#3D7BF4] group-hover:text-[#3D7BF4] transition-colors" />
         </Button>
       </a>
       {tier.stripePriceId && (

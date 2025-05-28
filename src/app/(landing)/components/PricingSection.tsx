@@ -9,7 +9,7 @@ interface PricingSectionProps {
 
 export default function PricingSection({ onGetStarted }: PricingSectionProps) {
   const features = [
-    'Content Accelerator Optimizing Engine',
+    'Content Optimizing Engine ("Accelerate")',
     'Precise Automated Posting ("Blitz")',
     'Viral Cycle of Improvements ("Cycle")',
     'Comprehensive Field Research ("Scan")',

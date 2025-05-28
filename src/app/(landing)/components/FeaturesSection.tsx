@@ -11,8 +11,8 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
   const features = [
     {
       icon: ChartBar,
-      title: "Content Accelerator Optimizing Engine",
-      description: "AI optimizes audio, captions, hashtags, and formatting for every platform and product to outperform competitors."
+      title: 'Content Optimizing Engine ("Accelerate")',
+      description: 'AI optimizes audio, captions, hashtags, and formatting for every platform and product to outperform competitors.'
     },
     {
       icon: Clock,

@@ -2,19 +2,17 @@
 
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
-import NavigationBar from './components/NavigationBar';
-import HeroSection from './components/HeroSection';
-import SocialProofBar from './components/SocialProofBar';
-import ProblemSolutionSection from './components/ProblemSolutionSection';
-import FeaturesSection from './components/FeaturesSection';
-import ViralBlitzCycle from './components/ViralBlitzCycle';
-import ResultsSection from './components/ResultsSection';
-import TestimonialsSection from './components/TestimonialsSection';
-import GuaranteeSection from './components/GuaranteeSection';
-import PricingSection from './components/PricingSection';
-import FAQSection from './components/FAQSection';
-import Footer from './components/Footer';
+import NavigationBar from '@/app/(landing)/components/NavigationBar';
+import HeroSection from '@/app/(landing)/components/HeroSection';
+import SocialProofBar from '@/app/(landing)/components/SocialProofBar';
+import ProblemSolutionSection from '@/app/(landing)/components/ProblemSolutionSection';
+import FeaturesSection from '@/app/(landing)/components/FeaturesSection';
+import ResultsSection from '@/app/(landing)/components/ResultsSection';
+import TestimonialsSection from '@/app/(landing)/components/TestimonialsSection';
+import Footer from '@/app/(landing)/components/Footer';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -31,7 +29,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-storm-dark text-lightning-DEFAULT overflow-x-hidden scroll-smooth">
       <NavigationBar />
-      <main className="bg-gradient-to-b from-storm-dark to-storm-darker">
+      <main className="bg-[#0A0A0A]">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -68,15 +66,7 @@ export default function LandingPage() {
           <FeaturesSection />
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="py-16 md:py-24"
-        >
-          <ViralBlitzCycle />
-        </motion.div>
+
 
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -98,37 +88,56 @@ export default function LandingPage() {
           <TestimonialsSection />
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          className="py-16 md:py-24"
-        >
-          <GuaranteeSection onGetStarted={handleGetStarted} />
-        </motion.div>
+
 
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="py-16 md:py-24"
+          className="py-16 md:py-24 bg-[#0A0A0A]"
           id="pricing"
         >
-          <PricingSection onGetStarted={handleGetStarted} />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-6"
+            >
+              Ready to transform your social media strategy?
+            </motion.h2>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-xl text-lightning-dim/80 max-w-3xl mx-auto mb-10"
+            >
+              Choose a plan that fits your needs and start increasing your sales through optimized social media content.
+            </motion.p>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <Link 
+                href="/pricing" 
+                className="inline-flex items-center px-8 py-4 bg-[#3D7BF4] text-lightning-DEFAULT rounded-xl font-semibold text-lg shadow-xl shadow-blitz-blue/20 hover:shadow-2xl hover:shadow-blitz-blue/30 transition-all duration-300 group"
+              >
+                <span>View pricing plans</span>
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <p className="text-sm text-lightning-dim/60 mt-4">14-day free trial. No credit card required.</p>
+            </motion.div>
+          </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          className="py-16 md:py-24"
-          id="faq"
-        >
-          <FAQSection />
-        </motion.div>
+
       </main>
       
       <motion.footer
