@@ -110,6 +110,7 @@ This comprehensive approach ensures the landing page is both visually appealing 
 
 #  user flow
 landing page
+"get started"
 
 # stripe
 Set up Stripe:
