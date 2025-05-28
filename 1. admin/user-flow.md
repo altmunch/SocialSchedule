@@ -3,9 +3,14 @@
 ```mermaid
 flowchart TD
     A[Landing Page] -->|Get Started| B[Connect Account]
+    A -->|Select Your Plan| P[Pricing Page]
+    
     B -->|Connect| C[Connection Success]
     C -->|Continue| D[Dashboard Onboarding Success]
     D -->|Get Started| E[Dashboard]
+    
+    P -->|Choose Plan| B
+    P -->|Back| A
     
     E -->|Billing| F[Billing Page]
     E -->|Account| G[Account Page]

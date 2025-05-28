@@ -1,6 +1,6 @@
 'use client';
 
-import { DashboardLayout } from '@/app/dashboard/components/DashboardLayout';
+import DashboardLayout from '@/app/dashboard/components/DashboardLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
