@@ -15,3 +15,15 @@ Test the checkout flow with Stripe test cards
 Production Deployment:
 Add the environment variables to your hosting provider
 Update NEXT_PUBLIC_APP_URL to your production URL
+
+# landing page
+enhance the copywriting of the landing page
+make the landing page more modular and connect each repsective module to their user flows.
+ensure that the writing is specific to the target audience of users seeking to sell on social media shorts.
+
+# dashboard
+enhance the modules of the dashboard, make the steps more tagetted towards short sellers.
+
+# features
+implement the current features and check if they work properly.
+add new features specific to the audience.
