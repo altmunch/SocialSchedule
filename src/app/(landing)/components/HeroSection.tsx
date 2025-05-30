@@ -39,28 +39,33 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
           </motion.div>
 
           {/* Main headline */}
-          <motion.h1 
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-lightning-DEFAULT mb-6 leading-tight"
+          <motion.div 
+            className="text-5xl sm:text-6xl lg:text-7xl font-bold text-lightning-DEFAULT mb-6 leading-tight"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Turn Every Short Into{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blitz-blue to-blitz-purple">
-              a Sale
-            </span>
-          </motion.h1>
+            <div className="whitespace-nowrap">Turbocharge your short-form videos to</div>
+            <div className="whitespace-nowrap">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blitz-blue to-blitz-purple">
+                boost sales
+              </span>
+              {' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blitz-purple to-blitz-blue">
+                with AI
+              </span>
+            </div>
+          </motion.div>
 
           {/* Subheading */}
-          <motion.p 
+          <motion.div 
             className="text-xl text-lightning-dim/80 mb-8 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Automate, optimize, and grow your business with shorts that do the selling for you. 
-            Outperform generic creator tools—get features built for <span className="font-bold text-lightning-DEFAULT">conversions, not just views</span>.
-          </motion.p>
+            <p>Automate your video marketing for <span className="font-bold text-lightning-DEFAULT">more sales</span>, <span className="font-bold text-lightning-DEFAULT">less effort</span></p>
+          </motion.div>
 
           {/* CTA buttons */}
           <motion.div 
@@ -76,7 +81,7 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
               whileTap={{ scale: 0.98 }}
             >
               <span className="flex items-center justify-center">
-                Start Selling Smarter with AI
+                Start Selling Now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </span>
             </motion.button>

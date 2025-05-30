@@ -28,17 +28,9 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-black text-lightning-DEFAULT overflow-x-hidden scroll-smooth relative">
-      {/* Grid Background */}
-      <div className="fixed inset-0 -z-10">
-        <div 
-          className="absolute inset-0 opacity-30" 
-          style={{
-            backgroundImage: "url('/patterns/grid.svg')",
-            backgroundSize: '40px 40px',
-            backgroundRepeat: 'repeat'
-          }}
-        />
-        <div className="absolute inset-0 bg-black/80"></div>
+      {/* Simple Light Grey Grid Background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden bg-black">
+        <div className="absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:40px_40px]"></div>
       </div>
       <div className="relative z-10">
         <NavigationBar />
