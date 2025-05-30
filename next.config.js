@@ -3,10 +3,8 @@ const path = require('path');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   experimental: {
-    // Enable experimental features if needed
-    esmExternals: false,
+    // Experimental features can be added here if needed
   },
   webpack: (config, { isServer }) => {
     // Add path aliases

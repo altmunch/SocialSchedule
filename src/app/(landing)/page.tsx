@@ -27,8 +27,21 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-storm-dark text-lightning-DEFAULT overflow-x-hidden scroll-smooth">
-      <NavigationBar />
+    <div className="min-h-screen bg-black text-lightning-DEFAULT overflow-x-hidden scroll-smooth relative">
+      {/* Grid Background */}
+      <div className="fixed inset-0 -z-10">
+        <div 
+          className="absolute inset-0 opacity-30" 
+          style={{
+            backgroundImage: "url('/patterns/grid.svg')",
+            backgroundSize: '40px 40px',
+            backgroundRepeat: 'repeat'
+          }}
+        />
+        <div className="absolute inset-0 bg-black/80"></div>
+      </div>
+      <div className="relative z-10">
+        <NavigationBar />
       <main className="bg-[#0A0A0A]">
         <motion.div
           initial={{ opacity: 0 }}
@@ -148,6 +161,7 @@ export default function LandingPage() {
       >
         <Footer />
       </motion.footer>
+      </div>
     </div>
   );
 }

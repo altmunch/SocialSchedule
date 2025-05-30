@@ -11,10 +11,10 @@ interface HeroSectionProps {
 
 export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) {
   return (
-    <section className="bg-gradient-to-b from-storm-dark to-storm-darker pt-32 pb-20 md:pt-36 md:pb-28 relative overflow-hidden">
+    <section className="bg-black pt-32 pb-20 md:pt-36 md:pb-28 relative overflow-hidden">
       {/* Background pattern - subtle grid */}
-      <div className="absolute inset-0 z-0 opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('/patterns/grid.svg')] opacity-30" style={{ filter: 'invert(1)' }} />
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('/patterns/grid.svg')] opacity-10" style={{ filter: 'invert(1)' }} />
       </div>
       
       {/* Subtle accent glow */}
