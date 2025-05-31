@@ -8,8 +8,14 @@ import { ArrowRight } from 'lucide-react';
 import NavigationBar from '@/app/(landing)/components/NavigationBar';
 import HeroSection from '@/app/(landing)/components/HeroSection';
 import SocialProofBar from '@/app/(landing)/components/SocialProofBar';
-import ProblemSolutionSection from '@/app/(landing)/components/ProblemSolutionSection';
+import ValueStatementSection from '@/app/(landing)/components/ValueStatementSection';
 import FeaturesSection from '@/app/(landing)/components/FeaturesSection';
+import BonusesSection from '@/app/(landing)/components/BonusesSection';
+import GuaranteeSection from '@/app/(landing)/components/GuaranteeSection';
+import EnterpriseSection from '@/app/(landing)/components/EnterpriseSection';
+import DifferentiatorSection from '@/app/(landing)/components/DifferentiatorSection';
+import FinalCTASection from '@/app/(landing)/components/FinalCTASection';
+import ProblemSolutionSection from '@/app/(landing)/components/ProblemSolutionSection';
 import ResultsSection from '@/app/(landing)/components/ResultsSection';
 import TestimonialsSection from '@/app/(landing)/components/TestimonialsSection';
 import Footer from '@/app/(landing)/components/Footer';
@@ -57,6 +63,15 @@ export default function LandingPage() {
         >
           <SocialProofBar />
         </motion.div>
+
+        {/* New Landing Sections */}
+        <ValueStatementSection />
+        <FeaturesSection onGetStarted={handleGetStarted} />
+        <BonusesSection />
+        <GuaranteeSection />
+        <EnterpriseSection />
+        <DifferentiatorSection />
+        <FinalCTASection onGetStarted={handleGetStarted} />
 
         {/* Section Divider */}
         <div className="w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-16">

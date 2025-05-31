@@ -10,35 +10,61 @@ interface FeatureSectionProps {
 export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
   const features = [
     {
-      icon: ChartBar,
-      title: 'Content Optimizing Engine ("Accelerate")',
-      description: 'AI optimizes audio, captions, hashtags, and formatting for every platform and product to outperform competitors.'
-    },
-    {
-      icon: Clock,
-      title: 'Precise Automated Posting ("Blitz")',
-      description: 'AI finds your best posting times for maximum reach and sales—even when you are busy.'
-    },
-    {
-      icon: BarChart2,
-      title: 'Viral Cycle of Improvements ("Cycle")',
-      description: 'AI learns from each post to boost results automatically with continuous upgrades.'
-    },
-    {
       icon: Search,
-      title: 'Comprehensive Field Research ("Scan")',
-      description: 'Instantly access the latest marketing strategies in your niche with zero manual research.'
-    },
-    {
-      icon: MessageSquare,
-      title: 'Retention-Boosting Templates & Hashtags',
-      description: 'Data-driven hashtags and templates tailored to your products that boost retention by 50%.'
+      image: '/dashboard-scan.png', // Placeholder path
+      title: '1. SCAN',
+      description: (
+        <>
+          Picking audio, captions, #’s<br />
+          Platform specific formatting + technical tweaks<br />
+          <span className="block mt-2 text-[#5afcc0]">Comprehensive field research…</span>
+          <span className="block text-neutral-300">That will distill all the competitive tactics for use, without a second spent.<br />
+          Compile all the marketing specific to your niche ($500 value)</span><br />
+          <span className="block font-semibold text-white mt-2">($2500 value for $279)</span><br />
+          <span className="block text-[#5afcc0]">x 10 for agencies, for $3800</span><br />
+          <span className="block text-[#5afcc0]">+ custom AI model that learns your brand voice ($1500 value)</span>
+        </>
+      )
     },
     {
       icon: Zap,
-      title: 'Custom Brand Voice AI',
-      description: 'AI learns and replicates your unique voice and style to build loyalty and stand out from generic content.'
+      image: '/dashboard-accelerate.png',
+      title: '2. ACCELERATE (SEO engine)',
+      description: (
+        <>
+          Content acceleration optimizing engine…<br />
+          <span className="block text-neutral-300">That will save you hours of research for every post<br />
+          Perform better than your competitors ($1000 value)</span>
+        </>
+      )
     },
+    {
+      icon: Clock,
+      image: '/dashboard-blitz.png',
+      title: '3. BLITZ',
+      description: (
+        <>
+          Posting at the right time → precise, automated posting…<br />
+          <span className="block text-neutral-300">That will yield & push your content to the most audience, even if you have something better to do. ($600)</span><br />
+          <span className="block">Freedom to live life</span>
+        </>
+      )
+    },
+    {
+      icon: BarChart2,
+      image: '/dashboard-cycle.png',
+      title: '4. CYCLE (SEM better)',
+      description: (
+        <>
+          Content generation<br />
+          Algorithm anxiety<br />
+          Analytics review<br />
+          Viral cycle of improvements…<br />
+          <span className="block text-neutral-300">That will consistently improve your posts without you reaching through endless analytics<br />
+          That will generate the top-performing content ideas, without the stress and anxiety of underperformance ($500 value)</span>
+        </>
+      )
+    }
   ];
 
   return (
@@ -77,29 +103,38 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <motion.div 
-              key={feature.title}
-              className="group p-6 rounded-xl border border-storm-light/10 bg-storm-light/5 backdrop-blur-sm hover:border-blitz-blue/50 transition-all duration-300 shadow-lg hover:shadow-blitz-blue/10"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 * index }}
-              whileHover={{ y: -8, boxShadow: '0 10px 25px -5px rgba(0, 119, 255, 0.1)' }}
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-blitz-blue/10 to-blitz-purple/10 rounded-lg flex items-center justify-center mb-4 group-hover:shadow-lg group-hover:shadow-blitz-blue/20 transition-all">
-                <feature.icon className="h-6 w-6 text-blitz-blue" />
+        <div className="flex flex-col gap-16">
+        {features.map((feature, index) => (
+          <motion.div
+            key={feature.title}
+            className={
+              `flex flex-col md:flex-row items-center gap-10 md:gap-16 bg-[#18181b] rounded-2xl p-8 md:p-12 shadow-xl border border-storm-light/10` +
+              (index % 2 === 1 ? ' md:flex-row-reverse' : '')
+            }
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 * index }}
+          >
+            {/* Dashboard Image Placeholder */}
+            <div className="w-full md:w-1/2 flex justify-center">
+              <div className="rounded-xl overflow-hidden bg-black/40 border border-[#5afcc0]/10 shadow-lg w-[320px] h-[200px] flex items-center justify-center">
+                <img src={feature.image} alt={feature.title + ' dashboard'} className="object-cover w-full h-full opacity-80" />
               </div>
-              <h3 className="text-xl font-bold text-lightning-DEFAULT mb-3 group-hover:text-blitz-blue transition-colors">
-                {feature.title}
-              </h3>
-              <p className="text-lightning-dim/80 group-hover:text-lightning-dim transition-colors">
+            </div>
+            {/* Feature Text */}
+            <div className="w-full md:w-1/2 flex flex-col items-start">
+              <div className="flex items-center mb-3">
+                <feature.icon className="h-8 w-8 text-[#5afcc0] mr-2" />
+                <h3 className="text-2xl font-bold text-white">{feature.title}</h3>
+              </div>
+              <div className="text-lg text-neutral-300 leading-relaxed">
                 {feature.description}
-              </p>
-            </motion.div>
-          ))}
-        </div>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
 
         <motion.div 
           className="mt-16 text-center"
