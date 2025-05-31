@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence, useAnimate, stagger } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
 interface FAQItem {
@@ -10,6 +10,7 @@ interface FAQItem {
 }
 
 export default function FAQSection() {
+  const [scope, animate] = useAnimate();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const faqs: FAQItem[] = [
@@ -42,13 +43,23 @@ export default function FAQSection() {
   const toggleQuestion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+  
+  useEffect(() => {
+    if (scope.current) {
+      animate(
+        'div',
+        { opacity: [0, 1], y: [20, 0] },
+        { delay: stagger(0.1), duration: 0.5 }
+      );
+    }
+  }, [scope, animate]);
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-storm-darker to-storm-darkest" id="faq">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+    <section className="py-20 md:py-32 bg-gradient-to-b from-[#0A0A0A] to-[#0F1014]" id="faq">
+      <div className="container mx-auto px-6 sm:px-12 lg:px-16">
+        <div className="max-w-4xl mx-auto text-center mb-16">
           <motion.span 
-            className="inline-block text-sm font-semibold text-blitz-yellow uppercase tracking-wider mb-3"
+            className="inline-block text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#FFD700] to-[#FFA500] uppercase tracking-wider mb-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -58,7 +69,7 @@ export default function FAQSection() {
           </motion.span>
           
           <motion.h2 
-            className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-6"
+            className="text-4xl md:text-5xl font-extrabold text-white mb-8 leading-[1.1] tracking-tight"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -68,7 +79,7 @@ export default function FAQSection() {
           </motion.h2>
           
           <motion.p 
-            className="text-xl text-lightning-dim/80 max-w-3xl mx-auto"
+            className="text-xl md:text-2xl text-[#E5E7EB] max-w-2xl mx-auto leading-relaxed font-light"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -78,11 +89,11 @@ export default function FAQSection() {
           </motion.p>
         </div>
         
-        <div className="space-y-4">
+        <div ref={scope} className="space-y-6 w-full max-w-3xl mx-auto mt-12">
           {faqs.map((faq, index) => (
             <motion.div
               key={index}
-              className="border-2 border-storm-light/10 rounded-xl overflow-hidden bg-gradient-to-br from-storm-dark to-storm-darker hover:border-blitz-blue/30 transition-all duration-300 group"
+              className="w-full border-2 border-storm-light/15 rounded-xl overflow-hidden bg-gradient-to-br from-[#1A1A1A] to-[#0F1014] hover:border-[#1E90FF]/40 transition-all duration-300 group shadow-lg hover:shadow-xl hover:shadow-[#1E90FF]/10"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -93,15 +104,15 @@ export default function FAQSection() {
               }}
             >
               <button
-                className="flex justify-between items-center w-full p-6 text-left"
+                className="relative flex items-center justify-between w-full p-6 text-left group-hover:bg-storm-darker/30 transition-colors duration-200"
                 onClick={() => toggleQuestion(index)}
               >
-                <h3 className="text-lg font-semibold text-lightning-DEFAULT pr-4">
+                <h3 className="text-lg md:text-xl font-medium text-white pr-10 leading-relaxed">
                   {faq.question}
                 </h3>
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blitz-blue/10 to-blitz-purple/10 flex items-center justify-center transition-all ${openIndex === index ? 'bg-blitz-blue/20' : ''} group-hover:bg-blitz-blue/20`}>
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#1E90FF]/15 to-[#9370DB]/15 flex items-center justify-center transition-all ${openIndex === index ? 'bg-[#1E90FF]/25' : ''} group-hover:bg-[#1E90FF]/20`}>
                   <ChevronDown 
-                    className={`w-4 h-4 text-blitz-blue transition-transform duration-300 ${openIndex === index ? 'transform rotate-180' : ''}`} 
+                    className={`w-4 h-4 text-[#1E90FF] transition-transform duration-300 ${openIndex === index ? 'transform rotate-180' : ''}`} 
                   />
                 </div>
               </button>
@@ -115,9 +126,9 @@ export default function FAQSection() {
                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-6 -mt-2 text-lightning-dim/90 border-t border-storm-light/10">
-                      <div className="border-l-2 border-blitz-blue/50 pl-4">
-                        {faq.answer}
+                    <div className="px-6 pb-8 -mt-2 text-[#E5E7EB]/90 border-t border-storm-light/10">
+                      <div className="border-l-2 border-[#1E90FF]/50 pl-5 py-3 mt-3">
+                        <p className="text-base leading-relaxed">{faq.answer}</p>
                       </div>
                     </div>
                   </motion.div>

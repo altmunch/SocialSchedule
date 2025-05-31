@@ -1,6 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+
+import { motion, stagger, useAnimate } from 'framer-motion';
 import Image from 'next/image';
 import { ArrowRight, Check, Star } from 'lucide-react';
 
@@ -11,73 +13,66 @@ interface HeroSectionProps {
 
 export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) {
   return (
-    <section className="bg-black pt-32 pb-20 md:pt-36 md:pb-28 relative overflow-hidden">
-      {/* Background pattern - subtle grid */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('/patterns/grid.svg')] opacity-10" style={{ filter: 'invert(1)' }} />
+    <section className="relative bg-black pt-32 pb-28 md:pt-40 md:pb-36 overflow-hidden">
+      {/* Background grid lines */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div 
+          className="absolute inset-0" 
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            backgroundPosition: 'center top 30%'
+          }} 
+        />
       </div>
       
-      {/* Subtle accent glow */}
-      <div className="absolute top-32 left-1/4 w-64 h-64 bg-blitz-blue/20 rounded-full filter blur-[120px]" />
-      <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-blitz-purple/20 rounded-full filter blur-[150px]" />
+      {/* Background elements */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-b from-black via-black to-[#0A0A0A]" />
+      <div className="absolute top-32 -left-20 w-96 h-96 bg-blitz-blue/25 rounded-full filter blur-[150px]" />
+      <div className="absolute bottom-20 -right-20 w-[32rem] h-[32rem] bg-blitz-purple/25 rounded-full filter blur-[180px]" />
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[24rem] bg-blitz-blue/10 rounded-full filter blur-[120px] opacity-40" />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-4xl mx-auto">
-          {/* Trust badge */}
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 relative z-10">
+        <div className="text-center max-w-5xl mx-auto">
+          {/* Main headline with supporting text */}
           <motion.div 
-            className="inline-flex items-center bg-storm-light/5 backdrop-blur-sm px-4 py-1.5 rounded-full mb-6 border border-storm-light/10 shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-              ))}
-              <span className="ml-2 text-sm font-medium text-lightning-dim">Trusted by 10,000+ sellers</span>
-            </div>
-          </motion.div>
-
-          {/* Main headline */}
-          <motion.div 
-            className="text-5xl sm:text-6xl lg:text-7xl font-bold text-lightning-DEFAULT mb-6 leading-tight"
+            className="relative mb-16"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <div className="whitespace-nowrap">Turbocharge your short-form videos to</div>
-            <div className="whitespace-nowrap">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blitz-blue to-blitz-purple">
-                boost sales
-              </span>
-              {' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blitz-purple to-blitz-blue">
-                with AI
-              </span>
+            <div className="text-[#5afcc0] text-sm uppercase tracking-normal mb-6 font-medium">
+              The only AI tool that sells your clips for you
+            </div>
+            <div className="relative pb-6 mb-4">
+              <div className="whitespace-nowrap text-5xl sm:text-6xl font-medium text-white leading-tight tracking-tight">
+                Stop Editing. Start Selling.
+              </div>
+              <div className="absolute bottom-0 left-1/2 w-48 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-1/2" />
+            </div>
+            <div className="relative">
+              <p className="text-xl text-[#E5E7EB] max-w-3xl mx-auto font-light tracking-wide mb-2">
+                Automate clip uploads for <span className="font-bold text-white">more sales</span>, <span className="font-bold text-white">less effort</span>
+              </p>
+              <div className="absolute -bottom-2 left-1/2 w-32 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent transform -translate-x-1/2" />
             </div>
           </motion.div>
 
-          {/* Subheading */}
+          {/* CTA buttons with decorative border */}
           <motion.div 
-            className="text-xl text-lightning-dim/80 mb-8 max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <p>Automate your video marketing for <span className="font-bold text-lightning-DEFAULT">more sales</span>, <span className="font-bold text-lightning-DEFAULT">less effort</span></p>
-          </motion.div>
-
-          {/* CTA buttons */}
-          <motion.div 
-            className="flex flex-col sm:flex-row justify-center gap-4 mb-12"
+            className="flex flex-col sm:flex-row justify-center gap-6 mb-16 relative"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
+            <div className="absolute -inset-4 border-l border-t border-white/10 rounded-tl-lg" />
             <motion.button
               onClick={onGetStarted}
-              className="bg-gradient-to-r from-blitz-blue to-blitz-purple hover:from-blitz-blue/90 hover:to-blitz-purple/90 text-lightning-DEFAULT px-8 py-4 rounded-md font-semibold text-lg shadow-lg shadow-blitz-blue/20 transform transition-all"
-              whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -5px rgba(0, 119, 255, 0.3)' }}
+              className="bg-[#7D4AFF] hover:bg-[#6B3AD9] text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#7D4AFF]/30 transform transition-all"
+              whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -5px rgba(125, 74, 255, 0.5)' }}
               whileTap={{ scale: 0.98 }}
             >
               <span className="flex items-center justify-center">
@@ -87,7 +82,7 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             </motion.button>
             <motion.button
               onClick={onDemo}
-              className="border border-storm-light/20 bg-storm-light/5 hover:bg-storm-light/10 text-lightning-dim hover:text-lightning-DEFAULT px-8 py-4 rounded-md font-semibold text-lg transition-all duration-300"
+              className="border border-storm-light/25 bg-storm-light/5 hover:bg-storm-light/15 text-[#E5E7EB] hover:text-white px-10 py-5 rounded-lg font-bold text-lg transition-all duration-300 backdrop-blur-sm"
               whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
               whileTap={{ scale: 0.98 }}
             >
@@ -97,37 +92,48 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
 
           {/* Key differentiators bullets */}
           <motion.div 
-            className="flex flex-col md:flex-row justify-center gap-6 md:gap-10 text-left max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex flex-col md:flex-row justify-center gap-8 md:gap-14 text-left max-w-3xl mx-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
           >
             {[
               'AI optimizes content for conversions',
               'Schedule posts for maximum sales',
               'Outperform competitor content'
             ].map((benefit, index) => (
-              <div key={index} className="flex items-start">
+              <motion.div 
+                key={index} 
+                className="flex items-start"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 + (index * 0.15) }}
+              >
                 <div className="flex-shrink-0 mt-1">
-                  <Check className="h-5 w-5 text-[#28A745]" />
+                  <div className="rounded-full p-1 bg-[#28A745]/15">
+                    <Check className="h-5 w-5 text-[#28A745]" />
+                  </div>
                 </div>
-                <p className="ml-3 text-[#444444] font-medium">{benefit}</p>
-              </div>
+                <p className="ml-3 text-[#E5E7EB] font-medium">{benefit}</p>
+              </motion.div>
             ))}
           </motion.div>
         </div>
 
         {/* Hero image or screenshot */}
         <motion.div 
-          className="mt-12 max-w-5xl mx-auto rounded-lg shadow-xl overflow-hidden"
+          className="mt-20 max-w-5xl mx-auto rounded-xl shadow-2xl overflow-hidden border border-storm-light/20"
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
         >
-          <div className="relative h-[400px] md:h-[500px] bg-white border border-gray-200 rounded-lg">
+          <div className="relative h-[400px] md:h-[550px] bg-gradient-to-b from-[#0F172A] to-[#1E293B] border border-storm-light/20 rounded-xl overflow-hidden">
             {/* This would be replaced with your actual app screenshot */}
-            <div className="absolute inset-0 flex items-center justify-center text-[#444444] text-lg font-medium">
-              AI-Powered Content Optimization Dashboard
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-[#E5E7EB] text-2xl font-semibold mb-4">AI-Powered Content Optimization Dashboard</div>
+                <div className="text-[#94A3B8] text-base max-w-lg mx-auto">Your dashboard preview would appear here, showcasing the powerful AI features of SocialSchedule</div>
+              </div>
             </div>
           </div>
         </motion.div>
