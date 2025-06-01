@@ -5,6 +5,33 @@ import { InstagramClient } from './platforms/InstagramClient';
 import { YouTubeClient } from './platforms/YouTubeClient';
 import { PostAnalyzer } from './analysis/PostAnalyzer';
 import { Cache } from './utils/Cache';
+import { EventEmitter } from 'events';
+
+/**
+ * @interface CircuitBreakerState
+ * @description States for the circuit breaker pattern
+ */
+enum CircuitBreakerState {
+  CLOSED, // Normal operation - requests go through
+  OPEN,   // Circuit is open - requests fail fast
+  HALF_OPEN // Testing if service is healthy again
+}
+
+/**
+ * @interface MetricsData
+ * @description Performance metrics for monitoring scanner service operations
+ */
+interface MetricsData {
+  operationName: string;
+  startTime: number;
+  endTime?: number;
+  success: boolean;
+  errorMessage?: string;
+  platform?: Platform;
+  userId?: string;
+  cacheHit?: boolean;
+  postsFetched?: number;
+}
 
 interface ScanMetrics {
   totalPosts: number;
@@ -38,7 +65,273 @@ export class ScannerService {
   private readonly profileCache: Cache<string, Record<string, unknown>>;
   // Cache for storing scan results
   private readonly scanResultCache: Cache<string, ScanResult>;
+  
+  // Event emitter for metrics and logging
+  private readonly eventEmitter = new EventEmitter();
+  
+  // Circuit breaker configuration
+  private readonly circuitBreakers: Map<string, {
+    state: CircuitBreakerState;
+    failureCount: number;
+    successCount: number;
+    lastStateChange: number;
+    failureThreshold: number;
+    successThreshold: number;
+    resetTimeout: number;
+  }> = new Map();
+  
+  // Metrics collection
+  private metrics: MetricsData[] = [];
+  
+  // Helper methods for retry, circuit breaker, and metrics
+  /**
+   * Execute a function with retry logic
+   * @param fn Function to execute
+   * @param maxRetries Maximum number of retries
+   * @param baseDelay Base delay between retries in ms (default: 1000)
+   * @param maxDelay Maximum delay between retries in ms (default: 10000)
+   * @returns Result of the function
+   */
+  private async withRetry<T>(
+    fn: () => Promise<T>,
+    maxRetries: number = 3,
+    baseDelay: number = 1000,
+    maxDelay: number = 10000
+  ): Promise<T> {
+    let lastError: Error | unknown;
+    let retryCount = 0;
+    
+    while (retryCount <= maxRetries) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error;
+        retryCount++;
+        
+        if (retryCount > maxRetries) {
+          break;
+        }
+        
+        // Exponential backoff with jitter
+        const delay = Math.min(
+          maxDelay,
+          Math.floor(baseDelay * Math.pow(1.5, retryCount) * (0.9 + Math.random() * 0.2))
+        );
+        
+        this.logStructured('warn', `Operation failed, retrying in ${delay}ms (${retryCount}/${maxRetries})`, {
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    throw lastError;
+  }
 
+  /**
+   * Initialize a circuit breaker for a specific service
+   * @param key Unique key for the service
+   * @param options Circuit breaker configuration
+   */
+  private initCircuitBreaker(
+    key: string,
+    options: {
+      failureThreshold: number;
+      successThreshold: number;
+      resetTimeout: number;
+    }
+  ): void {
+    this.circuitBreakers.set(key, {
+      state: CircuitBreakerState.CLOSED,
+      failureCount: 0,
+      successCount: 0,
+      lastStateChange: Date.now(),
+      failureThreshold: options.failureThreshold,
+      successThreshold: options.successThreshold,
+      resetTimeout: options.resetTimeout
+    });
+  }
+
+  /**
+   * Check if an operation can be performed based on circuit breaker state
+   * @param key Circuit breaker key
+   * @returns True if operation can be performed
+   */
+  private canPerformOperation(key: string): boolean {
+    const breaker = this.circuitBreakers.get(key);
+    if (!breaker) return true;
+
+    const now = Date.now();
+    
+    // If circuit is open, check if we should move to half-open
+    if (breaker.state === CircuitBreakerState.OPEN) {
+      if (now - breaker.lastStateChange > breaker.resetTimeout) {
+        // Transition to half-open
+        breaker.state = CircuitBreakerState.HALF_OPEN;
+        breaker.lastStateChange = now;
+        breaker.successCount = 0;
+        this.logStructured('info', `Circuit breaker ${key} transitioning from OPEN to HALF_OPEN`);
+        return true;
+      }
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Record a successful operation in the circuit breaker
+   * @param key Circuit breaker key
+   */
+  private recordSuccess(key: string): void {
+    const breaker = this.circuitBreakers.get(key);
+    if (!breaker) return;
+    
+    breaker.failureCount = 0;
+    
+    if (breaker.state === CircuitBreakerState.HALF_OPEN) {
+      breaker.successCount++;
+      
+      if (breaker.successCount >= breaker.successThreshold) {
+        breaker.state = CircuitBreakerState.CLOSED;
+        breaker.lastStateChange = Date.now();
+        this.logStructured('info', `Circuit breaker ${key} transitioning from HALF_OPEN to CLOSED`);
+      }
+    }
+  }
+
+  /**
+   * Record a failed operation in the circuit breaker
+   * @param key Circuit breaker key
+   */
+  private recordFailure(key: string): void {
+    const breaker = this.circuitBreakers.get(key);
+    if (!breaker) return;
+    
+    if (breaker.state === CircuitBreakerState.HALF_OPEN) {
+      // Immediate transition back to open on any failure in half-open state
+      breaker.state = CircuitBreakerState.OPEN;
+      breaker.lastStateChange = Date.now();
+      this.logStructured('warn', `Circuit breaker ${key} transitioning from HALF_OPEN to OPEN`);
+      return;
+    }
+    
+    if (breaker.state === CircuitBreakerState.CLOSED) {
+      breaker.failureCount++;
+      
+      if (breaker.failureCount >= breaker.failureThreshold) {
+        breaker.state = CircuitBreakerState.OPEN;
+        breaker.lastStateChange = Date.now();
+        this.logStructured('warn', `Circuit breaker ${key} transitioning from CLOSED to OPEN after ${breaker.failureCount} failures`);
+      }
+    }
+  }
+
+  /**
+   * Structured logging with different log levels
+   * @param level Log level
+   * @param message Message to log
+   * @param context Additional context
+   */
+  private logStructured(
+    level: 'info' | 'warn' | 'error' | 'debug',
+    message: string,
+    context: Record<string, any> = {}
+  ): void {
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      context: {
+        service: 'ScannerService',
+        ...context
+      }
+    };
+    
+    // Emit event for log handlers
+    this.eventEmitter.emit('log', logEntry);
+    
+    // Also log to console for now
+    switch (level) {
+      case 'error':
+        console.error(JSON.stringify(logEntry));
+        break;
+      case 'warn':
+        console.warn(JSON.stringify(logEntry));
+        break;
+      case 'debug':
+        console.debug(JSON.stringify(logEntry));
+        break;
+      default:
+        console.log(JSON.stringify(logEntry));
+        break;
+    }
+  }
+
+  /**
+   * Setup metrics reporting at regular intervals
+   */
+  private setupMetricsReporting(): void {
+    // Report metrics every 5 minutes
+    setInterval(() => {
+      this.reportMetrics();
+    }, 5 * 60 * 1000);
+  }
+
+  /**
+   * Record a metric for later reporting
+   * @param metric Metric data
+   */
+  private recordMetric(metric: MetricsData): void {
+    this.metrics.push(metric);
+    
+    // Keep last 1000 metrics
+    if (this.metrics.length > 1000) {
+      this.metrics = this.metrics.slice(-1000);
+    }
+  }
+
+  /**
+   * Report collected metrics
+   */
+  private reportMetrics(): void {
+    if (this.metrics.length === 0) return;
+    
+    // Calculate statistics
+    const now = Date.now();
+    const lastHourMetrics = this.metrics.filter(m => m.startTime > now - 60 * 60 * 1000);
+    
+    const statistics = {
+      totalOperations: lastHourMetrics.length,
+      successRate: lastHourMetrics.filter(m => m.success).length / lastHourMetrics.length,
+      averageDuration: lastHourMetrics.reduce((sum, m) => sum + ((m.endTime || m.startTime) - m.startTime), 0) / lastHourMetrics.length,
+      cacheHitRate: lastHourMetrics.filter(m => m.cacheHit).length / lastHourMetrics.length,
+      operationCounts: {} as Record<string, number>,
+      platformCounts: {} as Record<string, number>,
+      errors: lastHourMetrics.filter(m => !m.success).length,
+      timestamp: new Date().toISOString()
+    };
+    
+    // Count by operation type
+    lastHourMetrics.forEach(m => {
+      statistics.operationCounts[m.operationName] = (statistics.operationCounts[m.operationName] || 0) + 1;
+      if (m.platform) {
+        statistics.platformCounts[m.platform] = (statistics.platformCounts[m.platform] || 0) + 1;
+      }
+    });
+    
+    // Emit metrics event
+    this.eventEmitter.emit('metrics', statistics);
+    
+    // Log metrics summary
+    this.logStructured('info', 'Metrics report', { statistics });
+  }
+
+  /**
+   * Creates a new instance of ScannerService
+   * @constructor
+   */
   constructor() {
     // Initialize caches
     this.postCache = new Cache({
@@ -59,6 +352,18 @@ export class ScannerService {
       maxSize: ScannerService.CACHE_CONFIG.maxScanResults,
       version: 'v1'
     });
+    
+    // Initialize circuit breakers for each platform
+    for (const platform of ['tiktok', 'instagram', 'youtube'] as Platform[]) {
+      this.initCircuitBreaker(`${platform}_api`, {
+        failureThreshold: 5,
+        successThreshold: 2,
+        resetTimeout: 60000 // 1 minute
+      });
+    }
+    
+    // Setup metrics reporting
+    this.setupMetricsReporting();
     
     // Schedule periodic cleanup
     this.scheduleCleanup();
@@ -145,44 +450,143 @@ export class ScannerService {
     return scanId;
   }
 
+  /**
+   * Get posts for a specific user with retry and circuit breaker logic
+   * @param platform The platform to fetch posts from
+   * @param userId The user ID to fetch posts for
+   * @param lookbackDays Number of days to look back
+   * @returns Array of post metrics
+   */
   private async getUserPosts(platform: Platform, userId: string, lookbackDays: number): Promise<PostMetrics[]> {
     const cacheKey = `user_posts_${platform}_${userId}`;
+    const circuitBreakerKey = `${platform}_api`;
+    const metric: MetricsData = {
+      operationName: 'getUserPosts',
+      startTime: Date.now(),
+      success: false,
+      platform,
+      userId
+    };
     
     try {
-      const posts = await this.postCache.get(cacheKey, async () => {
-        const client = this.platformClients.get(platform);
-        if (!client) {
-          throw new Error(`No client configured for platform: ${platform}`);
-        }
-        
-        const posts = await client.getUserPosts(userId, lookbackDays);
-        return Array.isArray(posts) ? posts : [];
-      });
+      // Check circuit breaker first
+      if (!this.canPerformOperation(circuitBreakerKey)) {
+        this.logStructured('warn', `Circuit breaker open for ${platform} API, skipping user posts fetch for ${userId}`);
+        metric.errorMessage = 'Circuit breaker open';
+        metric.endTime = Date.now();
+        this.recordMetric(metric);
+        return [];
+      }
+      
+      // Try to get from cache first
+      const cachedResult = await this.postCache.has(cacheKey);
+      metric.cacheHit = !!cachedResult;
+      
+      const posts = await this.withRetry(async () => {
+        return this.postCache.get(cacheKey, async () => {
+          const client = this.platformClients.get(platform);
+          if (!client) {
+            throw new Error(`No client configured for platform: ${platform}`);
+          }
+          
+          this.logStructured('info', `Fetching posts for user ${userId} on ${platform}`);
+          const posts = await client.getUserPosts(userId, lookbackDays);
+          
+          // Record success in circuit breaker
+          this.recordSuccess(circuitBreakerKey);
+          
+          return Array.isArray(posts) ? posts : [];
+        });
+      }, 3);
+      
+      metric.success = true;
+      metric.postsFetched = posts?.length || 0;
+      metric.endTime = Date.now();
+      this.recordMetric(metric);
       
       return posts || [];
     } catch (error) {
-      console.error(`Error fetching user posts for ${userId} on ${platform}:`, error);
+      // Record failure in circuit breaker
+      this.recordFailure(circuitBreakerKey);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logStructured('error', `Error fetching user posts for ${userId} on ${platform}:`, { error: errorMessage });
+      
+      metric.success = false;
+      metric.errorMessage = errorMessage;
+      metric.endTime = Date.now();
+      this.recordMetric(metric);
+      
       return [];
     }
   }
 
+  /**
+   * Get posts for a specific competitor with retry and circuit breaker logic
+   * @param platform The platform to fetch posts from
+   * @param competitorId The competitor ID to fetch posts for
+   * @param lookbackDays Number of days to look back
+   * @returns Array of post metrics
+   */
   private async getCompetitorPosts(platform: Platform, competitorId: string, lookbackDays: number): Promise<PostMetrics[]> {
     const cacheKey = `competitor_posts_${platform}_${competitorId}`;
+    const circuitBreakerKey = `${platform}_api`;
+    const metric: MetricsData = {
+      operationName: 'getCompetitorPosts',
+      startTime: Date.now(),
+      success: false,
+      platform,
+      userId: competitorId
+    };
     
     try {
-      const posts = await this.postCache.get(cacheKey, async () => {
-        const client = this.platformClients.get(platform);
-        if (!client) {
-          throw new Error(`No client configured for platform: ${platform}`);
-        }
-        
-        const posts = await client.getCompetitorPosts(competitorId, lookbackDays);
-        return Array.isArray(posts) ? posts : [];
-      });
+      // Check circuit breaker first
+      if (!this.canPerformOperation(circuitBreakerKey)) {
+        this.logStructured('warn', `Circuit breaker open for ${platform} API, skipping competitor posts fetch for ${competitorId}`);
+        metric.errorMessage = 'Circuit breaker open';
+        metric.endTime = Date.now();
+        this.recordMetric(metric);
+        return [];
+      }
+      
+      const cachedResult = await this.postCache.has(cacheKey);
+      metric.cacheHit = !!cachedResult;
+      
+      const posts = await this.withRetry(async () => {
+        return this.postCache.get(cacheKey, async () => {
+          const client = this.platformClients.get(platform);
+          if (!client) {
+            throw new Error(`No client configured for platform: ${platform}`);
+          }
+          
+          this.logStructured('info', `Fetching posts for competitor ${competitorId} on ${platform}`);
+          const posts = await client.getCompetitorPosts(competitorId, lookbackDays);
+          
+          // Record success in circuit breaker
+          this.recordSuccess(circuitBreakerKey);
+          
+          return Array.isArray(posts) ? posts : [];
+        });
+      }, 3);
+      
+      metric.success = true;
+      metric.postsFetched = posts?.length || 0;
+      metric.endTime = Date.now();
+      this.recordMetric(metric);
       
       return posts || [];
     } catch (error) {
-      console.error(`Error fetching competitor posts for ${competitorId} on ${platform}:`, error);
+      // Record failure in circuit breaker
+      this.recordFailure(circuitBreakerKey);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.logStructured('error', `Error fetching competitor posts for ${competitorId} on ${platform}:`, { error: errorMessage });
+      
+      metric.success = false;
+      metric.errorMessage = errorMessage;
+      metric.endTime = Date.now();
+      this.recordMetric(metric);
+      
       return [];
     }
   }
@@ -313,12 +717,35 @@ export class ScannerService {
     }
   }
   
-  // Properly clean up resources when the service is no longer needed
-  public async destroy(): Promise<void> {
+  /**
+   * Destroy the service and cleanup resources
+   */
+  async destroy(): Promise<void> {
+    // Clear the cleanup interval
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = undefined;
     }
+
+    // Clear caches
+    this.postCache.clear();
+    this.profileCache.clear();
+    this.scanResultCache.clear();
+    
+    // Clear in-memory results
+    this.scanResults.clear();
+    
+    // Remove all event listeners
+    this.eventEmitter.removeAllListeners();
+  }
+  
+  /**
+   * Subscribe to scanner events
+   * @param event Event name
+   * @param handler Event handler
+   */
+  public on(event: 'log' | 'metrics', handler: (data: any) => void): void {
+    this.eventEmitter.on(event, handler);
   }
   
   /**
