@@ -25,14 +25,15 @@ const Particle = ({ id, controls, baseDuration, baseXOffset }: ParticleProps) =>
   const color = Math.random() > 0.5 ? "#5afcc0" : "#ffffff";
   const xOffset = baseXOffset * (0.3 + Math.random() * 0.4); // More controlled x movement
   
+  // Ensure all CSS properties use camelCase format for React
   const particleStyle: React.CSSProperties = {
     width: `${size}px`,
     height: `${size}px`,
-    background: color,
+    backgroundColor: color,
     left: `${left}%`,
     top: `${startY}%`,
     zIndex: 0,
-    position: 'absolute' as const,
+    position: 'absolute',
     borderRadius: '50%',
     willChange: 'transform, opacity',
   };

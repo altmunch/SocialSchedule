@@ -10,7 +10,6 @@ import HeroSection from '@/app/(landing)/components/HeroSection';
 import ValueStatementSection from '@/app/(landing)/components/ValueStatementSection';
 import FeaturesSection from '@/app/(landing)/components/FeaturesSection';
 import BonusesSection from '@/app/(landing)/components/BonusesSection';
-import GuaranteeSection from '@/app/(landing)/components/GuaranteeSection';
 import EnterpriseSection from '@/app/(landing)/components/EnterpriseSection';
 import DifferentiatorSection from '@/app/(landing)/components/DifferentiatorSection';
 import FinalCTASection from '@/app/(landing)/components/FinalCTASection';
@@ -58,7 +57,6 @@ export default function LandingPage() {
         <ValueStatementSection />
         <FeaturesSection onGetStarted={handleGetStarted} />
         <BonusesSection />
-        <GuaranteeSection />
         <EnterpriseSection />
         <DifferentiatorSection />
         <FinalCTASection onGetStarted={handleGetStarted} />

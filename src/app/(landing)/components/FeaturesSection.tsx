@@ -22,7 +22,7 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
       highlights: [
         'Constant optimization engines that work 24/7',
         'Real-time learning from audience reactions',
-        'Performance metrics from competitors',
+        'Optimize using tactics from high-performing competitors',
         'Conveys value through strategic captions'
       ],
       valueIndicator: 'Captures & Audits'
@@ -30,19 +30,19 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
     {
       number: 2,
       title: 'Blitz',
-      subtitle: 'Content Optimization Engine',
-      description: 'Experience lightning-fast content creation with our Blitz feature. Upload your raw content and watch as our AI transforms it into optimized, audience-ready posts in seconds.',
+      subtitle: 'Precise Automated Posting',
+      description: 'Push your content to the most targeted audience and see results in a flash. Our sophisticated algorithm identifies and reaches the perfect audience in your niche.',
       highlights: [
         'Precise, automated posting schedules',
         'Content optimization for maximum engagement',
-        'Push your content to the right audience'
+        'Sophisticated algorithm to target audience in your niche'
       ],
       valueIndicator: 'Sell At The Right Time'
     },
     {
       number: 3,
       title: 'Cycle',
-      subtitle: 'Sell Better',
+      subtitle: 'Viral Cycle of Improvements',
       description: 'Create a virtual cycle of improvements with continuous optimization. Our system learns from every post, constantly improving your content strategy and performance metrics.',
       highlights: [
         'Constantly improve from analytics',
