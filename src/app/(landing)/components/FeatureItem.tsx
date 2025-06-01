@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
-import DashboardMockup from './DashboardMockup';
 
 interface FeatureItemProps {
   feature: {
@@ -52,11 +51,13 @@ export default function FeatureItem({ feature, isReversed, index }: FeatureItemP
         </div>
       </div>
       
-      {/* Demo Area */}
+      {/* Demo Area - Removed DashboardMockup */}
       <div className="flex-1">
         <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-8 backdrop-blur-md relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a855f7] to-transparent"></div>
-          <DashboardMockup />
+          <div className="text-center py-12 text-white/60">
+            <p>Feature Demo</p>
+          </div>
         </div>
       </div>
     </motion.div>

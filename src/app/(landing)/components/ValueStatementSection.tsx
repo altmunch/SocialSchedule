@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useAnimation, useInView, AnimationControls } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 
 interface ParticleProps {
   id: number;
@@ -18,14 +18,13 @@ interface FloatingParticlesProps {
 const Particle = ({ id, controls, baseDuration, baseXOffset }: ParticleProps) => {
   const size = Math.random() * 6 + 2;
   const duration = baseDuration * (0.7 + Math.random() * 0.6);
-  const delay = Math.random() * 2; // Start with a small delay
+  const delay = Math.random() * 2;
   const left = Math.random() * 100;
   const startY = 100 + Math.random() * 20;
   const opacity = Math.random() * 0.3 + 0.1;
   const color = Math.random() > 0.5 ? "#5afcc0" : "#ffffff";
-  const xOffset = baseXOffset * (0.3 + Math.random() * 0.4); // More controlled x movement
+  const xOffset = baseXOffset * (0.3 + Math.random() * 0.4);
   
-  // Ensure all CSS properties use camelCase format for React
   const particleStyle: React.CSSProperties = {
     width: `${size}px`,
     height: `${size}px`,
@@ -36,6 +35,7 @@ const Particle = ({ id, controls, baseDuration, baseXOffset }: ParticleProps) =>
     position: 'absolute',
     borderRadius: '50%',
     willChange: 'transform, opacity',
+    pointerEvents: 'none',
   };
   
   return (
@@ -48,10 +48,13 @@ const Particle = ({ id, controls, baseDuration, baseXOffset }: ParticleProps) =>
           y: 0,
           x: 0,
           opacity: 0,
-          transition: { duration: 0.5 }
+          transition: { 
+            duration: 0.5,
+            ease: 'easeOut'
+          }
         },
         visible: (custom) => ({
-          y: -150, // Reduced travel distance
+          y: -150,
           x: custom.xOffset,
           opacity: [0, custom.opacity, 0],
           transition: {
@@ -68,45 +71,53 @@ const Particle = ({ id, controls, baseDuration, baseXOffset }: ParticleProps) =>
 
 const FloatingParticles = ({ count = 15, isInView }: FloatingParticlesProps) => {
   const controls = useAnimation();
-  const particles = Array.from({ length: count });
-  const baseDuration = 6; // Reduced base duration
-  const baseXOffset = 30; // Reduced horizontal movement
+  const particles = useMemo(() => Array.from({ length: count }), [count]);
+  const baseDuration = 6;
+  const baseXOffset = 30;
   const isAnimating = useRef(false);
   
   useEffect(() => {
-    if (isInView && !isAnimating.current) {
+    if (!isInView) {
+      controls.start("hidden");
+      isAnimating.current = false;
+      return;
+    }
+    
+    if (!isAnimating.current) {
       isAnimating.current = true;
       
       // Initial animation
       controls.start("visible");
       
-      // Slow down after initial animation
-      const slowDown = () => {
+      // Continuous animation
+      const animateParticles = () => {
         controls.start({
           y: -150,
+          opacity: [0, 0.2, 0],
           transition: {
-            duration: baseDuration * 1.5,
+            duration: baseDuration * (0.7 + Math.random() * 0.6),
             ease: [0.16, 1, 0.3, 1],
+            repeat: Infinity,
+            repeatType: 'loop',
+            repeatDelay: 0.5
           },
         });
       };
       
-      const timer = setTimeout(slowDown, 1500);
+      const timer = setTimeout(animateParticles, 1500);
       
       return () => {
         clearTimeout(timer);
         isAnimating.current = false;
       };
-    } else if (!isInView) {
-      controls.start("hidden");
     }
   }, [isInView, controls, baseDuration]);
   
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {particles.map((_, i) => (
+      {particles.map((_: unknown, i: number) => (
         <Particle 
-          key={i} 
+          key={`particle-${i}`}
           id={i}
           controls={controls}
           baseDuration={baseDuration}

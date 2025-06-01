@@ -5,7 +5,6 @@ import { Check } from 'lucide-react';
 
 // Sub-components for better maintainability
 import FeatureItem from './FeatureItem';
-import DashboardMockup from './DashboardMockup';
 
 interface FeatureSectionProps {
   onGetStarted?: () => void;

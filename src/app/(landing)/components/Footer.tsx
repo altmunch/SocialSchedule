@@ -63,7 +63,7 @@ export default function Footer() {
                     className="rounded"
                   />
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-blitz-blue to-blitz-purple bg-clip-text text-transparent">
+                <span className="text-xl font-bold text-[#8D5AFF]">
                   SocialSchedule
                 </span>
               </div>
@@ -102,9 +102,9 @@ export default function Footer() {
                   >
                     <Link 
                       href={link.href}
-                      className="text-lightning-dim/70 hover:text-blitz-blue transition-colors flex items-center group"
+                      className="text-lightning-dim/70 hover:text-[#8D5AFF] transition-colors flex items-center group"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-blitz-blue/0 group-hover:bg-blitz-blue mr-2 transition-colors"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#8D5AFF]/0 group-hover:bg-[#8D5AFF] mr-2 transition-colors"></span>
                       {link.name}
                     </Link>
                   </motion.li>
@@ -128,8 +128,8 @@ export default function Footer() {
                   className="flex-grow px-5 py-3.5 rounded-l-xl border border-storm-light/10 bg-storm-light/5 backdrop-blur-sm text-lightning-dim/90 placeholder-lightning-dim/40 focus:outline-none focus:ring-2 focus:ring-blitz-blue/50 focus:border-transparent transition-all"
                 />
                 <motion.button 
-                  className="bg-gradient-to-r from-blitz-blue to-blitz-purple hover:from-blitz-blue/90 hover:to-blitz-purple/90 text-lightning-DEFAULT font-medium px-6 py-3.5 rounded-r-xl transition-all"
-                  whileHover={{ boxShadow: '0 5px 15px -5px rgba(0, 119, 255, 0.3)' }}
+                  className="bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white font-medium px-6 py-3.5 rounded-r-xl transition-all"
+                  whileHover={{ boxShadow: '0 5px 15px -5px rgba(141, 90, 255, 0.5)' }}
                   whileTap={{ scale: 0.98 }}
                 >
                   Subscribe
@@ -137,10 +137,10 @@ export default function Footer() {
               </div>
             </div>
             <div className="flex items-center bg-storm-light/5 backdrop-blur-sm border border-storm-light/10 rounded-xl px-5 py-3.5">
-              <Mail size={18} className="text-blitz-blue mr-3" />
+              <Mail size={18} className="text-[#8D5AFF] mr-3" />
               <a 
                 href="mailto:support@socialschedule.com" 
-                className="text-lightning-dim/90 hover:text-blitz-blue transition-colors font-medium"
+                className="text-lightning-dim/90 hover:text-[#8D5AFF] transition-colors font-medium"
               >
                 support@socialschedule.com
               </a>
