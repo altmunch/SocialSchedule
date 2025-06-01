@@ -66,9 +66,25 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-5 text-[#8D5AFF]">
-            How It Works
-          </h2>
+          <div className="relative overflow-hidden h-[60px] md:h-[72px] mb-5">
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold text-[#8D5AFF] absolute w-full"
+              initial={{ x: -100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -100, opacity: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              The Viral Blitz Cycle
+            </motion.h2>
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold text-[#8D5AFF] absolute w-full"
+              initial={{ x: 0, opacity: 1 }}
+              animate={{ x: 100, opacity: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              How It Works
+            </motion.h2>
+          </div>
           <p className="text-xl text-white max-w-2xl mx-auto">
             Transform your content creation process with our AI-powered automation system
           </p>

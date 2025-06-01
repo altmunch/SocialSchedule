@@ -13,7 +13,7 @@ interface HeroSectionProps {
 
 export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) {
   return (
-    <section className="relative bg-black pt-32 pb-28 md:pt-40 md:pb-36 overflow-hidden">
+    <section className="relative bg-black pt-44 pb-28 md:pt-52 md:pb-36 overflow-hidden">
       {/* Background grid lines */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div 
@@ -31,9 +31,7 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
       
       {/* Background elements */}
       <div className="absolute inset-0 z-0 bg-gradient-to-b from-black via-black to-[#0A0A0A]" />
-      <div className="absolute top-32 -left-20 w-96 h-96 bg-blitz-blue/25 rounded-full filter blur-[150px]" />
       <div className="absolute bottom-20 -right-20 w-[32rem] h-[32rem] bg-blitz-purple/25 rounded-full filter blur-[180px]" />
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[24rem] bg-blitz-blue/10 rounded-full filter blur-[120px] opacity-40" />
       
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 relative z-10">
         <div className="text-center max-w-5xl mx-auto">

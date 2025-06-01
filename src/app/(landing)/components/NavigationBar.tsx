@@ -37,14 +37,9 @@ function NavigationBar() {
       key: 'product',
       hasDropdown: true,
       dropdown: [
-        { label: 'Features', href: '/features' },
-        { label: 'AI Shorts Optimization', href: '/ai-shorts' },
-        { label: 'Competitor Benchmarking', href: '/benchmarking' },
-        { label: 'Brand Voice Cloning', href: '/brand-voice' },
-        { label: 'Demo', href: '/demo' },
+        { label: 'Features', href: '/#features' },
         { label: 'Integrations', href: '/integrations' },
-        { label: 'TikTok/Instagram/YouTube', href: '/social-integrations' },
-        { label: 'Shopify & WooCommerce', href: '/ecommerce-integrations' },
+        { label: 'Demo', href: '/demo' },
       ]
     },
     { label: 'Pricing', href: '/pricing', hasDropdown: false },
@@ -54,9 +49,9 @@ function NavigationBar() {
       key: 'resources',
       hasDropdown: true,
       dropdown: [
-        { label: 'Guides', href: '/guides' },
-        { label: 'FAQ', href: '/faq' },
-        { label: 'Hooks and templates', href: '/templates' },
+        { label: 'Guides', href: '/resources#guides' },
+        { label: 'FAQ', href: '/resources#faq' },
+        { label: 'Hooks and templates', href: '/resources#templates' },
       ]
     },
   ];
@@ -82,11 +77,25 @@ function NavigationBar() {
           <div className="flex justify-between items-center py-2">
             {/* Logo */}
             <div className="flex items-center">
-              <Link href="/" className="flex items-center group">
-                <div className="w-8 h-8 bg-blitz-blue rounded-md flex items-center justify-center mr-2 group-hover:bg-blitz-purple transition-colors duration-300">
-                  <span className="text-lightning-DEFAULT font-bold text-sm">S</span>
+              <Link href="/" className="flex items-center group space-x-3">
+                <div className="relative w-16 h-16 bg-storm-dark/80 backdrop-blur-md p-2">
+                  <div className="relative w-full h-full">
+                    <Image 
+                      src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png" 
+                      alt="Logo" 
+                      fill 
+                      className="object-contain"
+                      style={{
+                        filter: 'invert(1)',
+                        opacity: 1
+                      }}
+                      priority
+                    />
+                  </div>
                 </div>
-                <span className="text-lightning-DEFAULT font-semibold text-base">SocialSchedule</span>
+                <span className="text-2xl font-bold text-white">
+                  ClipsCommerce
+                </span>
               </Link>
             </div>
 

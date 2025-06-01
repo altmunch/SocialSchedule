@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, ChevronDown, BarChart3, Users, Building2, Calculator, ArrowRight, ChevronRight } from 'lucide-react';
+import { Check, X, ChevronDown, BarChart3, Users, Building2, Calculator, ArrowRight, ChevronRight, Shield, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import NavigationBar from '@/app/(landing)/components/NavigationBar';
 
 import { getPricingTiers } from "@/lib/supabase/queries/pricing";
 
@@ -51,7 +52,12 @@ const containerVariants = {
 };
 
 const cardVariants = {
-  hidden: { y: 50, opacity: 0 },
+  hidden: { y: 30, opacity: 0 },
+  visible: { y: 0, opacity: 1 }
+};
+
+const teamCardVariants = {
+  hidden: { y: 30, opacity: 0 },
   visible: { y: 0, opacity: 1 }
 };
 
@@ -76,67 +82,64 @@ export default function PricingPage() {
     setPosts(parseInt(e.target.value) || 0);
   };
 
-  // Predefined pricing tiers
+  // Using fixed prices as specified
+  
+  // Predefined pricing tiers with specified pricing structure
   const pricingTiers: PricingTier[] = [
-    {
-      id: 'starter',
-      name: 'Starter',
-      price: 29,
-      yearlyPrice: 24.99 * 12,
-      description: 'For solopreneurs starting out',
-      features: [
-        '$29 billed monthly',
-        '500 credits (~7 videos per month)',
-        'AI clipping with Virality Score',
-        '3 different templates for TikTok',
-        'Export to YouTube Shorts, TikTok, IG Reels, or download',
-        '1 brand template',
-        'Filter & enhance removal',
-        'Remove Watermark'
-      ],
-      ctaText: 'Start now'
-    },
     {
       id: 'pro',
       name: 'Pro',
-      price: 299,
-      yearlyPrice: 249 * 12, // $14.50/mo billed annually
-      description: 'For professionals , marketers, & teams',
+      price: 70, // Monthly price
+      yearlyPrice: 600, // Annual price
+      description: 'Entry-level for premium, niche service',
       features: [
-        '$299 billed monthly',
-        '1000 credits (~33 videos per month)',
-        'Team collaboration with 3 seats',
-        '15 min exports',
-        'Captions with different text formats',
-        'Everything in the free plan, plus:',
-        'Export to directly to all social platforms',
-        'Speed up or slow down exports to 0.5-2x',
-        'Branded credit watermark',
-        'Custom URL endpoint',
-        'Custom fonts',
-        'Custom watermarks'
+        'Content Optimizing Engine ("Accelerate")',
+        'Precise Automated Posting ("Blitz")',
+        'Viral Cycle of Improvements ("Cycle")',
+        'Comprehensive Field Research ("Scan")',
+        'Retention-Boosting Hashtag Generator',
+        'Manage up to 3 social accounts',
+        'Basic content analytics dashboard',
+        'Template Generator Bonus ($399 value)'
+      ],
+      ctaText: 'Get Started'
+    },
+    {
+      id: 'team',
+      name: 'Team',
+      price: 100, // Monthly price
+      yearlyPrice: 900, // Annual price
+      description: 'For teams or heavy users, added features',
+      features: [
+        'Everything in Pro, plus:',
+        'Team collaboration features',
+        'Custom Brand Voice AI',
+        'Priority posting during peak hours',
+        'Advanced content performance metrics',
+        'Manage up to 10 social accounts',
+        'Content calendar with team workflows',
+        'Hook Creator Bonus ($500 value)'
       ],
       isPopular: true,
-      ctaText: 'Upgrade now'
+      ctaText: 'Choose Team'
     },
     {
       id: 'enterprise',
       name: 'Enterprise',
-      price: 2499,
-      yearlyPrice: 2000 * 12, // $249/mo billed annually
-      description: 'For organizations requiring tailored solutions, API, and more',
+      price: 160, // Monthly price
+      yearlyPrice: 1500, // Annual price
+      description: 'For custom integrations or high-volume needs',
       features: [
-        'Custom pricing and packs',
-        'Everything in the Pro plan, plus:',
-        'Custom integrations via API',
-        'Priority processing queue',
-        'Detailed business reports',
-        'Branded experience customization',
-        'API & automation',
-        'SLA & custom integrations',
-        'Priority support with a dedicated Success Expert'
+        'Everything in Team, plus:',
+        'Direct e-commerce platform integration',
+        'Dedicated account manager',
+        'Advanced analytics and reporting',
+        'Unlimited social accounts',
+        'Custom API integrations',
+        'White-glove onboarding',
+        'Custom AI model training for your brand'
       ],
-      ctaText: 'Contact us'
+      ctaText: 'Contact Us'
     }
   ];
 
@@ -170,12 +173,12 @@ export default function PricingPage() {
 
   const faqs: FAQ[] = [
     {
-      question: 'Can I change plans later?',
-      answer: 'Yes, you can upgrade or downgrade your plan at any time. Your billing will be prorated accordingly.'
+      question: "What's the 10-day guarantee?",
+      answer: "We're confident in our platform's ability to deliver results. If you don't see measurable improvements in your social media performance within 10 days, contact us for a full refund."
     },
     {
-      question: 'Is there a free trial available?',
-      answer: 'We offer a 14-day free trial for all plans. No credit card is required to start your trial.'
+      question: "What's the difference between the pricing tiers?",
+      answer: "Pro ($70/month or $600/year) is for individuals managing up to 3 accounts. Team ($100/month or $900/year) adds collaboration features and supports up to 10 accounts. Enterprise ($160/month or $1,500+/year) offers unlimited accounts, custom integrations, and dedicated support."
     },
     {
       question: 'What payment methods do you accept?',
@@ -229,54 +232,63 @@ export default function PricingPage() {
   const recommendedPlan = getRecommendedPlan();
 
   return (
-    <div className="bg-[#0A0A0A] min-h-screen text-lightning-DEFAULT">
-      <div className="container mx-auto px-4 py-20">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <motion.h1
+    <div className="bg-[#0A0A0A] min-h-screen text-lightning-DEFAULT pt-16">
+      <NavigationBar />
+      <div className="container mx-auto px-4 py-12">
+        {/* CTA section */}
+        <div className="mb-4 max-w-4xl mx-auto">
+          <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl font-bold bg-[#3D7BF4] bg-clip-text text-transparent mb-6"
+            className="bg-[#0A0A0A] border border-white/5 rounded-2xl p-12 text-center relative overflow-hidden shadow-xl"
           >
-            Choose a plan
-          </motion.h1>
-          
-          {/* Billing toggle */}
-          <div className="flex justify-center items-center space-x-4 mb-8">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex bg-storm-light/10 backdrop-blur-sm p-1 rounded-full"
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-5xl font-bold text-white mb-6"
             >
-              <button
-                onClick={() => setBillingCycle('monthly')}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'monthly' 
-                  ? 'bg-[#3D7BF4] text-lightning-DEFAULT shadow-lg' 
-                  : 'text-lightning-dim/70 hover:text-lightning-dim/90'}`}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingCycle('yearly')}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'yearly' 
-                  ? 'bg-[#3D7BF4] text-lightning-DEFAULT shadow-lg' 
-                  : 'text-lightning-dim/70 hover:text-lightning-dim/90'}`}
-              >
-                Yearly
-              </button>
-            </motion.div>
-          </div>
-          
-          {billingCycle === 'yearly' && (
-            <motion.div 
+              Choose Your Plan
+            </motion.h1>
+
+            <motion.p 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-blitz-green text-sm font-medium mb-8"
+              transition={{ delay: 0.1 }}
+              className="text-xl text-white/80 max-w-3xl mx-auto mb-10"
             >
-              Save up to 25% with annual billing
-            </motion.div>
-          )}
+              Simple choices, powerful results.
+            </motion.p>
+            
+            {/* Billing toggle */}
+            <div className="flex justify-center items-center space-x-4 mb-8">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="inline-flex bg-black/30 p-1 rounded-full border border-white/10 backdrop-blur-sm"
+              >
+                <button
+                  onClick={() => setBillingCycle('monthly')}
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'monthly' 
+                    ? 'bg-[#8D5AFF] text-white shadow-lg' 
+                    : 'text-white/60 hover:text-white'}`}
+                >
+                  Monthly
+                </button>
+                <button
+                  onClick={() => setBillingCycle('yearly')}
+                  className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${billingCycle === 'yearly' 
+                    ? 'bg-[#8D5AFF] text-white shadow-lg' 
+                    : 'text-white/60 hover:text-white'}`}
+                >
+                  Yearly
+                  <span className="ml-1 text-xs bg-[#5afcc0] text-black px-2 py-0.5 rounded-full">
+                    Save 20%
+                  </span>
+                </button>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
 
         {/* Pricing cards */}
@@ -284,61 +296,105 @@ export default function PricingPage() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-24"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12 relative"
         >
           {pricingTiers.map((tier: PricingTier, index: number) => {
+            // Handle Team tier pricing display
+            const priceDisplay = () => {
+              if (tier.id === 'team' && billingCycle === 'yearly') {
+                return '$900';
+              }
+              return `$${billingCycle === 'yearly' ? tier.yearlyPrice : tier.price}`;
+            };
+            
+            // Calculate transforms to position Team tier higher
+            const cardPositionStyle = tier.isPopular ? { marginTop: '-40px' } : {};
+            
             return (
               <motion.div
                 key={tier.id}
                 variants={cardVariants}
                 whileHover={{ y: -8 }}
-                className={`relative rounded-2xl overflow-hidden backdrop-blur-sm border ${tier.isPopular 
-                  ? 'border-blitz-blue/50 bg-gradient-to-br from-storm-dark to-storm-darker shadow-xl shadow-blitz-blue/20' 
-                  : 'border-storm-light/10 bg-storm-light/5'}`}
+                style={cardPositionStyle}
+                className={`relative rounded-xl overflow-hidden backdrop-blur-sm ${tier.isPopular 
+                  ? 'border-2 border-[#8D5AFF]/50 bg-gradient-to-br from-black to-[#1A1A1A] z-10'
+                  : 'border border-white/10 bg-black/40'}`}
               >
                 {tier.isPopular && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#3D7BF4] text-lightning-DEFAULT px-4 py-1 rounded-full text-sm font-semibold">
-                    Most Popular
+                  <div className="bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] text-white text-center py-2 font-semibold text-sm">
+                    MOST POPULAR
                   </div>
                 )}
                 
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold text-lightning-DEFAULT mb-2">{tier.name}</h3>
-                  <p className="text-lightning-dim/70 mb-6">{tier.description}</p>
-                  
-                  <div className="flex items-baseline mb-6">
-                    <span className="text-4xl font-bold bg-[#3D7BF4] bg-clip-text text-transparent">
-                      ${billingCycle === 'monthly' ? tier.price : Math.round(tier.yearlyPrice! / 12)}
-                    </span>
-                    <span className="text-lightning-dim/60 ml-2">/month</span>
-                  </div>
-                  
-                  {billingCycle === 'yearly' && tier.price > 0 && (
-                    <div className="mb-6 text-sm text-lightning-dim/70">
-                      <span>{tier.features[0]}</span>
-                    </div>
+                <div className="p-6 relative flex flex-col h-full" style={{ minHeight: tier.isPopular ? '640px' : '600px' }}>
+                  {/* Glow effect for popular plan */}
+                  {tier.isPopular && (
+                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#8D5AFF]/20 rounded-full filter blur-3xl -z-10" />
                   )}
                   
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`w-full py-3 px-6 rounded-xl font-medium transition-all mb-8 ${tier.id === 'business' 
-                      ? 'border border-blitz-blue/50 text-lightning-DEFAULT hover:bg-blitz-blue/10' 
-                      : 'bg-[#3D7BF4] text-lightning-DEFAULT hover:shadow-lg hover:shadow-blitz-blue/20'}`}
-                  >
-                    {tier.ctaText}
-                  </motion.button>
+                  <h3 className="text-xl font-bold text-white mb-1">{tier.name}</h3>
+                  <p className="text-white/60 mb-4 text-sm h-[40px]">{tier.description}</p>
                   
-                  <div className="space-y-3">
-                    {tier.features.filter((_, i) => billingCycle === 'monthly' || i > 0).map((feature, i) => (
+                  <div className="flex items-baseline mb-4">
+                    <span className="text-4xl font-bold text-white">
+                      {priceDisplay()}
+                    </span>
+                    <span className="text-white/60 ml-2">
+                      {billingCycle === 'yearly' ? '/year' : '/month'}
+                    </span>
+                  </div>
+                  
+                  {/* Display annual savings if yearly billing is selected */}
+                  {billingCycle === 'yearly' && (
+                    <div className="text-[#5afcc0] text-sm mb-4">Save 20% with annual billing</div>
+                  )}
+                  
+                  {/* Bonus section */}
+                  <div className="bg-[#5afcc0]/10 rounded-lg p-4 mb-6 border border-[#5afcc0]/20">
+                    <div className="flex items-start">
+                      <ChevronRight className="h-5 w-5 text-[#5afcc0] mr-2 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-white/80">
+                        <span className="text-[#5afcc0] font-medium">Purchase now</span> and get exclusive bonuses worth up to $899
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* 10-day guarantee instead of free trial */}
+                  <div className="flex items-center justify-center text-sm text-white/60 mb-6">
+                    <Shield className="h-4 w-4 mr-2 text-[#5afcc0]" />
+                    <span>10-day results guarantee</span>
+                  </div>
+                  
+                  <div className="mt-auto pt-6">
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className={`w-full py-3 rounded-xl font-medium transition-all ${tier.isPopular
+                        ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] text-white hover:shadow-lg hover:shadow-[#8D5AFF]/20'
+                        : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'}`}
+                    >
+                      {tier.ctaText}
+                    </motion.button>
+                  </div>
+                  
+                  <div className="space-y-2 flex-grow mt-4">
+                    <p className="text-xs font-medium text-white/60 uppercase tracking-wider mb-2">
+                      FEATURES
+                    </p>
+                    {tier.features.map((feature, i) => (
                       <div key={i} className="flex items-start">
-                        <div className="w-5 h-5 rounded-full bg-blitz-blue/10 flex items-center justify-center mt-0.5 mr-3 flex-shrink-0">
-                          <Check className="w-3 h-3 text-blitz-blue" />
+                        <div className="w-4 h-4 rounded-full bg-[#5afcc0]/10 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                          <Check className="h-2.5 w-2.5 text-[#5afcc0]" />
                         </div>
-                        <span className="text-sm text-lightning-dim/80">{feature}</span>
+                        <span className="text-xs text-white/80">{feature}</span>
                       </div>
                     ))}
                   </div>
+                  
+                  {/* Bottom glow for highlighted plan */}
+                  {tier.isPopular && (
+                    <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#5afcc0]/10 rounded-full filter blur-3xl -z-10" />
+                  )}
                 </div>
               </motion.div>
             );
@@ -349,45 +405,51 @@ export default function PricingPage() {
         <div className="mt-28 mb-32 max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-storm-light/5 backdrop-blur-sm border border-storm-light/10 rounded-2xl p-8 md:p-10"
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
           >
-            <div className="text-center mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold bg-[#3D7BF4] bg-clip-text text-transparent mb-4">
-                Create & Grow Faster Calculator
-              </h2>
-              <p className="text-lightning-dim/70 max-w-2xl mx-auto">
-                Our calculator is designed to help creators figure out what it costs them to create videos, and grow sustainably faster.
-              </p>
+            <h2 className="text-3xl font-bold mb-4">Calculate Your <span className="text-[#8D5AFF]">Investment Return</span></h2>
+            <p className="text-white/70 max-w-2xl mx-auto">
+              See how our AI-powered platform delivers measurable ROI based on your social media accounts and content strategy.
+            </p>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 p-8"
+          >
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-[#8D5AFF]/10 rounded-full p-3">
+                <Calculator className="w-6 h-6 text-[#8D5AFF]" />
+              </div>
+              <h3 className="text-xl font-semibold text-white">ROI Calculator</h3>
             </div>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div>
-                <label className="block text-lightning-dim/90 mb-2 font-medium">How many creators do you need?</label>
+                <label className="block text-white/70 mb-2 font-medium">How many creators do you need?</label>
                 <div className="flex">
                   <input 
                     type="number" 
                     value={followers} 
                     onChange={handleFollowersChange}
-                    className="w-full px-4 py-3 bg-storm-darker border border-storm-light/10 rounded-l-lg focus:outline-none focus:border-blitz-blue/50 text-lightning-DEFAULT"
+                    className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-l-lg focus:outline-none focus:border-blitz-blue/50 text-lightning-DEFAULT"
                   />
-                  <div className="bg-storm-dark border border-l-0 border-storm-light/10 rounded-r-lg px-4 flex items-center text-lightning-dim/60">
+                  <div className="bg-black/20 border border-l-0 border-white/10 rounded-r-lg px-4 flex items-center text-white/70">
                     creators
                   </div>
                 </div>
               </div>
               
               <div>
-                <label className="block text-lightning-dim/90 mb-2 font-medium">Average videos of your clips</label>
+                <label className="block text-white/70 mb-2 font-medium">Average videos of your clips</label>
                 <div className="flex">
                   <input 
                     type="number" 
                     value={posts} 
                     onChange={handlePostsChange}
-                    className="w-full px-4 py-3 bg-storm-darker border border-storm-light/10 rounded-l-lg focus:outline-none focus:border-blitz-blue/50 text-lightning-DEFAULT"
+                    className="w-full px-4 py-3 bg-black/30 border border-white/10 rounded-l-lg focus:outline-none focus:border-blitz-blue/50 text-lightning-DEFAULT"
                   />
-                  <div className="bg-storm-dark border border-l-0 border-storm-light/10 rounded-r-lg px-4 flex items-center text-lightning-dim/60">
+                  <div className="bg-black/20 border border-l-0 border-white/10 rounded-r-lg px-4 flex items-center text-white/70">
                     weekly
                   </div>
                 </div>
@@ -395,7 +457,7 @@ export default function PricingPage() {
             </div>
             
             <div className="mb-8">
-              <label className="block text-lightning-dim/90 mb-2 font-medium">What category?</label>
+              <label className="block text-white/70 mb-2 font-medium">What category?</label>
               <div className="grid grid-cols-3 gap-2">
                 {platformOptions.map((option) => (
                   <button
@@ -403,7 +465,7 @@ export default function PricingPage() {
                     onClick={() => setPlatform(option.id)}
                     className={`flex items-center justify-center space-x-2 p-3 rounded-lg border transition-all ${platform === option.id 
                       ? 'border-blitz-blue/50 bg-blitz-blue/5 text-lightning-DEFAULT' 
-                      : 'border-storm-light/10 bg-storm-light/5 text-lightning-dim/70 hover:text-lightning-dim/90 hover:border-storm-light/20'}`}
+                      : 'border-white/10 bg-black/20 text-white/70 hover:text-white/90 hover:border-white/20'}`}
                   >
                     <span className="text-blitz-blue">{option.icon}</span>
                     <span>{option.label}</span>
@@ -413,20 +475,20 @@ export default function PricingPage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-storm-darker rounded-xl p-6 text-center">
-                <h4 className="text-lightning-dim/70 mb-1 text-sm">Will you post on</h4>
+              <div className="bg-black/30 rounded-xl p-6 text-center">
+                <h4 className="text-white/70 mb-1 text-sm">Will you post on</h4>
                 <div className="text-xl font-bold text-lightning-DEFAULT">{platformOptions.find(p => p.id === platform)?.label}</div>
               </div>
               
-              <div className="bg-storm-darker rounded-xl p-6 text-center">
-                <h4 className="text-lightning-dim/70 mb-1 text-sm">We recommend</h4>
+              <div className="bg-black/30 rounded-xl p-6 text-center">
+                <h4 className="text-white/70 mb-1 text-sm">We recommend</h4>
                 <div className="text-xl font-bold text-lightning-DEFAULT">
                   {pricingTiers.find(p => p.id === recommendedPlan)?.name} Plan
                 </div>
               </div>
               
-              <div className="bg-storm-darker rounded-xl p-6 text-center">
-                <h4 className="text-lightning-dim/70 mb-1 text-sm">Est. growth per month</h4>
+              <div className="bg-black/30 rounded-xl p-6 text-center">
+                <h4 className="text-white/70 mb-1 text-sm">Est. growth per month</h4>
                 <div className="text-xl font-bold text-blitz-green">+{estimatedGrowth}</div>
               </div>
             </div>
@@ -447,40 +509,45 @@ export default function PricingPage() {
         <div className="mb-32 max-w-6xl mx-auto">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             className="text-3xl font-bold text-center mb-12 bg-[#3D7BF4] bg-clip-text text-transparent"
           >
             Compare all plans
           </motion.h2>
           
-          <div className="bg-storm-light/5 backdrop-blur-sm rounded-xl border border-storm-light/10 overflow-hidden">
+          <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 p-8">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="bg-[#8D5AFF]/10 rounded-full p-3">
+                <Calculator className="w-6 h-6 text-[#8D5AFF]" />
+              </div>
+              <h3 className="text-xl font-semibold text-white">ROI Calculator</h3>
+            </div>
             <div className="grid grid-cols-4 gap-0">
-              <div className="p-6 border-b border-storm-light/10">
+              <div className="p-6 border-b border-white/10">
                 <h3 className="font-bold text-lightning-DEFAULT">From</h3>
               </div>
               {pricingTiers.map((tier: PricingTier) => (
-                <div key={tier.id} className="p-6 text-center border-b border-storm-light/10">
+                <div key={tier.id} className="p-6 text-center border-b border-white/10">
                   <h3 className="font-bold text-lightning-DEFAULT">{tier.name}</h3>
-                  <p className="text-lightning-dim/70">${tier.price}/mo</p>
+                  <p className="text-white/70">${tier.price}/mo</p>
                 </div>
               ))}
             </div>
             
             {features.map((feature, index) => (
-              <div key={index} className="grid grid-cols-4 gap-0 hover:bg-storm-light/5 transition-colors">
-                <div className="p-6 border-b border-storm-light/10 flex items-center">
+              <div key={index} className="grid grid-cols-4 gap-0 hover:bg-black/20 transition-colors">
+                <div className="p-6 border-b border-white/10 flex items-center">
                   <div>
                     <h4 className="font-medium text-lightning-DEFAULT">{feature.name}</h4>
-                    <p className="text-sm text-lightning-dim/70">{feature.description}</p>
+                    <p className="text-sm text-white/70">{feature.description}</p>
                   </div>
                 </div>
                 {pricingTiers.map((tier: PricingTier) => (
-                  <div key={`${tier.id}-${index}`} className="p-6 flex items-center justify-center border-b border-storm-light/10">
+                  <div key={`${tier.id}-${index}`} className="p-6 flex items-center justify-center border-b border-white/10">
                     {feature.tiers[tier.name as keyof typeof feature.tiers] ? (
                       <Check className="w-5 h-5 text-blitz-green" />
                     ) : (
-                      <X className="w-5 h-5 text-storm-light/30" />
+                      <X className="w-5 h-5 text-white/30" />
                     )}
                   </div>
                 ))}
@@ -493,8 +560,7 @@ export default function PricingPage() {
         <div className="mb-32 max-w-3xl mx-auto">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             className="text-3xl font-bold text-center mb-12 bg-[#3D7BF4] bg-clip-text text-transparent"
           >
             Frequently Asked Questions
@@ -502,32 +568,33 @@ export default function PricingPage() {
           
           <div className="space-y-4">
             {faqs.map((faq, index) => (
-              <div key={index} className="bg-storm-light/5 backdrop-blur-sm rounded-xl border border-storm-light/10 overflow-hidden">
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="bg-black/40 border border-white/10 rounded-xl overflow-hidden"
+              >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full p-6 text-left flex justify-between items-center focus:outline-none"
+                  className="flex justify-between items-center w-full text-left p-6"
                 >
-                  <span className="text-lg font-medium text-lightning-DEFAULT">{faq.question}</span>
-                  <ChevronDown 
-                    className={`w-5 h-5 text-blitz-blue transition-transform duration-200 ${activeFaq === index ? 'transform rotate-180' : ''}`}
-                  />
+                  <span className="font-medium text-lg text-white">{faq.question}</span>
+                  <ChevronDown className={`w-5 h-5 text-[#5afcc0] transition-transform ${activeFaq === index ? 'transform rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {activeFaq === index && (
                     <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="px-6 pb-6 pt-0 text-white/80"
                     >
-                      <div className="px-6 pb-6 pt-0 text-lightning-dim/80">
-                        {faq.answer}
-                      </div>
+                      {faq.answer}
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>

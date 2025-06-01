@@ -49,7 +49,7 @@ export default function FinalCTASection({ onGetStarted }: FinalCTASectionProps) 
           </motion.div>
           
           <motion.h2 
-            className="text-4xl md:text-6xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#5afcc0] to-[#8D5AFF]"
+            className="text-3xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[#5afcc0] to-[#8D5AFF] whitespace-nowrap"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -59,7 +59,7 @@ export default function FinalCTASection({ onGetStarted }: FinalCTASectionProps) 
           </motion.h2>
           
           <motion.p 
-            className="text-2xl text-white/90 mb-6"
+            className="text-lg text-white/90 mb-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}

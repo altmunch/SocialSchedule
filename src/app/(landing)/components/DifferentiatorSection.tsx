@@ -83,11 +83,10 @@ export default function DifferentiatorSection() {
                 <CheckCircle className="h-6 w-6 text-[#8D5AFF]" />
               </div>
               <div className="flex-1">
-                <div className="flex justify-between items-start mb-1">
+                <div className="flex justify-between items-baseline mb-1">
                   <h4 className="font-semibold text-white">{offering.name}</h4>
-                  <div className="bg-[#5afcc0]/10 px-3 py-1 rounded-full text-[#5afcc0] font-bold text-sm flex items-center">
-                    <DollarSign className="h-3 w-3 mr-0.5" />
-                    {offering.value} value
+                  <div className="bg-[#5afcc0]/10 px-2 py-0.5 rounded-full text-[#5afcc0] font-bold text-xs whitespace-nowrap mt-1">
+                    ${offering.value} value
                   </div>
                 </div>
                 <p className="text-sm text-neutral-300">{offering.highlight}</p>

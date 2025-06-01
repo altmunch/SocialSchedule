@@ -1,22 +1,75 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, Shield, Sparkles } from 'lucide-react';
 
 interface PricingSectionProps {
   onGetStarted: () => void;
 }
 
 export default function PricingSection({ onGetStarted }: PricingSectionProps) {
-  const features = [
-    'Content Optimizing Engine ("Accelerate")',
-    'Precise Automated Posting ("Blitz")',
-    'Viral Cycle of Improvements ("Cycle")',
-    'Comprehensive Field Research ("Scan")',
-    'Retention-Boosting Hashtag & Template Generator',
-    'Custom Brand Voice AI',
-    'Direct e-commerce platform integration',
-    'Priority seller support',
+  const [isAnnual, setIsAnnual] = useState(true);
+  
+  // Calculate monthly prices (25% more than annual price divided by 12)
+  const calculateMonthly = (annualPrice: number) => {
+    return Math.round(annualPrice / 12 * 1.25);
+  };
+
+  const plans = [
+    {
+      name: 'Pro',
+      subtitle: 'Entry-level for premium, niche service',
+      annualPrice: 600,
+      monthlyPrice: calculateMonthly(600),
+      features: [
+        'AI optimizes content for conversions',
+        'Schedule posts for maximum sales',
+        'Content Optimizing Engine ("Accelerate")',
+        'Precise Automated Posting ("Blitz")',
+        'Viral Cycle of Improvements ("Cycle")',
+        'Comprehensive Field Research ("Scan")',
+        'Manage up to 3 social accounts',
+        'Hook & Template Generator Bonus',
+      ],
+      highlighted: false,
+    },
+    {
+      name: 'Team',
+      subtitle: 'For teams or heavy users, added features',
+      annualPrice: 900,
+      annualPriceRange: '900–1,200',
+      monthlyPrice: calculateMonthly(900),
+      monthlyPriceRange: '95–125',
+      features: [
+        'Everything in Pro, plus:',
+        'Advanced AI content customization',
+        'Team collaboration features',
+        'Priority posting during peak hours',
+        'Custom Brand Voice AI',
+        'Manage up to 10 social accounts',
+        'Content performance analytics dashboard',
+        'Priority customer support',
+      ],
+      highlighted: true,
+    },
+    {
+      name: 'Enterprise',
+      subtitle: 'For custom integrations or high-volume needs',
+      annualPrice: 1500,
+      monthlyPrice: calculateMonthly(1500),
+      features: [
+        'Everything in Team, plus:',
+        'Custom API integrations',
+        'Dedicated account manager',
+        'Advanced analytics and reporting',
+        'Direct e-commerce platform integration',
+        'Unlimited social accounts',
+        'White-glove onboarding',
+        'Custom AI model training',
+      ],
+      highlighted: false,
+    }
   ];
 
   return (
@@ -24,124 +77,156 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <motion.span 
-            className="inline-block text-sm font-semibold text-blitz-yellow uppercase tracking-wider mb-3"
+            className="inline-block text-sm font-semibold text-[#5afcc0] uppercase tracking-wider mb-3"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Value & Pricing
+            Simple, Transparent Pricing
           </motion.span>
           
           <motion.h2 
-            className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-6"
+            className="text-3xl md:text-4xl font-bold text-white mb-6"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Exceptional Value for E-Commerce Sellers
+            Scale Your Content and <span className="text-[#8D5AFF]">Maximize Sales</span>
           </motion.h2>
           
           <motion.p 
-            className="text-xl text-lightning-dim/80 max-w-3xl mx-auto"
+            className="text-xl text-white/80 max-w-3xl mx-auto mb-10"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            $3300+ value for less than 10% of the cost. All features included. No hidden fees.
+            Select the plan that best fits your needs. All plans include our core AI-powered features.
           </motion.p>
-        </div>
-
-        <div className="relative">
-          {/* Decorative background elements */}
-          <div className="absolute inset-0 -z-10 opacity-10">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#3b82f6,transparent_70%)]" />
-          </div>
-
-          <motion.div
-            className="relative border-2 border-blitz-blue/50 bg-gradient-to-br from-storm-dark to-storm-darker rounded-2xl overflow-hidden max-w-2xl mx-auto shadow-2xl backdrop-blur-sm"
+          
+          {/* Billing toggle */}
+          <motion.div 
+            className="inline-flex items-center bg-black/30 p-1 rounded-full border border-white/10 mb-12 backdrop-blur-sm"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            {/* Popular badge */}
-            <div className="bg-gradient-to-r from-blitz-blue to-blitz-purple text-lightning-DEFAULT text-center py-3 font-semibold text-sm tracking-wider">
-              RECOMMENDED FOR E-COMMERCE SELLERS
-            </div>
-            
-            <div className="p-8 md:p-10 relative">
-              {/* Glow effect */}
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-blitz-blue/20 rounded-full filter blur-3xl -z-10" />
-              
-              <div className="flex flex-col items-center mb-8">
-                <div className="flex items-baseline">
-                  <h3 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blitz-blue to-blitz-purple bg-clip-text text-transparent">
-                    $297
-                  </h3>
-                  <span className="text-lightning-dim/60 ml-2 text-lg">/month</span>
+            <button
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${isAnnual ? 'bg-[#8D5AFF] text-white shadow-lg' : 'text-white/60 hover:text-white'}`}
+              onClick={() => setIsAnnual(true)}
+            >
+              Annual
+              <span className="ml-1 text-xs bg-[#5afcc0] text-black px-2 py-0.5 rounded-full">
+                Save 20%
+              </span>
+            </button>
+            <button
+              className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${!isAnnual ? 'bg-[#8D5AFF] text-white shadow-lg' : 'text-white/60 hover:text-white'}`}
+              onClick={() => setIsAnnual(false)}
+            >
+              Monthly
+            </button>
+          </motion.div>
+
+          {/* Pricing cards */}
+          <div className="grid md:grid-cols-3 gap-6 xl:gap-10">
+            {plans.map((plan, index) => (
+              <motion.div
+                key={plan.name}
+                className={`relative rounded-2xl overflow-hidden backdrop-blur-sm ${plan.highlighted ? 'border-2 border-[#8D5AFF]/50 bg-gradient-to-br from-black to-[#1A1A1A]' : 'border border-white/10 bg-black/40'}`}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 + (index * 0.1) }}
+              >
+                {plan.highlighted && (
+                  <div className="bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] text-white text-center py-3 font-semibold text-sm tracking-wider">
+                    MOST POPULAR
+                  </div>
+                )}
+                
+                <div className="p-8 relative">
+                  {/* Glow effect */}
+                  {plan.highlighted && (
+                    <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#8D5AFF]/20 rounded-full filter blur-3xl -z-10" />
+                  )}
+                  
+                  <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
+                  <p className="text-white/60 mb-6 min-h-[40px]">{plan.subtitle}</p>
+                  
+                  <div className="flex items-baseline mb-6">
+                    <span className="text-4xl font-bold text-white">
+                      ${isAnnual 
+                        ? (plan.annualPriceRange || plan.annualPrice) 
+                        : (plan.monthlyPriceRange || plan.monthlyPrice)}
+                    </span>
+                    <span className="text-white/60 ml-2">
+                      {isAnnual ? '/year' : '/month'}
+                    </span>
+                  </div>
+                  
+                  {/* Bonus section */}
+                  <div className="bg-[#5afcc0]/10 rounded-lg p-4 mb-6 border border-[#5afcc0]/20">
+                    <div className="flex items-start">
+                      <Sparkles className="h-5 w-5 text-[#5afcc0] mr-2 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-[#5afcc0] font-medium">Limited Time Bonuses</p>
+                        <p className="text-sm text-white/70">Template Generator & Hook Creator included ($899 value)</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <motion.button
+                    onClick={onGetStarted}
+                    className={`w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 ${plan.highlighted 
+                      ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 
+                      : 'bg-white/10 hover:bg-white/15 border border-white/10'}`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span className="relative z-10">Get Started</span>
+                    <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
+                  </motion.button>
+                  
+                  {/* 10-day guarantee */}
+                  <div className="flex items-center justify-center text-sm text-white/60 mb-6">
+                    <Shield className="h-4 w-4 mr-2 text-[#5afcc0]" />
+                    <span>10-day results guarantee</span>
+                  </div>
+                  
+                  {/* Features */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium text-white border-b border-white/10 pb-2 mb-3">
+                      FEATURES
+                    </p>
+                    {plan.features.map((feature, idx) => (
+                      <motion.div 
+                        key={idx} 
+                        className="flex items-start"
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.3, delay: 0.1 + (idx * 0.05) }}
+                      >
+                        <div className="w-5 h-5 rounded-full bg-[#5afcc0]/10 flex items-center justify-center flex-shrink-0 mr-3 mt-0.5">
+                          <Check className="h-3 w-3 text-[#5afcc0]" />
+                        </div>
+                        <span className="text-white/80 text-sm">{feature}</span>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
                 
-                <p className="text-center text-lightning-dim/60 mt-2">
-                  <span className="line-through">$497</span> <span className="text-blitz-green font-semibold">Save 40%</span>
-                </p>
-              </div>
-              
-              <div className="bg-gradient-to-r from-blitz-blue/5 to-blitz-purple/5 rounded-xl p-5 text-center mb-8 border border-storm-light/10 backdrop-blur-sm">
-                <p className="text-lightning-dim/90">
-                  Value of hiring a dedicated specialist: 
-                  <span className="text-blitz-green font-semibold"> $3,300/mo</span>
-                </p>
-                <p className="text-lightning-dim/60 text-sm mt-1">You save over $3,000 per month</p>
-              </div>
-              
-              <motion.button
-                onClick={onGetStarted}
-                className="w-full group relative bg-gradient-to-r from-blitz-blue to-blitz-purple hover:from-blitz-blue/90 hover:to-blitz-purple/90 text-lightning-DEFAULT py-4 px-6 rounded-xl font-semibold text-lg shadow-xl shadow-blitz-blue/20 transition-all duration-300 overflow-hidden mb-8"
-                whileHover={{ 
-                  scale: 1.02,
-                  boxShadow: '0 10px 25px -5px rgba(0, 119, 255, 0.3)'
-                }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <span className="relative z-10">Start Your 14-Day Trial</span>
-                <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
-                <div className="absolute inset-0 bg-gradient-to-r from-blitz-blue/0 via-white/10 to-blitz-purple/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </motion.button>
-              
-              <div className="text-center text-sm text-lightning-dim/60 mb-8">
-                Cancel anytime during the trial period and you won't be charged
-              </div>
-              
-              <div className="space-y-4">
-                {features.map((feature, index) => (
-                  <motion.div 
-                    key={index} 
-                    className="flex items-center p-3 rounded-lg border border-storm-light/5 bg-storm-light/5 hover:border-blitz-blue/20 transition-all duration-200 group"
-                    initial={{ opacity: 0, x: -10 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ 
-                      duration: 0.3, 
-                      delay: 0.2 + (index * 0.05),
-                      ease: "easeOut"
-                    }}
-                    whileHover={{ x: 5 }}
-                  >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blitz-blue/10 to-blitz-purple/10 flex items-center justify-center flex-shrink-0 mr-3 group-hover:shadow-lg group-hover:shadow-blitz-blue/20 transition-all">
-                      <Check className="h-4 w-4 text-blitz-blue" />
-                    </div>
-                    <span className="text-lightning-dim/90">{feature}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Bottom glow */}
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blitz-purple/20 rounded-full filter blur-3xl -z-10" />
-          </motion.div>
+                {/* Bottom glow for highlighted plan */}
+                {plan.highlighted && (
+                  <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-[#5afcc0]/10 rounded-full filter blur-3xl -z-10" />
+                )}
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
