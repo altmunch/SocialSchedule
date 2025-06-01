@@ -79,14 +79,14 @@ function NavigationBar() {
       {/* Main navigation */}
       <div className="bg-storm-dark/80 backdrop-blur-md border-b border-storm-light/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-2">
             {/* Logo */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center group">
-                <div className="w-10 h-10 bg-blitz-blue rounded-md flex items-center justify-center mr-3 group-hover:bg-blitz-purple transition-colors duration-300">
-                  <span className="text-lightning-DEFAULT font-bold">S</span>
+                <div className="w-8 h-8 bg-blitz-blue rounded-md flex items-center justify-center mr-2 group-hover:bg-blitz-purple transition-colors duration-300">
+                  <span className="text-lightning-DEFAULT font-bold text-sm">S</span>
                 </div>
-                <span className="text-lightning-DEFAULT font-semibold text-lg">SocialSchedule</span>
+                <span className="text-lightning-DEFAULT font-semibold text-base">SocialSchedule</span>
               </Link>
             </div>
 
@@ -150,7 +150,7 @@ function NavigationBar() {
               </button>
               <button
                 onClick={() => router.push('/sign-up')}
-                className="bg-[#7D4AFF] hover:bg-[#6B3AD9] text-white px-5 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-[#7D4AFF]/30"
+                className="bg-[#7D4AFF] hover:bg-[#6B3AD9] text-white px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-[#7D4AFF]/30"
               >
                 Try Now
               </button>
