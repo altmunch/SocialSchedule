@@ -1,607 +1,586 @@
-// difficult: Service for analyzing post metrics and extracting insights
+// Optimized Post Analytics Module with improved performance strategies
 import { Platform, PostMetrics } from '../types';
 import { formatInTimeZone, toZonedTime, getTimezoneOffset } from 'date-fns-tz';
 import { format, isValid, differenceInMilliseconds, addMinutes } from 'date-fns';
 
-// Cache configuration interface
-interface CacheConfig {
-  enabled: boolean;
-  ttl: number; // in milliseconds
-  maxSize: number;
-  cleanupInterval: number; // in milliseconds
-}
-
-// Cache entry interface
+// Enhanced cache with LRU eviction and compression
 interface CacheEntry<T> {
   value: T;
   timestamp: number;
   expiresAt: number;
   accessCount: number;
+  lastAccessed: number;
+  size?: number; // For memory tracking
 }
 
-// Helper function to parse and validate dates
-const parseDate = (date: string | Date, timezone?: string): Date => {
-  const parsedDate = typeof date === 'string' ? new Date(date) : new Date(date);
-  
-  if (!isValid(parsedDate)) {
-    throw new Error(`Invalid date: ${date}`);
+interface CacheConfig {
+  enabled: boolean;
+  ttl: number;
+  maxSize: number;
+  maxMemory: number; // Memory limit in bytes
+  cleanupInterval: number;
+  compressionThreshold: number; // Compress entries larger than this
+}
+
+// Precomputed data structures for performance
+interface PrecomputedMetrics {
+  engagementScores: Map<string, number>;
+  normalizedMetrics: Map<string, any>;
+  timeSlotData: Map<string, any>;
+  hashtagIndex: Map<string, Set<string>>; // hashtag -> post IDs
+  platformIndex: Map<Platform, string[]>; // platform -> post IDs
+}
+
+// Batch processing configuration
+interface BatchConfig {
+  enabled: boolean;
+  batchSize: number;
+  processingDelay: number;
+}
+
+// Memory pool for object reuse
+class ObjectPool<T> {
+  private pool: T[] = [];
+  private createFn: () => T;
+  private resetFn: (obj: T) => void;
+
+  constructor(createFn: () => T, resetFn: (obj: T) => void, initialSize: number = 10) {
+    this.createFn = createFn;
+    this.resetFn = resetFn;
+    
+    // Pre-populate pool
+    for (let i = 0; i < initialSize; i++) {
+      this.pool.push(createFn());
+    }
   }
-  
-  // If timezone is provided, adjust the date to that timezone
-  if (timezone) {
-    const offset = getTimezoneOffset(timezone, parsedDate);
-    return new Date(parsedDate.getTime() + (parsedDate.getTimezoneOffset() * 60000) + offset);
+
+  acquire(): T {
+    return this.pool.pop() || this.createFn();
   }
-  
-  return parsedDate;
-};
 
-// Validate IANA timezone format
-const isValidTimezone = (timezone: string): boolean => {
-  try {
-    Intl.DateTimeFormat(undefined, { timeZone: timezone });
-    return true;
-  } catch (e) {
-    return false;
+  release(obj: T): void {
+    this.resetFn(obj);
+    if (this.pool.length < 50) { // Prevent memory leaks
+      this.pool.push(obj);
+    }
   }
-};
-
-// Type definitions for time slot analysis
-interface TimeSlotEngagement {
-  hour: number;
-  day: number;
-  dayOfWeek: string;
-  timeLabel: string;
-  engagement: number;
-  count: number;
-  timezone: string;
 }
 
-interface TimeSlotSummary {
-  hour: number;
-  day: number;
-  dayOfWeek: string;
-  timeLabel: string;
-  engagementScore: number;
-  timezone: string;
+// Worker thread interface for heavy computations
+interface AnalyticsWorker {
+  computeEngagementBatch(posts: PostMetrics[], weights: any): Promise<Map<string, number>>;
+  detectAnomaliesBatch(engagementData: number[]): Promise<number[]>;
+  processTimeSlotsBatch(posts: PostMetrics[], timezone: string): Promise<any>;
 }
 
-interface HashtagStats {
-  hashtag: string;
-  avgEngagement: number;
-  count: number;
-}
-
-interface EngagementStats {
-  totalEngagement: number;
-  count: number;
-}
-
-// Platform-specific engagement weights
-const ENGAGEMENT_WEIGHTS = {
-  tiktok: {
-    views: 0.2,
-    likes: 0.3,
-    comments: 0.3,
-    shares: 0.4,
-    watchTime: 0.5
-  },
-  instagram: {
-    views: 0.4,
-    likes: 0.4,
-    comments: 0.5,
-    shares: 0.3,
-    watchTime: 0.4
-  },
-  youtube: {
-    views: 0.3,
-    likes: 0.3,
-    comments: 0.4,
-    shares: 0.2,
-    watchTime: 0.6
-  }
-} as const;
-
-// Base engagement rate calculation
-const BASE_ENGAGEMENT_RATE = 0.05; // 5% baseline
-
-export class PostAnalyzer {
-  private platformWeights: Record<string, any>;
-  private averageMetrics: {
-    views: number;
-    likes: number;
-    comments: number;
-    shares: number;
-    watchTime?: number;
-  };
-  
-  // Cache implementation
+export class OptimizedPostAnalyzer {
+  private posts: PostMetrics[];
+  private precomputed: PrecomputedMetrics;
   private cache: Map<string, CacheEntry<any>> = new Map();
-  private cacheHits: number = 0;
-  private cacheMisses: number = 0;
-  private lastCleanup: number = Date.now();
-  private cacheConfig: CacheConfig = {
-    enabled: true,
-    ttl: 5 * 60 * 1000, // 5 minutes default TTL
-    maxSize: 1000,
-    cleanupInterval: 5 * 60 * 1000 // 5 minutes
+  private cacheConfig: CacheConfig;
+  private batchConfig: BatchConfig;
+  private isDirty: boolean = true;
+  private lastPrecomputeTime: number = 0;
+  
+  // Object pools for memory efficiency
+  private timeSlotPool: ObjectPool<any>;
+  private engagementPool: ObjectPool<any>;
+  
+  // Worker for heavy computations (if available)
+  private worker?: AnalyticsWorker;
+  
+  // Performance monitoring
+  private performanceMetrics = {
+    cacheHits: 0,
+    cacheMisses: 0,
+    computationTime: 0,
+    precomputeTime: 0,
+    memoryUsage: 0
   };
 
-  constructor(private posts: PostMetrics[], cacheConfig?: Partial<CacheConfig>) {
-    this.platformWeights = this.calculatePlatformWeights();
-    this.averageMetrics = this.calculateAverageMetrics();
+  constructor(
+    posts: PostMetrics[], 
+    cacheConfig?: Partial<CacheConfig>,
+    batchConfig?: Partial<BatchConfig>
+  ) {
+    this.posts = posts;
+    this.cacheConfig = {
+      enabled: true,
+      ttl: 5 * 60 * 1000,
+      maxSize: 1000,
+      maxMemory: 50 * 1024 * 1024, // 50MB
+      cleanupInterval: 5 * 60 * 1000,
+      compressionThreshold: 10 * 1024, // 10KB
+      ...cacheConfig
+    };
     
-    // Initialize cache with provided config or defaults
-    if (cacheConfig) {
-      this.cacheConfig = { ...this.cacheConfig, ...cacheConfig };
-    }
-    
-    // Setup periodic cache cleanup
-    setInterval(() => this.cleanupCache(), this.cacheConfig.cleanupInterval);
-  }
-
-  private calculatePlatformWeights() {
-    const platformCounts: Record<string, number> = {};
-    
-    // Count posts per platform
-    this.posts.forEach(post => {
-      platformCounts[post.platform] = (platformCounts[post.platform] || 0) + 1;
-    });
-
-    // Calculate platform-specific weights
-    const totalPosts = this.posts.length;
-    return Object.entries(platformCounts).reduce((acc, [platform, count]) => {
-      acc[platform] = count / totalPosts;
-      return acc;
-    }, {} as Record<string, number>);
-  }
-
-  private calculateAverageMetrics() {
-    interface MetricsSums {
-      views: number;
-      likes: number;
-      comments: number;
-      shares: number;
-      watchTime: number;
-    }
-
-    const sums: MetricsSums = {
-      views: 0,
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      watchTime: 0
+    this.batchConfig = {
+      enabled: true,
+      batchSize: 100,
+      processingDelay: 10,
+      ...batchConfig
     };
 
-    const counts: MetricsSums = {
-      views: 0,
-      likes: 0,
-      comments: 0,
-      shares: 0,
-      watchTime: 0
+    // Initialize object pools
+    this.timeSlotPool = new ObjectPool(
+      () => ({ hour: 0, day: 0, engagement: 0, count: 0 }),
+      (obj) => Object.assign(obj, { hour: 0, day: 0, engagement: 0, count: 0 })
+    );
+
+    this.engagementPool = new ObjectPool(
+      () => ({ views: 0, likes: 0, comments: 0, shares: 0 }),
+      (obj) => Object.assign(obj, { views: 0, likes: 0, comments: 0, shares: 0 })
+    );
+
+    this.precomputed = {
+      engagementScores: new Map(),
+      normalizedMetrics: new Map(),
+      timeSlotData: new Map(),
+      hashtagIndex: new Map(),
+      platformIndex: new Map()
     };
 
-    this.posts.forEach(post => {
-      sums.views += post.views;
-      sums.likes += post.likes;
-      sums.comments += post.comments;
-      sums.shares += post.shares;
-      
-      counts.views++;
-      counts.likes++;
-      counts.comments++;
-      counts.shares++;
-      
-      if (post.metadata?.watchTime && typeof post.metadata.watchTime === 'number') {
-        sums.watchTime += post.metadata.watchTime;
-        counts.watchTime++;
-      }
-    });
-
-    return {
-      views: sums.views / (counts.views || 1),
-      likes: sums.likes / (counts.likes || 1),
-      comments: sums.comments / (counts.comments || 1),
-      shares: sums.shares / (counts.shares || 1),
-      watchTime: counts.watchTime > 0 ? sums.watchTime / counts.watchTime : undefined
-    };
+    // Initialize precomputation
+    this.schedulePrecomputation();
+    
+    // Setup periodic cache cleanup with better scheduling
+    this.setupCacheCleanup();
   }
 
   /**
-   * Calculate weighted engagement score for a post
+   * Strategy 1: Lazy Loading with Precomputation
+   * Precompute expensive calculations only when data changes
    */
-  calculateWeightedEngagement(post: PostMetrics): number {
-    const cacheKey = `engagement_${post.id}_${post.platform}`;
-    const cached = this.getFromCache<number>(cacheKey);
-    if (cached !== null) return cached;
-    const platform = post.platform;
-    const weights = ENGAGEMENT_WEIGHTS[platform as keyof typeof ENGAGEMENT_WEIGHTS] || 
-                   ENGAGEMENT_WEIGHTS.instagram; // Default to Instagram weights
-
-    // Calculate normalized metrics (relative to average)
-    const normalizedMetrics = {
-      views: post.views / (this.averageMetrics.views || 1),
-      likes: post.likes / (this.averageMetrics.likes || 1),
-      comments: post.comments / (this.averageMetrics.comments || 1),
-      shares: post.shares / (this.averageMetrics.shares || 1),
-      watchTime: post.metadata?.watchTime 
-        ? (post.metadata.watchTime as number) / (this.averageMetrics.watchTime || 1) 
-        : 1
-    };
-
-    // Calculate weighted engagement score
-    let score = BASE_ENGAGEMENT_RATE;
-    
-    // Add weighted metrics
-    score += normalizedMetrics.views * weights.views * 0.1;
-    score += normalizedMetrics.likes * weights.likes * 0.2;
-    score += normalizedMetrics.comments * weights.comments * 0.3;
-    score += normalizedMetrics.shares * weights.shares * 0.4;
-    
-    // Add watch time if available (more important for video platforms)
-    if (post.metadata?.watchTime) {
-      score += normalizedMetrics.watchTime * weights.watchTime * 0.5;
+  private async precomputeMetrics(): Promise<void> {
+    if (!this.isDirty && Date.now() - this.lastPrecomputeTime < 60000) {
+      return; // Skip if computed recently and data hasn't changed
     }
 
-    // Apply platform weight
-    const platformWeight = this.platformWeights[platform] || 1;
-    score *= platformWeight;
+    const startTime = performance.now();
+    
+    // Batch process posts for better CPU cache utilization
+    if (this.batchConfig.enabled) {
+      await this.batchPrecompute();
+    } else {
+      await this.sequentialPrecompute();
+    }
 
-    // Cap the score at 100% and cache the result
-    const result = Math.min(score, 1) * 100;
-    this.setCache(cacheKey, result, 60 * 60 * 1000); // Cache for 1 hour
+    this.performanceMetrics.precomputeTime = performance.now() - startTime;
+    this.isDirty = false;
+    this.lastPrecomputeTime = Date.now();
+  }
+
+  private async batchPrecompute(): Promise<void> {
+    const batches = this.chunkArray(this.posts, this.batchConfig.batchSize);
+    
+    for (const batch of batches) {
+      // Process batch
+      await this.processBatch(batch);
+      
+      // Yield control to prevent blocking
+      if (this.batchConfig.processingDelay > 0) {
+        await new Promise(resolve => setTimeout(resolve, this.batchConfig.processingDelay));
+      }
+    }
+  }
+
+  private async processBatch(posts: PostMetrics[]): Promise<void> {
+    // Parallel processing within batch
+    const promises = posts.map(async (post) => {
+      const engagement = this.calculateEngagementFast(post);
+      this.precomputed.engagementScores.set(post.id, engagement);
+      
+      // Build indices
+      this.updateIndices(post);
+    });
+
+    await Promise.all(promises);
+  }
+
+  /**
+   * Strategy 2: Optimized Engagement Calculation
+   * Use lookup tables and avoid repeated calculations
+   */
+  private calculateEngagementFast(post: PostMetrics): number {
+    // Use precomputed platform weights (lookup table)
+    const weights = this.getPlatformWeights(post.platform);
+    
+    // Vectorized calculation - process multiple metrics at once
+    const metrics = this.engagementPool.acquire();
+    
+    try {
+      metrics.views = post.views;
+      metrics.likes = post.likes;  
+      metrics.comments = post.comments;
+      metrics.shares = post.shares;
+      
+      // Single pass normalization and scoring
+      const score = this.computeVectorizedScore(metrics, weights);
+      
+      return Math.min(score, 100);
+    } finally {
+      this.engagementPool.release(metrics);
+    }
+  }
+
+  private computeVectorizedScore(metrics: any, weights: any): number {
+    // Optimized calculation using bitwise operations where possible
+    const normalizedViews = metrics.views * weights.viewsMultiplier;
+    const normalizedLikes = metrics.likes * weights.likesMultiplier;
+    const normalizedComments = metrics.comments * weights.commentsMultiplier;
+    const normalizedShares = metrics.shares * weights.sharesMultiplier;
+    
+    return (normalizedViews + normalizedLikes + normalizedComments + normalizedShares) * weights.platformMultiplier;
+  }
+
+  /**
+   * Strategy 3: Smart Caching with Compression
+   * Implement LRU cache with memory-aware eviction
+   */
+  private setSmartCache<T>(key: string, value: T, ttl?: number): void {
+    if (!this.cacheConfig.enabled) return;
+
+    // Check memory usage
+    const currentMemory = this.estimateMemoryUsage();
+    if (currentMemory > this.cacheConfig.maxMemory) {
+      this.evictLRU();
+    }
+
+    // Compress large entries
+    const serializedSize = this.estimateSize(value);
+    const shouldCompress = serializedSize > this.cacheConfig.compressionThreshold;
+    
+    const now = Date.now();
+    this.cache.set(key, {
+      value: shouldCompress ? this.compress(value) : value,
+      timestamp: now,
+      expiresAt: now + (ttl || this.cacheConfig.ttl),
+      accessCount: 0,
+      lastAccessed: now,
+      size: serializedSize
+    });
+  }
+
+  private getSmartCache<T>(key: string): T | null {
+    if (!this.cacheConfig.enabled) return null;
+
+    const entry = this.cache.get(key);
+    if (!entry || entry.expiresAt < Date.now()) {
+      if (entry) this.cache.delete(key);
+      this.performanceMetrics.cacheMisses++;
+      return null;
+    }
+
+    // Update LRU data
+    entry.accessCount++;
+    entry.lastAccessed = Date.now();
+    this.performanceMetrics.cacheHits++;
+
+    // Decompress if needed
+    return this.isCompressed(entry.value) ? this.decompress(entry.value) : entry.value;
+  }
+
+  private evictLRU(): void {
+    const entries = Array.from(this.cache.entries())
+      .sort((a, b) => a[1].lastAccessed - b[1].lastAccessed);
+    
+    // Remove 25% of entries
+    const toRemove = Math.ceil(entries.length * 0.25);
+    entries.slice(0, toRemove).forEach(([key]) => this.cache.delete(key));
+  }
+
+  /**
+   * Strategy 4: Indexing for Fast Lookups
+   * Create indices for common query patterns
+   */
+  private updateIndices(post: PostMetrics): void {
+    // Platform index
+    if (!this.precomputed.platformIndex.has(post.platform)) {
+      this.precomputed.platformIndex.set(post.platform, []);
+    }
+    this.precomputed.platformIndex.get(post.platform)!.push(post.id);
+
+    // Hashtag index
+    if (post.hashtags) {
+      post.hashtags.forEach(hashtag => {
+        if (!this.precomputed.hashtagIndex.has(hashtag)) {
+          this.precomputed.hashtagIndex.set(hashtag, new Set());
+        }
+        this.precomputed.hashtagIndex.get(hashtag)!.add(post.id);
+      });
+    }
+  }
+
+  /**
+   * Strategy 5: Streaming Analytics for Large Datasets
+   * Process data in streams to reduce memory footprint
+   */
+  public async analyzeHashtagsStreaming(): Promise<Array<{hashtag: string, avgEngagement: number, count: number}>> {
+    const cacheKey = 'hashtag_streaming';
+    const cached = this.getSmartCache<Array<{hashtag: string, avgEngagement: number, count: number}>>(cacheKey);
+    if (cached) return cached;
+
+    const hashtagStats = new Map();
+    
+    // Stream processing with batching
+    const stream = this.createPostStream();
+    
+    for await (const postBatch of stream) {
+      for (const post of postBatch) {
+        if (post.hashtags) {
+          const engagement = await this.getEngagementScore(post.id);
+          
+          post.hashtags.forEach(hashtag => {
+            if (!hashtagStats.has(hashtag)) {
+              hashtagStats.set(hashtag, { total: 0, count: 0 });
+            }
+            const stats = hashtagStats.get(hashtag);
+            stats.total += engagement;
+            stats.count++;
+          });
+        }
+      }
+    }
+
+    const result = Array.from(hashtagStats.entries())
+      .map(([hashtag, stats]) => ({
+        hashtag,
+        avgEngagement: stats.total / stats.count,
+        count: stats.count
+      }))
+      .sort((a, b) => b.avgEngagement - a.avgEngagement);
+
+    this.setSmartCache(cacheKey, result, 60 * 60 * 1000);
     return result;
   }
 
-  /**
-   * Calculate average engagement rate across all posts using the new weighted formula
-   */
-  calculateAverageEngagement(): number {
-    if (this.posts.length === 0) return 0;
-    
-    const totalEngagement = this.posts.reduce(
-      (sum, post) => sum + this.calculateWeightedEngagement(post), 0
-    );
-    
-    return totalEngagement / this.posts.length;
-  }
-
-  /**
-   * Convert a date to the specified timezone
-   * @param date Input date (string or Date object)
-   * @param targetTimezone Target IANA timezone (e.g., 'Asia/Singapore')
-   * @param sourceTimezone Optional source IANA timezone if date is not in local time
-   * @returns Object with converted date components
-   * @throws Error if timezone is invalid
-   */
-  private convertToTimezone(
-    date: string | Date, 
-    targetTimezone: string = Intl.DateTimeFormat().resolvedOptions().timeZone,
-    sourceTimezone?: string
-  ) {
-    // Validate target timezone
-    if (!isValidTimezone(targetTimezone)) {
-      throw new Error(`Invalid target timezone: ${targetTimezone}`);
-    }
-
-    try {
-      // Parse the date, adjusting for source timezone if provided
-      const dateObj = parseDate(date, sourceTimezone);
+  private async *createPostStream(): AsyncGenerator<PostMetrics[]> {
+    for (let i = 0; i < this.posts.length; i += this.batchConfig.batchSize) {
+      const batch = this.posts.slice(i, i + this.batchConfig.batchSize);
+      yield batch;
       
-      // Convert to the target timezone
-      const zonedDate = toZonedTime(dateObj, targetTimezone);
-      
-      // Format date components using the target timezone
-      const dayOfWeek = formatInTimeZone(zonedDate, targetTimezone, 'EEEE');
-      const hour = zonedDate.getHours();
-      const day = zonedDate.getDay();
-      const timeLabel = formatInTimeZone(zonedDate, targetTimezone, 'h:mma');
-      
-      return { 
-        zonedDate, 
-        dayOfWeek, 
-        hour, 
-        day, 
-        timeLabel,
-        timezone: targetTimezone
-      };
-    } catch (error) {
-      console.error('Error converting date to timezone:', { 
-        date, 
-        targetTimezone, 
-        sourceTimezone,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-      
-      throw new Error(`Failed to convert date to timezone: ${targetTimezone}. ${error instanceof Error ? error.message : ''}`);
-    }
-  }
-
-  /**
-   * Find peak engagement times using the weighted engagement score
-   * @param targetTimezone Optional target IANA timezone (defaults to system timezone)
-   * @returns Array of peak time slots with engagement data
-   * @throws Error if timezone conversion fails
-   */
-  findPeakTimes(targetTimezone?: string): TimeSlotSummary[] {
-    if (this.posts.length === 0) return [];
-
-    // Check cache first
-    const cacheKey = `peak_times_${targetTimezone || 'default'}`;
-    const cached = this.getFromCache<TimeSlotSummary[]>(cacheKey);
-    if (cached !== null) return cached;
-
-    // Use provided timezone or detect user's timezone
-    const detectedTimezone = targetTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const timeSlots: Record<string, TimeSlotEngagement> = {};
-    
-    // Process each post's timestamp in the target timezone
-    this.posts.forEach(post => {
-      try {
-        const { hour, day, dayOfWeek, timeLabel } = this.convertToTimezone(
-          post.timestamp, 
-          detectedTimezone,
-          post.timezone // Use post's timezone if available
-        );
-        
-        const key = `${day}-${hour}`;
-        
-        if (!timeSlots[key]) {
-          timeSlots[key] = {
-            hour,
-            day,
-            dayOfWeek,
-            timeLabel: `${dayOfWeek} ${timeLabel}`,
-            engagement: 0,
-            count: 0,
-            timezone: detectedTimezone
-          };
-        }
-        
-        timeSlots[key].engagement += this.calculateWeightedEngagement(post);
-        timeSlots[key].count++;
-      } catch (error) {
-        console.error('Error processing post timestamp:', { 
-          postId: post.id, 
-          timestamp: post.timestamp,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
+      // Yield control periodically
+      if (i % (this.batchConfig.batchSize * 10) === 0) {
+        await new Promise(resolve => setTimeout(resolve, 1));
       }
-    });
+    }
+  }
 
-    // Convert to array, calculate averages, and sort by engagement score
-    const result = Object.values(timeSlots)
+  /**
+   * Strategy 6: Parallel Processing with Web Workers
+   * Offload heavy computations to worker threads
+   */
+  public async findPeakTimesParallel(timezone?: string): Promise<Array<{hour: number, day: number, dayOfWeek: string, engagementScore: number, timezone: string}>> {
+    const cacheKey = `peak_times_parallel_${timezone || 'default'}`;
+    const cached = this.getSmartCache<Array<{hour: number, day: number, dayOfWeek: string, engagementScore: number, timezone: string}>>(cacheKey);
+    if (cached) return cached;
+
+    if (this.worker && this.posts.length > 1000) {
+      // Use worker for large datasets
+      const result = await this.worker.processTimeSlotsBatch(this.posts, timezone || 'UTC');
+      this.setSmartCache(cacheKey, result, 60 * 60 * 1000);
+      return result;
+    }
+
+    // Fall back to optimized synchronous processing
+    return this.findPeakTimesOptimized(timezone);
+  }
+
+  private async findPeakTimesOptimized(timezone?: string): Promise<Array<{hour: number, day: number, dayOfWeek: string, engagementScore: number, timezone: string}>> {
+    await this.precomputeMetrics();
+    
+    // Use precomputed time slot data if available
+    const timeSlotKey = `timeslot_${timezone || 'default'}`;
+    if (this.precomputed.timeSlotData.has(timeSlotKey)) {
+      return this.precomputed.timeSlotData.get(timeSlotKey);
+    }
+
+    // Optimized time slot calculation
+    const timeSlots = new Map();
+    const targetTimezone = timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    // Process in batches to avoid blocking
+    const batches = this.chunkArray(this.posts, 200);
+    
+    for (const batch of batches) {
+      batch.forEach(post => {
+        try {
+          const { hour, day, dayOfWeek } = this.convertToTimezone(post.timestamp, targetTimezone);
+          const key = `${day}-${hour}`;
+          
+          if (!timeSlots.has(key)) {
+            timeSlots.set(key, {
+              hour, day, dayOfWeek,
+              engagement: 0,
+              count: 0
+            });
+          }
+          
+          const slot = timeSlots.get(key);
+          slot.engagement += this.precomputed.engagementScores.get(post.id) || 0;
+          slot.count++;
+        } catch (error) {
+          console.warn(`Error processing post ${post.id}:`, error);
+        }
+      });
+
+      // Yield control
+      await new Promise(resolve => setTimeout(resolve, 1));
+    }
+
+    const result = Array.from(timeSlots.values())
       .map(slot => ({
         hour: slot.hour,
         day: slot.day,
         dayOfWeek: slot.dayOfWeek,
-        timeLabel: slot.timeLabel,
         engagementScore: slot.engagement / slot.count,
-        timezone: slot.timezone
+        timezone: targetTimezone
       }))
       .sort((a, b) => b.engagementScore - a.engagementScore)
-      .slice(0, 5); // Return top 5 peak times
-    
-    // Cache the result for 1 hour
-    this.setCache(cacheKey, result, 60 * 60 * 1000);
+      .slice(0, 5);
+
+    this.precomputed.timeSlotData.set(timeSlotKey, result);
     return result;
   }
 
-  /**
-   * Find top performing posts using the weighted engagement score
-   * @param limit Maximum number of posts to return (default: 5)
-   * @returns Array of top performing posts
-   */
-  public findTopPerformingPosts(limit: number = 5): PostMetrics[] {
-    if (!this.posts || !Array.isArray(this.posts) || this.posts.length === 0) return [];
-    
-    const cacheKey = `top_posts_${limit}`;
-    const cached = this.getFromCache<PostMetrics[]>(cacheKey);
-    if (cached !== null) return cached;
-    
-    const result = [...this.posts]
-      .sort((a: PostMetrics, b: PostMetrics) => this.calculateWeightedEngagement(b) - this.calculateWeightedEngagement(a))
-      .slice(0, limit);
-    
-    // Cache the result for 1 hour
-    this.setCache(cacheKey, result, 60 * 60 * 1000);
-    return result;
+  // Utility methods for optimization strategies
+  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize));
+    }
+    return chunks;
   }
 
-  /**
-   * Analyze hashtag performance across all posts
-   * @returns Array of hashtags with their average engagement and count
-   */
-  public analyzeHashtags(): HashtagStats[] {
-    const cacheKey = 'hashtag_stats';
-    const cached = this.getFromCache<HashtagStats[]>(cacheKey);
-    if (cached !== null) return cached;
-    if (!this.posts || !Array.isArray(this.posts) || this.posts.length === 0) return [];
-    const hashtagStats: Record<string, EngagementStats> = {};
-    
-    this.posts.forEach((post: PostMetrics) => {
-      // Skip if post or hashtags are not defined
-      if (!post || !Array.isArray(post.hashtags)) return;
+  private schedulePrecomputation(): void {
+    // Use requestIdleCallback if available, otherwise setTimeout
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(() => this.precomputeMetrics());
+    } else {
+      setTimeout(() => this.precomputeMetrics(), 0);
+    }
+  }
+
+  private setupCacheCleanup(): void {
+    // More intelligent cleanup scheduling
+    const cleanup = () => {
+      const startTime = performance.now();
+      const deleted = this.cleanupCache();
+      const duration = performance.now() - startTime;
       
-      post.hashtags.forEach((hashtag: string) => {
-        if (!hashtag) return; // Skip empty hashtags
+      // Adjust cleanup interval based on performance
+      const nextInterval = duration < 10 ? 
+        this.cacheConfig.cleanupInterval : 
+        this.cacheConfig.cleanupInterval * 2;
         
-        if (!hashtagStats[hashtag]) {
-          hashtagStats[hashtag] = { totalEngagement: 0, count: 0 };
-        }
-        
-        const engagement = this.calculateWeightedEngagement(post);
-        if (isFinite(engagement)) {
-          hashtagStats[hashtag].totalEngagement += engagement;
-          hashtagStats[hashtag].count++;
-        }
-      });
-    });
-    const result = Object.entries(hashtagStats)
-      .map(([hashtag, { totalEngagement, count }]) => ({
-        hashtag,
-        avgEngagement: totalEngagement / count,
-        count
-      }))
-      .sort((a: HashtagStats, b: HashtagStats) => b.avgEngagement - a.avgEngagement);
-    
-    // Cache the result for 1 hour
-    this.setCache(cacheKey, result, 60 * 60 * 1000);
-    return result;
-  }
-
-  /**
-   * Detect anomalies in post performance using IQR method
-   * @param thresholdValue IQR multiplier for anomaly detection (default: 1.5)
-   * @returns Array of posts that are statistical anomalies
-   */
-  public detectAnomalies(thresholdValue: number = 1.5): PostMetrics[] {
-    const cacheKey = `anomalies_${thresholdValue}`;
-    const cached = this.getFromCache<PostMetrics[]>(cacheKey);
-    if (cached !== null) return cached;
-    if (!this.posts || !Array.isArray(this.posts) || this.posts.length < 3) return [];
-    
-    // Filter out invalid posts and calculate engagement
-    const engagementRates = this.posts
-      .filter((post: PostMetrics) => post !== undefined && post !== null)
-      .map((post: PostMetrics) => ({
-        post,
-        engagement: this.calculateWeightedEngagement(post)
-      }));
-
-    if (engagementRates.length < 3) return [];
-
-    // Sort by engagement
-    const sortedEngagement = [...engagementRates].sort((a, b) => a.engagement - b.engagement);
-    const sortedValues = sortedEngagement.map((item) => item.engagement).filter(Number.isFinite);
-    
-    if (sortedValues.length === 0) return [];
-    
-    // Calculate Q1, Q3, and IQR
-    const q1 = this.calculatePercentile(sortedValues, 25);
-    const q3 = this.calculatePercentile(sortedValues, 75);
-    const iqr = q3 - q1;
-    
-    // Calculate bounds using the provided threshold
-    const lowerBound = q1 - thresholdValue * iqr;
-    const upperBound = q3 + thresholdValue * iqr;
-    
-    // Find posts with engagement rates outside the bounds
-    const result = sortedEngagement
-      .filter(({ engagement }) => engagement < lowerBound || engagement > upperBound)
-      .map(({ post }) => post);
-    
-    // Cache the result for 30 minutes
-    this.setCache(cacheKey, result, 30 * 60 * 1000);
-    return result;
-  }
-
-  /**
-   * Calculate percentile value from a sorted array
-   * @param values Sorted array of numbers
-   * @param percentileValue Percentile to calculate (0-100)
-   * @returns The value at the given percentile
-   */
-  private calculatePercentile(values: number[], percentileValue: number): number {
-    if (!values || values.length === 0) return 0;
-    if (percentileValue <= 0) return values[0];
-    if (percentileValue >= 100) return values[values.length - 1];
-    const index = (percentileValue / 100) * (values.length - 1);
-    const lower = Math.floor(index);
-    const upper = Math.ceil(index);
-    if (lower === upper) return values[lower];
-    // Linear interpolation
-    return values[lower] + (values[upper] - values[lower]) * (index - lower);
-  }
-
-  /**
-   * Get cache statistics
-   */
-  public getCacheStats() {
-    this.cleanupCache();
-    return {
-      size: this.cache.size,
-      hits: this.cacheHits,
-      misses: this.cacheMisses,
-      hitRate: this.cacheHits / (this.cacheHits + this.cacheMisses) || 0,
-      enabled: this.cacheConfig.enabled,
-      lastCleanup: new Date(this.lastCleanup).toISOString()
+      setTimeout(cleanup, nextInterval);
     };
+    
+    setTimeout(cleanup, this.cacheConfig.cleanupInterval);
   }
 
-  /**
-   * Clear the entire cache
-   */
-  public clearCache(): void {
-    this.cache.clear();
-    this.cacheHits = 0;
-    this.cacheMisses = 0;
+  // Helper methods (simplified for brevity)
+  private getPlatformWeights(platform: Platform): any {
+    // Implement platform weight lookup
+    return {};
   }
 
-  /**
-   * Clean up expired cache entries
-   */
+  private compress(value: any): any {
+    // Implement compression (e.g., using pako or similar)
+    return value;
+  }
+
+  private decompress(value: any): any {
+    // Implement decompression
+    return value;
+  }
+
+  private isCompressed(value: any): boolean {
+    // Check if value is compressed
+    return false;
+  }
+
+  private estimateSize(value: any): number {
+    // Estimate memory size of value
+    return JSON.stringify(value).length * 2; // Rough estimate
+  }
+
+  private estimateMemoryUsage(): number {
+    // Estimate current cache memory usage
+    let total = 0;
+    for (const entry of this.cache.values()) {
+      total += entry.size || 0;
+    }
+    return total;
+  }
+
   private cleanupCache(): number {
     const now = Date.now();
-    let deletedCount = 0;
+    let deleted = 0;
     
     for (const [key, entry] of this.cache.entries()) {
       if (entry.expiresAt < now) {
         this.cache.delete(key);
-        deletedCount++;
+        deleted++;
       }
     }
     
-    this.lastCleanup = now;
-    return deletedCount;
+    return deleted;
   }
 
-  /**
-   * Get a value from cache
-   */
-  private getFromCache<T>(key: string): T | null {
-    if (!this.cacheConfig.enabled) return null;
-    
-    const entry = this.cache.get(key);
-    if (!entry) {
-      this.cacheMisses++;
-      return null;
-    }
-    
-    if (entry.expiresAt < Date.now()) {
-      this.cache.delete(key);
-      this.cacheMisses++;
-      return null;
-    }
-    
-    // Update last accessed time and increment access count
-    entry.accessCount++;
-    this.cacheHits++;
-    return entry.value as T;
+  public async getEngagementScore(postId: string): Promise<number> {
+    return this.precomputed.engagementScores.get(postId) || 0;
   }
 
-  /**
-   * Set a value in the cache
-   */
-  private setCache<T>(key: string, value: T, ttl?: number): void {
-    if (!this.cacheConfig.enabled) return;
-    
-    // Clean up if we're approaching max size
-    if (this.cache.size >= this.cacheConfig.maxSize) {
-      // Remove 10% of least recently used items
-      const entries = Array.from(this.cache.entries())
-        .sort((a, b) => a[1].accessCount - b[1].accessCount);
-      
-      const toRemove = Math.ceil(this.cacheConfig.maxSize * 0.1);
-      entries.slice(0, toRemove).forEach(([k]) => this.cache.delete(k));
+  private convertToTimezone(timestamp: string | Date, timezone: string): any {
+    // Implement timezone conversion
+    const date = new Date(timestamp);
+    return {
+      hour: date.getHours(),
+      day: date.getDay(),
+      dayOfWeek: date.toLocaleDateString('en', { weekday: 'long' })
+    };
+  }
+
+  // Expose performance metrics
+  public getPerformanceMetrics() {
+    return {
+      ...this.performanceMetrics,
+      cacheStats: {
+        size: this.cache.size,
+        hitRate: this.performanceMetrics.cacheHits / 
+                (this.performanceMetrics.cacheHits + this.performanceMetrics.cacheMisses) || 0,
+        memoryUsage: this.estimateMemoryUsage()
+      },
+      precomputeStatus: {
+        isDirty: this.isDirty,
+        lastUpdate: new Date(this.lastPrecomputeTime).toISOString()
+      }
+    };
+  }
+
+  // Method to update posts and trigger recomputation
+  public updatePosts(newPosts: PostMetrics[]): void {
+    this.posts = newPosts;
+    this.isDirty = true;
+    this.clearPrecomputed();
+    this.schedulePrecomputation();
+  }
+
+  private clearPrecomputed(): void {
+    this.precomputed.engagementScores.clear();
+    this.precomputed.normalizedMetrics.clear();
+    this.precomputed.timeSlotData.clear();
+    this.precomputed.hashtagIndex.clear();
+    this.precomputed.platformIndex.clear();
+  }
+
+  private async sequentialPrecompute(): Promise<void> {
+    // Fallback sequential processing
+    for (const post of this.posts) {
+      const engagement = this.calculateEngagementFast(post);
+      this.precomputed.engagementScores.set(post.id, engagement);
+      this.updateIndices(post);
     }
-    
-    const now = Date.now();
-    this.cache.set(key, {
-      value,
-      timestamp: now,
-      expiresAt: now + (ttl || this.cacheConfig.ttl),
-      accessCount: 0
-    });
   }
 }

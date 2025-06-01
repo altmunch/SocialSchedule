@@ -3,7 +3,7 @@ import { Platform, ScanResult, ScanOptions, PostMetrics, Competitor, ScanStatus 
 import { TikTokClient } from './platforms/TikTokClient';
 import { InstagramClient } from './platforms/InstagramClient';
 import { YouTubeClient } from './platforms/YouTubeClient';
-import { PostAnalyzer } from './analysis/PostAnalyzer';
+import { OptimizedPostAnalyzer as PostAnalyzer } from './analysis/PostAnalyzer';
 import { Cache } from './utils/Cache';
 import { EventEmitter } from 'events';
 
@@ -594,7 +594,7 @@ export class ScannerService {
   private async performScan(scan: ScanResult, options: ScanOptions): Promise<{
     totalPosts: number;
     averageEngagement: number;
-    peakTimes: Array<{ hour: number; engagementScore: number }>;
+    peakTimes: Array<{ hour: number; engagementScore: number; day: number; dayOfWeek: string; timezone: string }>;
     topPerformingPosts: PostMetrics[];
   }> {
     // 1. Collect posts from all sources
@@ -629,15 +629,43 @@ export class ScannerService {
       }
     }
 
+    if (allPosts.length === 0) {
+      return {
+        totalPosts: 0,
+        averageEngagement: 0,
+        peakTimes: [],
+        topPerformingPosts: []
+      };
+    }
+
     // 2. Analyze the collected data
     const analyzer = new PostAnalyzer(allPosts);
     
     // Calculate metrics with error handling
+    const peakTimes = await analyzer.findPeakTimesParallel();
+    
+    // For top performing posts, we'll sort by engagement score
+    const postsWithScores = await Promise.all(
+      allPosts.map(async (post) => ({
+        ...post,
+        engagementScore: await analyzer.getEngagementScore(post.id)
+      }))
+    );
+    
+    const topPerformingPosts = postsWithScores
+      .sort((a, b) => b.engagementScore - a.engagementScore)
+      .slice(0, 10)
+      .map(({ engagementScore, ...post }) => post);
+    
+    // Calculate average engagement
+    const totalEngagement = postsWithScores.reduce((sum, post) => sum + post.engagementScore, 0);
+    const averageEngagement = allPosts.length > 0 ? totalEngagement / allPosts.length : 0;
+
     return {
       totalPosts: allPosts.length,
-      averageEngagement: analyzer.calculateAverageEngagement(),
-      peakTimes: analyzer.findPeakTimes(),
-      topPerformingPosts: analyzer.findTopPerformingPosts(10),
+      averageEngagement,
+      peakTimes,
+      topPerformingPosts,
     };
   }
 
