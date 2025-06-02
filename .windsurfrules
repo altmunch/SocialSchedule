@@ -33,3 +33,9 @@ date-fns - Date utility library
 react-hook-form - Form state management
 react-day-picker - Date picker component
 lucide-react - Icon library
+
+# style guide for flow diagrams:
+- box up and name the major pipelines(not individual modules)
+- use arrows to show data flow
+- use dotted lines to show group related components
+
