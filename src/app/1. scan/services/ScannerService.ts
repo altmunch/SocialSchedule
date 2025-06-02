@@ -422,13 +422,16 @@ export class ScannerService {
   async startScan(userId: string, options: ScanOptions): Promise<string> {
     const scanId = `scan_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     
-    const scanResult: Omit<ScanResult, 'endTime' | 'error'> & { status: 'pending' } = {
+    const scanResult: ScanResult = {
       id: scanId,
       userId,
-      platform: options.platforms[0], // For now, handle one platform at a time
-      startTime: new Date(),
-      status: 'pending' as const,
-      metrics: undefined
+      status: 'pending',
+      options,
+      timestamp: Date.now(),
+      totalPosts: 0,
+      averageEngagement: 0,
+      peakTimes: [],
+      topPerformingPosts: []
     };
 
     this.scanResults.set(scanId, scanResult);
@@ -464,7 +467,6 @@ export class ScannerService {
       operationName: 'getUserPosts',
       startTime: Date.now(),
       success: false,
-      platform,
       userId
     };
     
@@ -500,7 +502,6 @@ export class ScannerService {
       }, 3);
       
       metric.success = true;
-      metric.postsFetched = posts?.length || 0;
       metric.endTime = Date.now();
       this.recordMetric(metric);
       
@@ -570,7 +571,6 @@ export class ScannerService {
       }, 3);
       
       metric.success = true;
-      metric.postsFetched = posts?.length || 0;
       metric.endTime = Date.now();
       this.recordMetric(metric);
       
@@ -697,9 +697,8 @@ export class ScannerService {
       ]);
       
       // Update scan result with metrics
-      scan.metrics = metrics;
       scan.status = 'completed';
-      scan.endTime = new Date();
+      scan.completedAt = Date.now();
       
       // Update cache with the completed scan
       await this.scanResultCache.set(scanId, scan);
@@ -711,7 +710,7 @@ export class ScannerService {
       // Update scan with error
       scan.status = 'failed';
       scan.error = errorMessage;
-      scan.endTime = new Date();
+      scan.completedAt = Date.now();
       await this.scanResultCache.set(scanId, scan);
       
       // Re-throw to allow caller to handle the error
@@ -726,7 +725,7 @@ export class ScannerService {
 
       // Find expired scans
       for (const [id, scan] of this.scanResults.entries()) {
-        const scanAge = now.getTime() - scan.startTime.getTime();
+        const scanAge = now.getTime() - scan.timestamp;
         if (scanAge > this.SCAN_EXPIRATION_MS) {
           expiredScanIds.push(id);
         }

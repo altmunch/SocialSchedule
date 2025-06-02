@@ -104,23 +104,13 @@ export const ScanMetricsSchema = z.object({
   topPerformingPosts: z.array(PostMetricsSchema)
 });
 
-export const ScanResultSchema = z.object({
-  id: z.string().uuid(),
-  userId: z.string().min(1, 'User ID is required'),
-  platform: PlatformSchema,
-  startTime: z.date(),
-  endTime: z.date().optional(),
-  status: ScanStatusSchema,
-  metrics: ScanMetricsSchema.optional(),
-  error: z.string().optional()
-});
-
-export type ScanResult = z.infer<typeof ScanResultSchema>;
+// Moving ScanResultSchema definition after ScanOptionsSchema
 
 export const ScanOptionsSchema = z.object({
   platforms: z.array(PlatformSchema).nonempty('At least one platform is required'),
   competitors: z.array(z.string().min(1, 'Competitor ID cannot be empty')).optional(),
   lookbackDays: z.number().int().min(1).max(365).default(30),
+  timezone: timezoneSchema.optional(),
   includeOwnPosts: z.boolean().default(true)
 }).refine(
   (data) => data.platforms.length <= 3,
@@ -128,6 +118,28 @@ export const ScanOptionsSchema = z.object({
 );
 
 export type ScanOptions = z.infer<typeof ScanOptionsSchema>;
+
+export const ScanResultSchema = z.object({
+  id: z.string().min(1, 'Scan ID is required'),
+  userId: z.string().min(1, 'User ID is required'),
+  timestamp: z.number().int().nonnegative(),
+  status: ScanStatusSchema,
+  options: ScanOptionsSchema,
+  totalPosts: z.number().int().nonnegative().default(0),
+  averageEngagement: z.number().nonnegative().default(0),
+  peakTimes: z.array(z.object({
+    hour: z.number().int().min(0).max(23),
+    engagementScore: z.number().nonnegative(),
+    day: z.number().int().min(1).max(31).optional(),
+    dayOfWeek: z.string().optional(),
+    timezone: z.string().optional()
+  })).default([]),
+  topPerformingPosts: z.array(PostMetricsSchema).default([]),
+  completedAt: z.number().int().nonnegative().optional(),
+  error: z.string().optional()
+});
+
+export type ScanResult = z.infer<typeof ScanResultSchema>;
 
 // Rate limiting types
 export type RateLimit = {
@@ -143,6 +155,12 @@ export type RateLimitConfig = {
   };
 };
 
+export type BatchConfig = {
+  batchSize: number;
+  processingDelay: number;
+  useParallelProcessing?: boolean;
+};
+
 // Cache types
 export type CacheEntry<T> = {
   data: T;
@@ -150,6 +168,13 @@ export type CacheEntry<T> = {
 };
 
 export type CacheConfig = {
-  ttl: number; // in milliseconds
+  ttl: number;
   maxSize: number;
+  staleWhileRevalidate?: number;
+  compressionThreshold?: number;
+  maxCacheSize?: number; // Added for compatibility with OptimizedPostAnalyzer
+  namespace?: string;
+  version?: string;
+  environment?: string;
+  volatility?: number;
 };
