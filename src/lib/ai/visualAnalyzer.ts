@@ -277,21 +277,21 @@ export class VisualAnalyzer {
    * Run full analysis pipeline on image
    */
   private async runAnalysisPipeline(image: tf.Tensor3D): Promise<Omit<VisualAnalysisResult, 'performance'>> {
-    // Run different analyses in parallel for performance
+    // Run all analysis steps in parallel for performance
     const [objects, colors, composition] = await Promise.all([
       this.detectObjects(image),
       this.analyzeColors(image),
       this.analyzeComposition(image)
     ]);
     
-    // Derive sentiment from objects and composition
-    const sentiment = this.deriveSentiment(objects, composition);
+    // Derive sentiment from objects, composition, and colors
+    const sentiment = this.deriveSentiment(objects, composition, colors);
     
     return {
       objects,
       colors,
-      composition,
-      sentiment
+      sentiment,
+      composition
     };
   }
 
@@ -445,11 +445,14 @@ export class VisualAnalyzer {
   }
 
   /**
-   * Derive sentiment from objects and composition
+   * Enhanced sentiment analysis from visual elements
+   * Uses a more nuanced approach combining object recognition, color psychology,
+   * and composition factors to determine emotional impact
    */
   private deriveSentiment(
     objects: VisualAnalysisResult['objects'],
-    composition: VisualAnalysisResult['composition']
+    composition: VisualAnalysisResult['composition'],
+    colors: VisualAnalysisResult['colors']
   ): VisualAnalysisResult['sentiment'] {
     // This is a simplified sentiment derivation
     // In a real implementation, you'd use a dedicated model

@@ -11,24 +11,24 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'SocialSchedule - AI-Powered Social Media Management',
-  description: 'Schedule, analyze, and grow your social media presence with our powerful AI tools.',
-  keywords: ['social media', 'scheduling', 'analytics', 'AI', 'marketing', 'content creation'],
-  authors: [{ name: 'SocialSchedule Team' }],
-  creator: 'SocialSchedule',
+  title: 'ClipsCommerce - AI-Powered E-commerce Content Platform',
+  description: 'Create, optimize, and scale your e-commerce content with AI-powered tools for maximum engagement and sales.',
+  keywords: ['e-commerce', 'AI content', 'product marketing', 'social commerce', 'AI video', 'content optimization'],
+  authors: [{ name: 'ClipsCommerce Team' }],
+  creator: 'ClipsCommerce',
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://socialschedule.app',
-    title: 'SocialSchedule - AI-Powered Social Media Management',
-    description: 'Schedule, analyze, and grow your social media presence with our powerful AI tools.',
-    siteName: 'SocialSchedule',
+    url: 'https://clipscommerce.com',
+    title: 'ClipsCommerce - AI-Powered E-commerce Content Platform',
+    description: 'Create, optimize, and scale your e-commerce content with AI-powered tools for maximum engagement and sales.',
+    siteName: 'ClipsCommerce',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SocialSchedule - AI-Powered Social Media Management',
-    description: 'Schedule, analyze, and grow your social media presence with our powerful AI tools.',
-    creator: '@socialschedule',
+    title: 'ClipsCommerce - AI-Powered E-commerce Content Platform',
+    description: 'Create, optimize, and scale your e-commerce content with AI-powered tools for maximum engagement and sales.',
+    creator: '@clipscommerce',
   },
 };
 

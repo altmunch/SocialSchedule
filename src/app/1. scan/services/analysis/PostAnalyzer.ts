@@ -2,6 +2,7 @@
 import { Platform, PostMetrics } from '../types';
 import { formatInTimeZone, toZonedTime, getTimezoneOffset } from 'date-fns-tz';
 import { format, isValid, differenceInMilliseconds, addMinutes } from 'date-fns';
+import { HashtagAnalyzer, HashtagPerformanceResult, HashtagAnalysisOptions } from './HashtagAnalyzer';
 
 // Enhanced cache with LRU eviction and compression
 interface CacheEntry<T> {
@@ -85,6 +86,7 @@ export class OptimizedPostAnalyzer {
   // Object pools for memory efficiency
   private timeSlotPool: ObjectPool<any>;
   private engagementPool: ObjectPool<any>;
+  private hashtagAnalyzer: HashtagAnalyzer;
   
   // Worker for heavy computations (if available)
   private worker?: AnalyticsWorker;
@@ -145,6 +147,12 @@ export class OptimizedPostAnalyzer {
     
     // Setup periodic cache cleanup with better scheduling
     this.setupCacheCleanup();
+    
+    // Initialize hashtag analyzer
+    this.hashtagAnalyzer = new HashtagAnalyzer(posts, {
+      maxCacheSize: this.cacheConfig.maxSize,
+      cacheTtlMs: this.cacheConfig.ttl
+    });
   }
 
   /**
@@ -565,6 +573,94 @@ export class OptimizedPostAnalyzer {
     this.isDirty = true;
     this.clearPrecomputed();
     this.schedulePrecomputation();
+    
+    // Update hashtag analyzer
+    this.hashtagAnalyzer.updatePosts(newPosts, false);
+  }
+  
+  /**
+   * Get performance metrics for a specific hashtag
+   * @param hashtag Hashtag to analyze (case insensitive)
+   * @param options Analysis options
+   */
+  public async getHashtagPerformance(hashtag: string, options: HashtagAnalysisOptions = {}): Promise<HashtagPerformanceResult | null> {
+    const startTime = Date.now();
+    const result = await this.hashtagAnalyzer.getHashtagPerformance(hashtag, options);
+    
+    // Update performance metrics
+    this.performanceMetrics.computationTime += Date.now() - startTime;
+    
+    return result;
+  }
+  
+  /**
+   * Get top performing hashtags based on specified criteria
+   * @param options Analysis options
+   */
+  public async getTopHashtags(options: HashtagAnalysisOptions = {}): Promise<HashtagPerformanceResult[]> {
+    const startTime = Date.now();
+    const result = await this.hashtagAnalyzer.getTopHashtags(options);
+    
+    // Update performance metrics
+    this.performanceMetrics.computationTime += Date.now() - startTime;
+    
+    return result;
+  }
+  
+  /**
+   * Find related hashtags for a given hashtag
+   * @param hashtag The hashtag to find related tags for
+   * @param limit Maximum number of related hashtags to return
+   */
+  public async findRelatedHashtags(hashtag: string, limit: number = 10): Promise<Array<{hashtag: string, score: number}>> {
+    const performance = await this.getHashtagPerformance(hashtag, { includeRelated: true });
+    
+    if (!performance) {
+      return [];
+    }
+    
+    return performance.relatedHashtags
+      .slice(0, limit)
+      .map(related => ({
+        hashtag: related.hashtag,
+        score: related.correlationScore
+      }));
+  }
+  
+  /**
+   * Analyze hashtag performance by platform
+   * @param options Analysis options
+   */
+  public async analyzeHashtagsByPlatform(options: HashtagAnalysisOptions = {}): Promise<Record<string, HashtagPerformanceResult[]>> {
+    const topHashtags = await this.getTopHashtags({
+      ...options,
+      maxHashtags: options.maxHashtags || 50
+    });
+    
+    // Group by platform performance
+    const platforms = ['tiktok', 'instagram', 'youtube'] as Platform[];
+    const result: Record<string, HashtagPerformanceResult[]> = {};
+    
+    for (const platform of platforms) {
+      // Sort hashtags by their performance on this specific platform
+      result[platform] = [...topHashtags]
+        .filter(tag => tag.performanceByPlatform[platform]?.posts > 0)
+        .sort((a, b) => {
+          const aPerf = a.performanceByPlatform[platform];
+          const bPerf = b.performanceByPlatform[platform];
+          return bPerf.engagementRate - aPerf.engagementRate;
+        })
+        .slice(0, options.maxHashtags || 20);
+    }
+    
+    return result;
+  }
+  
+  /**
+   * Get hashtag performance metrics for the analyzer
+   */
+  public getHashtagAnalyzerMetrics() {
+    return this.hashtagAnalyzer.getPerformanceMetrics();
   }
 
   private clearPrecomputed(): void {

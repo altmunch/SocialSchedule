@@ -1,4 +1,6 @@
 # Technologies used:
+- only use these technologies, introduce new ones if absolutely necessary and provide justification
+
 Core Framework
 Next.js (v15.3.2) - React framework for server-rendered applications
 React (v19.1.0) - Frontend library for building user interfaces
@@ -38,4 +40,31 @@ lucide-react - Icon library
 - box up and name the major pipelines(not individual modules)
 - use arrows to show data flow
 - use dotted lines to show group related components
+example:
 
+## 1. Data Collection Pipeline
+┌─────────────────────────────────────────────────────────────┐
+│  [Data Collection]                                          │
+│  ┌─────────────────┐     ┌───────────────────────┐          │
+│  │                 │     │                       │          │
+│  │   Start Scan    │────▶│  Initialize Platform  │         │
+│  │                 │     │       Clients         │          │
+│  └─────────────────┘     └──────────┬────────────┘          │
+│                                    │                        │
+│                                    ▼                        │
+│  ┌─────────────────┐     ┌───────────────────────┐          │
+│  │                 │     │                       │          │
+│  │  Fetch User    │◀────┤  Platform Clients     │          │
+│  │     Posts      │      │  (TikTok, Instagram,  │          │
+│  └───────┬────────┘      │       YouTube)        │          │
+│          │               └──────────┬────────────┘          │
+│          │                          │                       │
+│          ▼                          ▼                       │
+│  ┌─────────────────┐     ┌───────────────────────┐          │
+│  │                 │     │                       │          │
+│  │  Store Raw Data │     │   Trigger Analysis    │          │
+│  │   in Database   │────▶│   (Core Pipeline)    │          │
+│  └─────────────────┘     └───────────────────────┘          │
+└─────────────────────────────────────────────────────────────┘
+
+# after every completed edit, update the tracker.md file for the project

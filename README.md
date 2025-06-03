@@ -1,6 +1,6 @@
-# Social Media Post Scheduler
+# ClipsCommerce - AI-Powered E-commerce Content Platform
 
-**Core high value offer**: automate and optimize shorts
+**Core high value offer**: AI-powered content creation and optimization for e-commerce
 *bonuses*: SEO, hooks, trending audio, analytics
 
 *Proprietary mechanism*: The viral blitz cycle

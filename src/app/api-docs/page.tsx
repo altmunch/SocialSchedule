@@ -39,7 +39,7 @@ export default function ApiDocsPage() {
               API Documentation
             </motion.h1>
             <motion.p className="text-xl text-white/80 max-w-3xl mx-auto mb-10">
-              Connect your application with SocialSchedule
+              Connect your application with ClipsCommerce
             </motion.p>
           </motion.div>
         </motion.div>
@@ -87,9 +87,9 @@ export default function ApiDocsPage() {
                   className="space-y-8"
                 >
                   <div>
-                    <h2 className="text-2xl font-bold text-white mb-4">SocialSchedule API</h2>
+                    <h2 className="text-2xl font-bold text-white mb-4">ClipsCommerce API</h2>
                     <p className="text-white/70 mb-6">
-                      The SocialSchedule API enables you to integrate our powerful content optimization 
+                      The ClipsCommerce API enables you to integrate our powerful content optimization 
                       and scheduling capabilities directly into your application. This RESTful API 
                       provides endpoints for managing content, schedules, analytics, and more.
                     </p>
@@ -156,7 +156,7 @@ export default function ApiDocsPage() {
                   <div>
                     <h2 className="text-2xl font-bold text-white mb-4">Authentication</h2>
                     <p className="text-white/70 mb-6">
-                      SocialSchedule API uses API keys to authenticate requests. You can manage your API keys 
+                      ClipsCommerce API uses API keys to authenticate requests. You can manage your API keys 
                       from your dashboard. Your API keys carry many privileges, so be sure to keep them secure.
                     </p>
                   </div>
@@ -208,8 +208,8 @@ export default function ApiDocsPage() {
                   <div>
                     <h2 className="text-2xl font-bold text-white mb-6">API Endpoints</h2>
                     <p className="text-white/70 mb-8">
-                      Below are the main endpoints available in the SocialSchedule API. 
-                      All requests should be made to the base URL <code className="text-[#5afcc0] font-mono">https://api.socialschedule.com/v1</code> 
+                      Below are the main endpoints available in the ClipsCommerce API. 
+                      All requests should be made to the base URL <code className="text-[#5afcc0] font-mono">https://api.clipscommerce.com/v1</code> 
                       followed by the endpoint path.
                     </p>
                   </div>
@@ -342,7 +342,7 @@ export default function ApiDocsPage() {
                   <div>
                     <h2 className="text-2xl font-bold text-white mb-4">Webhooks</h2>
                     <p className="text-white/70 mb-6">
-                      Webhooks allow you to receive real-time updates about events in your SocialSchedule account. 
+                      Webhooks allow you to receive real-time updates about events in your ClipsCommerce account. 
                       When a specified event occurs, we'll send an HTTP POST request to the URL you've configured.
                     </p>
                   </div>
@@ -412,7 +412,7 @@ export default function ApiDocsPage() {
                     <h2 className="text-2xl font-bold text-white mb-4">Client Libraries</h2>
                     <p className="text-white/70 mb-6">
                       We provide official client libraries for several programming languages to make integrating with 
-                      the SocialSchedule API easier. These libraries handle authentication, error handling, and request formatting for you.
+                      the ClipsCommerce API easier. These libraries handle authentication, error handling, and request formatting for you.
                     </p>
                   </div>
                   
@@ -420,10 +420,10 @@ export default function ApiDocsPage() {
                     {[
                       {
                         language: "JavaScript",
-                        installCommand: "npm install socialschedule-js",
-                        example: `import { SocialSchedule } from 'socialschedule-js';
+                        installCommand: "npm install clipscommerce-js",
+                        example: `import { ClipsCommerce } from 'clipscommerce-js';
 
-const client = new SocialSchedule('YOUR_API_KEY');
+const client = new ClipsCommerce('YOUR_API_KEY');
 
 // Get content
 client.content.list()
@@ -443,11 +443,11 @@ print(response.data)`
                       },
                       {
                         language: "PHP",
-                        installCommand: "composer require socialschedule/socialschedule-php",
+                        installCommand: "composer require clipscommerce/php-sdk",
                         example: `<?php
 require_once 'vendor/autoload.php';
 
-$client = new \\SocialSchedule\\Client('YOUR_API_KEY');
+$client = new \\ClipsCommerce\\Client('YOUR_API_KEY');
 
 // Get content
 $response = $client->content->list();
@@ -455,10 +455,10 @@ print_r($response->data);`
                       },
                       {
                         language: "Ruby",
-                        installCommand: "gem install socialschedule",
-                        example: `require 'socialschedule'
+                        installCommand: "gem install clipscommerce",
+                        example: `require 'clipscommerce'
 
-client = SocialSchedule::Client.new('YOUR_API_KEY')
+client = ClipsCommerce::Client.new('YOUR_API_KEY')
 
 # Get content
 response = client.content.list
@@ -512,7 +512,7 @@ puts response.data`
       <div className="border-t border-white/10 py-8 mt-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-center">
-            <p className="text-white/40 text-sm">© {new Date().getFullYear()} SocialSchedule. All rights reserved.</p>
+            <p className="text-white/40 text-sm">© {new Date().getFullYear()} ClipsCommerce. All rights reserved.</p>
           </div>
         </div>
       </div>
