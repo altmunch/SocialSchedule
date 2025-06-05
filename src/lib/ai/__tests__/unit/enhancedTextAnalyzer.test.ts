@@ -1,6 +1,7 @@
 import { EnhancedTextAnalyzer } from '../../enhancedTextAnalyzer';
 import { createTestConfig, createMockOpenAI } from '../testUtils';
 import { jest } from '@jest/globals';
+import { EnhancedCache, CacheOptions, CacheStats } from '../../../utils/caching';
 
 // Mock the console to reduce test noise
 const originalConsole = { ...console };
@@ -24,7 +25,17 @@ interface MockSummaryResult {
 // Import the ContentSummaryResult type
 import { ContentSummaryResult } from '../../enhancedTextAnalyzer';
 
-// Mock the internal summarization model
+// Helper function to create a mock summary
+const createMockSummary = (partial: Partial<ContentSummaryResult> = {}): ContentSummaryResult => ({
+  shortSummary: 'Test summary',
+  keyPoints: ['Test point'],
+  sentiment: 'neutral',
+  source: 'local',
+  processingTimeMs: 0,
+  ...partial
+});
+
+// Mock the internal summarization model with proper typing
 const mockLocalSummarize = jest.fn() as jest.MockedFunction<(text: string) => Promise<ContentSummaryResult>>;
 const mockLocalExtractKeyPhrases = jest.fn() as jest.MockedFunction<(text: string) => Promise<string[]>>;
 const mockLocalDetectLanguage = jest.fn() as jest.MockedFunction<(text: string) => Promise<string>>;
@@ -36,9 +47,9 @@ jest.mock('../../enhancedTextAnalyzer', () => {
   // Create a mock class that extends the actual implementation
   class MockEnhancedTextAnalyzer extends actual.EnhancedTextAnalyzer {
     // Mock internal methods with proper typing
-    protected override localSummarize = mockLocalSummarize as unknown as (text: string) => Promise<ContentSummaryResult>;
-    protected override localExtractKeyPhrases = mockLocalExtractKeyPhrases as unknown as (text: string) => Promise<string[]>;
-    protected override localDetectLanguage = mockLocalDetectLanguage as unknown as (text: string) => Promise<string>;
+    protected localSummarize = mockLocalSummarize as unknown as (text: string) => Promise<ContentSummaryResult>;
+    protected localExtractKeyPhrases = mockLocalExtractKeyPhrases as unknown as (text: string) => Promise<string[]>;
+    protected localDetectLanguage = mockLocalDetectLanguage as unknown as (text: string) => Promise<string>;
   }
   
   return {
@@ -75,10 +86,10 @@ describe('EnhancedTextAnalyzer', () => {
     global.console = mockConsole as typeof console;
     
     // Set up default mock responses
-    mockLocalSummarize.mockResolvedValue({
+    mockLocalSummarize.mockResolvedValue(createMockSummary({
       shortSummary: sampleSummary,
       keyPoints: ['Key point 1', 'Key point 2']
-    });
+    }));
     
     mockLocalExtractKeyPhrases.mockResolvedValue(sampleKeyPhrases);
     mockLocalDetectLanguage.mockResolvedValue(sampleLanguage);
@@ -110,20 +121,22 @@ describe('EnhancedTextAnalyzer', () => {
       const expectedSummary = 'Test summary';
       const expectedKeyPoints = ['Point 1', 'Point 2'];
       
-      mockLocalSummarize.mockResolvedValueOnce({
+      mockLocalSummarize.mockResolvedValueOnce(createMockSummary({
         shortSummary: expectedSummary,
         keyPoints: expectedKeyPoints,
-      });
+        source: 'local' as const
+      }));
       
       // Act
       const result = await analyzer.summarizeContent(text);
       
       // Assert
       expect(mockLocalSummarize).toHaveBeenCalledWith(text);
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         shortSummary: expectedSummary,
         keyPoints: expectedKeyPoints,
         source: 'local',
+        sentiment: expect.any(String)
       });
     });
     
@@ -146,7 +159,7 @@ describe('EnhancedTextAnalyzer', () => {
       };
       
       // Mock the OpenAI response
-      mockOpenAI.chat.completions.create = jest.fn().mockResolvedValue(mockResponse);
+      (mockOpenAI.chat.completions.create as jest.MockedFunction<any>).mockImplementationOnce(() => Promise.resolve(mockResponse as any));
       
       // Create analyzer with OpenAI enabled
       const openaiAnalyzer = createTestAnalyzer({
@@ -157,7 +170,7 @@ describe('EnhancedTextAnalyzer', () => {
       const result = await openaiAnalyzer.summarizeContent(text);
       
       // Assert
-      expect(mockOpenAI.chat.completions.create).toHaveBeenCalled();
+      expect((mockOpenAI.chat.completions.create as jest.MockedFunction<any>).mock.calls).toHaveLength(1);
       expect(result).toMatchObject({
         shortSummary: expectedSummary,
         keyPoints: expect.arrayContaining(expectedKeyPoints),
@@ -179,7 +192,9 @@ describe('EnhancedTextAnalyzer', () => {
       
       // Mock OpenAI to fail
       mockOpenAI = createMockOpenAI();
-      mockOpenAI.chat.completions.create.mockRejectedValue(error);
+      (mockOpenAI.chat.completions.create as jest.Mock).mockImplementationOnce(() => {
+        throw error;
+      });
       
       // Create analyzer with OpenAI enabled but will fallback
       const fallbackAnalyzer = createTestAnalyzer({
@@ -210,19 +225,32 @@ describe('EnhancedTextAnalyzer', () => {
 
       
       // Create properly typed mock summaries
-      const mockSummaries: ContentSummaryResult[] = texts.map((text, index) => ({
-        shortSummary: `Summary ${index + 1}: ${text.substring(0, 15)}...`,
-        keyPoints: [`Key point ${index + 1}`],
-        sentiment: 'neutral',
-        source: 'local',
-        processingTimeMs: 0
-      }));
+      const mockSummaries = texts.map((text, index) => 
+        createMockSummary({
+          shortSummary: `Summary ${index + 1}: ${text.substring(0, 15)}...`,
+          keyPoints: [`Key point ${index + 1}`]
+        })
+      );
       
       // Mock the summarizationBatcher's add method
-      const mockAdd = jest.fn<Promise<ContentSummaryResult>, [string]>();
-      mockSummaries.forEach((summary, index) => {
-        mockAdd.mockResolvedValueOnce(summary);
-      });
+      // It should accept item, resolve, reject, and call resolve with the appropriate mock summary
+      let currentSummaryIndexForMockAdd = 0; 
+      const mockAdd = jest.fn(
+        (
+          textInput: string, 
+          resolve: (value: ContentSummaryResult) => void,
+          reject: (reason?: any) => void
+        ) => {
+          if (currentSummaryIndexForMockAdd < mockSummaries.length) {
+            // Resolve with the next summary from the pre-defined list
+            resolve(mockSummaries[currentSummaryIndexForMockAdd++]);
+          } else {
+            // This case indicates an issue with test setup (not enough mockSummaries)
+            // or the batcher was called more times than expected.
+            reject(new Error(`Mock summarizationBatcher.add called too many times. Text: ${textInput}`));
+          }
+        }
+      );
       
       // @ts-expect-error - Accessing private property for testing
       analyzer.summarizationBatcher.add = mockAdd;
@@ -274,7 +302,9 @@ describe('EnhancedTextAnalyzer', () => {
       });
       
       // Mock OpenAI to fail
-      mockOpenAI.chat.completions.create = jest.fn().mockRejectedValue(new Error('API Error'));
+      (mockOpenAI.chat.completions.create as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('API Error');
+      });
       
       // Act & Assert
       await expect(failingAnalyzer.summarizeContent('Test failure'))
@@ -284,29 +314,52 @@ describe('EnhancedTextAnalyzer', () => {
     
     it('handles cache errors gracefully', async () => {
       // Arrange
-      const cacheError = new Error('Cache error');
-      const cache = {
-        get: jest.fn().mockRejectedValue(cacheError),
-        set: jest.fn().mockResolvedValue(undefined),
-        getOrCompute: jest.fn().mockImplementation(async (key: string, fn: () => Promise<ContentSummaryResult>) => {
-          // Simulate cache get failure but still call the function
-          return fn();
+      // Create a mock cache that implements the EnhancedCache interface
+      const mockCache: EnhancedCache<string, ContentSummaryResult> = {
+        // @ts-ignore - Mock implementation doesn't need to match the full interface
+        get: jest.fn().mockImplementation(() => {
+          throw new Error('Cache error');
         }),
+        
+        // @ts-ignore - Mock implementation doesn't need to match the full interface
+        set: jest.fn(),
+        
+        // @ts-ignore - Mock implementation doesn't need to match the full interface
+        getOrCompute: jest.fn().mockImplementation(async (key, compute: () => Promise<ContentSummaryResult>) => {
+          // Simulate cache get failure but still call the function
+          return await compute();
+        }),
+        
+        // @ts-ignore - Mock implementation doesn't need to match the full interface
         has: jest.fn().mockReturnValue(false),
+        
+        // @ts-ignore - Mock implementation doesn't need to match the full interface
+        invalidate: jest.fn().mockReturnValue(true),
+        
+        // @ts-ignore - Mock implementation doesn't need to match the full interface
+        clear: jest.fn(),
+        
+        // @ts-ignore - Mock implementation doesn't need to match the full interface
+        getStats: jest.fn().mockReturnValue({
+          hits: 0,
+          misses: 0,
+          evictions: 0,
+          size: 0,
+          hitRatio: 0
+        }),
+        
+        // @ts-ignore - Mock implementation doesn't need to match the full interface
+        evictExpired: jest.fn().mockReturnValue(0)
       };
       
-      // @ts-ignore - Accessing private property for testing
-      analyzer.cache = cache;
+      // @ts-expect-error - Accessing private property for testing
+      analyzer.cache = mockCache;
       
       // Mock the actual summarization
-      const mockSummary: ContentSummaryResult = {
+      mockLocalSummarize.mockResolvedValue(createMockSummary({
         shortSummary: 'Test summary',
-        keyPoints: ['Test point'],
-        sentiment: 'neutral',
-        source: 'local',
-        processingTimeMs: 0
-      };
-      mockLocalSummarize.mockResolvedValue(mockSummary);
+        keyPoints: ['Test point']
+      }));
       
       // Act
       const result = await analyzer.summarizeContent('Test cache error');

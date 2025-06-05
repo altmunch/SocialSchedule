@@ -2,10 +2,10 @@
 import { Redis } from 'ioredis';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
+import { Platform } from '../types/deliverables_types'; // Use canonical Platform type
 import { PlatformClient } from './PlatformClient';
 import { 
   Post, 
-  Platform, 
   PostMetrics, 
   PostContent, 
   PostSchedule, 
@@ -100,7 +100,7 @@ export class SchedulerCore {
    */
   async schedulePost(postData: {
     content: string;
-    platform: Platform;
+    platform: Platform; // Now uses the imported Platform type
     scheduledTime: Date;
     viralityScore?: number;
     trendVelocity?: number;

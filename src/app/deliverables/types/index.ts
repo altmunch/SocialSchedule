@@ -1,6 +1,6 @@
 // Core types for the Blitz module
+import { Platform } from './deliverables_types'; // Use canonical Platform type
 
-export type Platform = 'tiktok' | 'instagram' | 'youtube' | 'twitter' | 'facebook';
 
 export interface PostContent {
   text?: string;

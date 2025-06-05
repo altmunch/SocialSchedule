@@ -157,6 +157,167 @@ export type Database = {
           },
         ]
       },
+      competitors: {
+        Row: {
+          id: string;
+          platform: 'tiktok' | 'instagram' | 'youtube';
+          username: string;
+          display_name: string | null;
+          avatar_url: string | null;
+          follower_count: number | null;
+          niche_tags: string[] | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          platform: 'tiktok' | 'instagram' | 'youtube';
+          username: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          follower_count?: number | null;
+          niche_tags?: string[] | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          platform?: 'tiktok' | 'instagram' | 'youtube';
+          username?: string;
+          display_name?: string | null;
+          avatar_url?: string | null;
+          follower_count?: number | null;
+          niche_tags?: string[] | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      videos: {
+        Row: {
+          id: string;
+          user_id: string | null; // null for competitor content
+          competitor_id: string | null; // null for user content
+          platform: 'tiktok' | 'instagram' | 'youtube';
+          platform_id: string; // ID from the specific platform (e.g., TikTok video ID)
+          title: string | null;
+          caption: string | null;
+          like_count: number | null;
+          comment_count: number | null;
+          share_count: number | null;
+          view_count: number | null;
+          duration_seconds: number | null;
+          created_at: string; // Record creation time in our DB
+          published_at: string; // Actual publish time on the platform
+          tags: string[] | null;
+          niche: string | null;
+          thumbnail_url: string | null;
+          video_url: string | null; // Link to the video if available
+          embedding: number[] | null; // For similarity searches
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          competitor_id?: string | null;
+          platform: 'tiktok' | 'instagram' | 'youtube';
+          platform_id: string;
+          title?: string | null;
+          caption?: string | null;
+          like_count?: number | null;
+          comment_count?: number | null;
+          share_count?: number | null;
+          view_count?: number | null;
+          duration_seconds?: number | null;
+          created_at?: string;
+          published_at: string;
+          tags?: string[] | null;
+          niche?: string | null;
+          thumbnail_url?: string | null;
+          video_url?: string | null;
+          embedding?: number[] | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          competitor_id?: string | null;
+          platform?: 'tiktok' | 'instagram' | 'youtube';
+          platform_id?: string;
+          title?: string | null;
+          caption?: string | null;
+          like_count?: number | null;
+          comment_count?: number | null;
+          share_count?: number | null;
+          view_count?: number | null;
+          duration_seconds?: number | null;
+          created_at?: string;
+          published_at?: string;
+          tags?: string[] | null;
+          niche?: string | null;
+          thumbnail_url?: string | null;
+          video_url?: string | null;
+          embedding?: number[] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "videos_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"]; // Assuming users table has 'id' as primary key for user profiles
+          },
+          {
+            foreignKeyName: "videos_competitor_id_fkey";
+            columns: ["competitor_id"];
+            isOneToOne: false;
+            referencedRelation: "competitors";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      video_metrics: {
+        Row: {
+          id: string;
+          video_id: string;
+          timestamp: string; // Timestamp of when the metric was recorded
+          like_count: number | null;
+          comment_count: number | null;
+          share_count: number | null;
+          view_count: number | null;
+          engagement_rate: number | null; // Calculated: (likes + comments + shares) / views
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          video_id: string;
+          timestamp: string;
+          like_count?: number | null;
+          comment_count?: number | null;
+          share_count?: number | null;
+          view_count?: number | null;
+          engagement_rate?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          video_id?: string;
+          timestamp?: string;
+          like_count?: number | null;
+          comment_count?: number | null;
+          share_count?: number | null;
+          view_count?: number | null;
+          engagement_rate?: number | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "video_metrics_video_id_fkey";
+            columns: ["video_id"];
+            isOneToOne: false;
+            referencedRelation: "videos";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       users: {
         Row: {
           avatar_url: string | null
