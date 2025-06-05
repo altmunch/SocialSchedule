@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Menu, X, ChevronDown, Star } from 'lucide-react';
 
 function NavigationBar() {
@@ -102,7 +103,21 @@ const navItems: NavItem[] = [
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center">
-              <span className="text-white text-2xl font-bold">ClipsCommerce</span>
+              <div className="flex items-center space-x-2">
+                <div className="relative h-10 w-10 rounded-full overflow-hidden">
+                  <Image 
+                    src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png" 
+                    alt="ChatGPT" 
+                    fill
+                    style={{
+                      objectFit: 'cover',
+                      filter: 'invert(1)'
+                    }}
+                    priority
+                  />
+                </div>
+                <span className="text-white text-2xl font-bold">ClipsCommerce</span>
+              </div>
             </Link>
           </div>
 

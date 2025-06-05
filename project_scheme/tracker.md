@@ -15,15 +15,16 @@ data collection -> data analysis -> deliverables
 ## implementations needed:
 
 **data_collection**:
-- [ ] Platform Integration
-  - [ ] Instagram API client in `data_collection/functions/instagram/`
-    - [ ] Add rate limiting
-    - [ ] Implement error handling
-    - [ ] Add data validation
-  - [ ] TikTok API client in `data_collection/functions/tiktok/`
-    - [ ] Handle video metadata
-    - [ ] Implement comment fetching
-    - [ ] Add engagement metrics
+- [x] Platform Integration
+  - [x] Instagram API client in `data_collection/functions/instagram/` (Service, Validators, Types, Repo also complete)
+    - [x] Add rate limiting
+    - [x] Implement error handling
+    - [x] Add data validation
+  - [x] TikTok API client in `data_collection/functions/tiktok/` (Service, Validators, Types, Repo also complete)
+    - [x] Handle video metadata
+    - [x] Implement comment fetching (placeholder, actual API needed)
+    - [x] Add engagement metrics
+    
 - [ ] Data Processing
   - [ ] Create data transformers in `data_collection/functions/transformers/`
     - [ ] Normalize platform-specific data
