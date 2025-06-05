@@ -539,11 +539,16 @@ export class EnhancedTextAnalyzer {
       // If anything fails, fall back to local summarization
       this.metrics.recordError(error);
       
-      const fallbackResult = this.summarizeContentLocally(text);
-      return {
-        ...fallbackResult,
-        shortSummary: `[Error] ${fallbackResult.shortSummary}`,
-      };
+      // Ensure we return a Promise that resolves to ContentSummaryResult
+      return this.metrics.timeAsync('localSummarization', 
+        async () => {
+          const fallbackResult = this.summarizeContentLocally(text);
+          return {
+            ...fallbackResult,
+            shortSummary: `[Error] ${fallbackResult.shortSummary}`,
+          };
+        }
+      );
     }
   }
   

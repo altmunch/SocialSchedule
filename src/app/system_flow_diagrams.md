@@ -27,25 +27,43 @@
 
 data request -> data
 
-## 2. Core Analysis Pipeline
-┌─────────────────────────────────────────────────────────────┐
-│  [Core Analysis]                                            │
-│  ┌─────────────┐    ┌─────────────────┐   ┌──────────┐      │
-│  │             │    │                 │   │          │      │
-│  │   Post      │    │    Temporal     │   │  Content │      │
-│  │ Analysis    │◀───┤    Analysis    │◀──│ Analysis│       │
-│  │             │    │                 │   │          │      │
-│  └──────┬──────┘    └─────────────────┘   └──────────┘      │
-│         │                      │                  │         │
-│         ▼                      ▼                  ▼         │
-│  ┌─────────────┐    ┌─────────────────┐   ┌──────────┐      │
-│  │ Engagement  │    │  Peak Times &   │   │ Hashtag  │      │
-│  │  Scoring    │    │   Patterns      │   │ & Content│      │
-│  └─────────────┘    └─────────────────┘   └──────────┘      │
-└─────────────────────────────────────────────────────────────┘
+## 2. Enhanced Core Analysis Pipeline
+┌───────────────────────────────────────────────────────────────────────┐
+│  [Enhanced Core Analysis]                                             │
+│  ┌─────────────────┐     ┌───────────────────────┐   ┌──────────────┐│
+│  │                 │     │                       │   │              ││
+│  │   Post          │     │   Sentiment &        │   │  Content     ││
+│  │   Analysis      │◀───▶│    Intent Analysis   │◀─▶│  Summarization││
+│  │  (Enhanced)     │     │   (OpenAI v4+)       │   │  (Local/AI)  ││
+│  └────────┬────────┘     └───────────┬───────────┘   └──────┬───────┘│
+│           │                           │                      │        │
+│           ▼                           ▼                      ▼        │
+│  ┌─────────────────┐     ┌───────────────────────┐   ┌──────────────┐│
+│  │  Engagement     │     │   Temporal Analysis   │   │  Hashtag &   ││
+│  │  Prediction     │     │   & Pattern           │   │  Content     ││
+│  │  (ML Model)     │     │   Recognition        │   │  Optimization││
+│  └────────┬────────┘     └───────────┬───────────┘   └──────┬───────┘│
+│           │                           │                      │        │
+│           └───────────┬───────────────┴──────────────────────┘        │
+│                       │                                              │
+│                       ▼                                              │
+│             ┌─────────────────┐     ┌───────────────────────┐        │
+│             │  Error Handling │     │  Result Aggregation   │        │
+│             │  & Fallback     │────▶│  & Caching            │        │
+│             │  (Resilience)   │     │  (Redis)              │        │
+│             └─────────────────┘     └───────────────────────┘        │
+└───────────────────────────────────────────────────────────────────────┘
+
 
 Data Flow:
-data + analysis request -> engagement score, peak times, patterns, hashtag and content
+data + analysis request → [Enhanced Analysis] → {sentiment, intent, summary, engagement_score, optimal_times, content_optimization}
+
+Key Improvements:
+- Added robust error handling with automatic fallback to local models
+- Implemented Redis-based caching for analysis results
+- Enhanced sentiment analysis with OpenAI v4+ integration
+- Added content summarization with local/AI hybrid approach
+- Improved resilience with circuit breakers and retries
 
 ## 3. Deliverables Generation Pipeline
 

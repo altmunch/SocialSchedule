@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from 'openai';
 import { Cache } from '../utils/cache';
 
 // Define sentiment types
@@ -43,7 +43,7 @@ export interface SentimentAnalyzerConfig {
  */
 export class SentimentAnalyzer {
   private config: SentimentAnalyzerConfig;
-  private openai?: OpenAIApi;
+  private openai?: OpenAI;
   private cache: Cache<string, SentimentResult>;
   private costTracking = {
     localAnalysisCount: 0,
@@ -72,10 +72,9 @@ export class SentimentAnalyzer {
 
     // Initialize OpenAI if API key is provided
     if (this.config.openaiApiKey) {
-      const configuration = new Configuration({
+      this.openai = new OpenAI({
         apiKey: this.config.openaiApiKey,
       });
-      this.openai = new OpenAIApi(configuration);
     }
   }
 
@@ -227,7 +226,11 @@ export class SentimentAnalyzer {
     const truncatedText = text.length > 1000 ? text.substring(0, 1000) + '...' : text;
 
     try {
-      const response = await this.openai.createChatCompletion({
+      if (!this.openai) {
+        throw new Error('OpenAI client not initialized');
+      }
+      
+      const response = await this.openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [
           {
@@ -240,18 +243,19 @@ export class SentimentAnalyzer {
           }
         ],
         temperature: 0.3,
-        max_tokens: 150
+        max_tokens: 150,
+        response_format: { type: 'json_object' }
       });
 
       // Track token usage for cost estimation
-      if (this.config.costTrackingEnabled && response.data.usage) {
-        this.costTracking.totalTokensUsed += response.data.usage.total_tokens;
+      if (this.config.costTrackingEnabled && response.usage) {
+        this.costTracking.totalTokensUsed += response.usage.total_tokens;
         // Approximate cost at $0.002 per 1000 tokens
-        this.costTracking.estimatedCost += (response.data.usage.total_tokens / 1000) * 0.002;
+        this.costTracking.estimatedCost += (response.usage.total_tokens / 1000) * 0.002;
       }
 
       // Parse response
-      const result = response.data.choices[0]?.message?.content;
+      const result = response.choices[0]?.message?.content;
       if (result) {
         try {
           const parsed = JSON.parse(result);
@@ -264,7 +268,7 @@ export class SentimentAnalyzer {
             },
             emotions: parsed.emotions,
             source: 'openai',
-            tokens: response.data.usage?.total_tokens
+            tokens: response.usage?.total_tokens
           };
         } catch (e) {
           console.error('Error parsing OpenAI response:', e);
@@ -285,7 +289,7 @@ export class SentimentAnalyzer {
           confidence: 0.5
         },
         source: 'openai',
-        tokens: response.data.usage?.total_tokens
+        tokens: response.usage?.total_tokens
       };
     } catch (error) {
       console.error('OpenAI API error:', error);

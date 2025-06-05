@@ -7,7 +7,10 @@
     "start": "next start",
     "test": "jest --config=jest.config.js",
     "test:watch": "jest --watch --config=jest.config.js",
-    "test:coverage": "jest --coverage --config=jest.config.js"
+    "test:coverage": "jest --coverage --config=jest.config.js",
+    "test:ai": "jest --config=jest.config.js --testMatch='**/src/lib/ai/__tests__/**/*.test.ts' --passWithNoTests",
+    "test:ai:watch": "jest --watch --config=jest.config.js --testMatch='**/src/lib/ai/__tests__/**/*.test.ts' --passWithNoTests",
+    "test:ai:coverage": "jest --coverage --config=jest.config.js --testMatch='**/src/lib/ai/__tests__/**/*.test.ts' --passWithNoTests"
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
