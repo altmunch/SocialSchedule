@@ -1,226 +1,257 @@
 'use client';
 
-import { useState } from 'react';
-import { useAuth } from '@/providers/AuthProvider';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, ArrowRight, Upload, FileText, Volume2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Removed CardDescription as it's not used
+import { PlusCircle, Edit3, PlayCircle, Trash2, GripVertical } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
-type OptimizationResult = {
-  original: string;
-  optimized: string;
-  improvements: string[];
-  hashtags: string[];
-};
+interface Video {
+  id: string;
+  title: string;
+  thumbnailUrl?: string;
+  status: string;
+  columnId: string; // Keep track of which column the video belongs to
+}
 
-export default function AccelerateComponent() {
-  const { user } = useAuth();
-  const [content, setContent] = useState('');
-  const [isOptimizing, setIsOptimizing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<OptimizationResult | null>(null);
-  const [activeTab, setActiveTab] = useState('text');
+interface Column {
+  id: string;
+  title: string;
+}
 
-  const handleOptimize = async () => {
-    if (!content.trim()) {
-      setError('Please enter content to optimize');
-      return;
-    }
+const initialColumns: Column[] = [
+  { id: 'todo', title: 'To Do / Uploaded' },
+  { id: 'processing', title: 'Processing' },
+  { id: 'review', title: 'Review & Edit' },
+  { id: 'ready', title: 'Ready to Post' },
+];
 
-    setIsOptimizing(true);
-    setError(null);
-    
-    try {
-      // In a real implementation, this would connect to an AI service
-      // For demo purposes, we'll simulate a successful optimization after a delay
-      await new Promise(resolve => setTimeout(resolve, 2500));
-      
-      // Simulate optimization results
-      const mockResult: OptimizationResult = {
-        original: content,
-        optimized: content.length > 100 
-          ? `${content}\n\nBut wait, there's more! 🚀 [AI-enhanced content with better hooks and flow]` 
-          : `✨ ${content} ✨\n\n[AI-enhanced version with better engagement]`,
-        improvements: [
-          "Added stronger hooks to capture attention",
-          "Improved readability with better sentence structure",
-          "Enhanced emotional appeal",
-          "Optimized call-to-action for better conversion"
-        ],
-        hashtags: ["#ContentCreator", "#DigitalMarketing", "#SocialMediaTips", "#ContentStrategy", "#ViralContent"]
-      };
-      
-      setResult(mockResult);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during optimization');
-    } finally {
-      setIsOptimizing(false);
-    }
-  };
+const initialVideos: Video[] = [
+  { id: 'vid1', title: 'Amazing Product Demo.mp4', status: 'To Do', columnId: 'todo' },
+  { id: 'vid2', title: 'How To Use Our New Feature.mov', status: 'To Do', columnId: 'todo' },
+  { id: 'vid3', title: 'Client Testimonial Short.mp4', status: 'Processing', columnId: 'processing' },
+  { id: 'vid4', title: 'Weekly Update - Ep 5.avi', status: 'Review', columnId: 'review' },
+  { id: 'vid5', title: 'Grand Launch Announcement.mp4', status: 'Ready', columnId: 'ready' },
+];
 
-  const handleReset = () => {
-    setContent('');
-    setResult(null);
+interface SortableVideoCardProps {
+  video: Video;
+}
+
+function SortableVideoCard({ video }: SortableVideoCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: video.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 100 : 'auto',
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Accelerate</h1>
-        <p className="text-gray-500">Optimize your content for maximum engagement</p>
-      </div>
+    <Card ref={setNodeRef} style={style} className="bg-muted/50 border-border hover:shadow-lg transition-shadow duration-200 touch-manipulation">
+      <CardHeader className="p-3 flex flex-row items-center justify-between">
+        <CardTitle className="text-base font-medium text-foreground truncate flex-grow" title={video.title}>
+          {video.title}
+        </CardTitle>
+        <button {...attributes} {...listeners} className="p-1 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
+          <GripVertical className="h-5 w-5" />
+        </button>
+      </CardHeader>
+      <CardContent className="p-3 pt-0">
+        <div className="w-full h-32 bg-muted rounded-md flex items-center justify-center mb-2">
+          <PlayCircle className="w-12 h-12 text-muted-foreground/50" />
+        </div>
+        <p className="text-xs text-muted-foreground mb-2">Status: {video.status}</p>
+      </CardContent>
+      <CardFooter className="p-3 border-t border-border/50 flex justify-end space-x-2">
+        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+          <Edit3 className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="text-destructive/80 hover:text-destructive">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
 
-      <Tabs defaultValue="text" onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="text">
-            <FileText className="h-4 w-4 mr-2" />
-            Text
-          </TabsTrigger>
-          <TabsTrigger value="audio">
-            <Volume2 className="h-4 w-4 mr-2" />
-            Audio
-          </TabsTrigger>
-          <TabsTrigger value="upload">
-            <Upload className="h-4 w-4 mr-2" />
-            Upload
-          </TabsTrigger>
-        </TabsList>
+export default function AccelerateComponent() {
+  const [videos, setVideos] = useState<Video[]>(initialVideos);
+  const [columns] = useState<Column[]>(initialColumns); // Columns are static for now
+  const [activeVideo, setActiveVideo] = useState<Video | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleAddVideos = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const newVideos: Video[] = Array.from(files).map((file, index) => ({
+        id: `new-vid-${Date.now()}-${index}`,
+        title: file.name,
+        status: 'To Do',
+        columnId: 'todo', // Add to the 'To Do / Uploaded' column by default
+        thumbnailUrl: '', // Placeholder for actual thumbnail
+      }));
+
+      setVideos(prevVideos => [...newVideos, ...prevVideos]);
+    }
+    // Reset file input to allow selecting the same file again if needed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const getVideosByColumn = (columnId: string) => videos.filter(v => v.columnId === columnId);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveVideo(videos.find(v => v.id === active.id) || null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveVideo(null);
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const activeVideo = videos.find(v => v.id === active.id);
+      
+      // Check if 'over' is a column or a video within a column
+      const overIsColumn = columns.some(c => c.id === over.id);
+      const overIsVideo = videos.some(v => v.id === over.id);
+
+      if (activeVideo) {
+        let newColumnId = activeVideo.columnId;
+        let newVideos = [...videos];
+
+        if (overIsColumn) {
+          newColumnId = over.id as string;
+        } else if (overIsVideo) {
+          const overVideo = videos.find(v => v.id === over.id);
+          if (overVideo) {
+            newColumnId = overVideo.columnId;
+          }
+        }
         
-        <TabsContent value="text" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Text Optimization</CardTitle>
-              <CardDescription>
-                Enhance your written content to increase engagement and conversions.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="content" className="text-sm font-medium">
-                    Your Content
-                  </label>
-                  <Textarea
-                    id="content"
-                    placeholder="Paste your content here to optimize..."
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    disabled={isOptimizing}
-                    rows={6}
-                    className="resize-none"
-                  />
-                </div>
+        // If moved to a new column or within the same (reordering logic would go here)
+        if (newColumnId !== activeVideo.columnId || overIsVideo) {
+            const oldColumnId = activeVideo.columnId;
+            const targetColumnId = newColumnId;
+
+            // Update video's columnId
+            newVideos = newVideos.map(v => 
+                v.id === active.id ? { ...v, columnId: targetColumnId } : v
+            );
+
+            // Reordering logic if dropped on another video (simplified: just move to column)
+            if (overIsVideo && targetColumnId === oldColumnId) {
+                const oldIndex = videos.findIndex(v => v.id === active.id && v.columnId === oldColumnId);
+                const newIndex = videos.findIndex(v => v.id === over.id && v.columnId === oldColumnId);
+                const columnVideos = videos.filter(v => v.columnId === oldColumnId);
+                const reorderedColumnVideos = arrayMove(columnVideos, 
+                    columnVideos.findIndex(v => v.id === active.id), 
+                    columnVideos.findIndex(v => v.id === over.id)
+                );
                 
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-                
-                {result && (
-                  <div className="space-y-4 border-t pt-4">
-                    <div>
-                      <h3 className="text-lg font-medium">Optimized Content</h3>
-                      <div className="mt-2 p-3 bg-blue-50 rounded-md whitespace-pre-line">
-                        {result.optimized}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium">Improvements Made</h3>
-                      <ul className="mt-2 space-y-1">
-                        {result.improvements.map((improvement, index) => (
-                          <li key={index} className="text-sm flex items-center">
-                            <ArrowRight className="h-3 w-3 mr-2 text-green-500" />
-                            {improvement}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium">Recommended Hashtags</h3>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {result.hashtags.map((hashtag, index) => (
-                          <span key={index} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                            {hashtag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                // Update the main videos array, preserving order for other columns
+                let updatedVideos: Video[] = [];
+                columns.forEach(col => {
+                    if (col.id === oldColumnId) {
+                        updatedVideos.push(...reorderedColumnVideos);
+                    } else {
+                        updatedVideos.push(...videos.filter(v => v.columnId === col.id));
+                    }
+                });
+                newVideos = updatedVideos;
+            }
+            setVideos(newVideos);
+        }
+      }
+    }
+  };
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="p-4 md:p-6 space-y-6 bg-background text-foreground min-h-screen">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Accelerate: Bulk Video Optimization</h1>
+            <p className="text-muted-foreground mt-1">
+              Streamline your video enhancement process. Upload, optimize, and prepare content for posting.
+            </p>
+          </div>
+          <Button onClick={handleAddVideos} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <PlusCircle className="mr-2 h-5 w-5" />
+            Add Videos
+          </Button>
+        </div>
+        <input
+          type="file"
+          ref={fileInputRef}
+          multiple
+          accept="video/*"
+          style={{ display: 'none' }}
+          onChange={handleFileSelected}
+        />
+
+        <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-4">
+          {columns.map((column) => (
+            <Card key={column.id} className="w-full md:w-80 lg:w-96 flex-shrink-0 bg-card border-border shadow-md">
+              <CardHeader className="border-b border-border p-4">
+                <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between">
+                  {column.title}
+                  <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-1 rounded-md">
+                    {getVideosByColumn(column.id).length}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3 min-h-[200px]">
+                <SortableContext items={getVideosByColumn(column.id).map(v => v.id)} strategy={verticalListSortingStrategy}>
+                  {getVideosByColumn(column.id).map((video) => (
+                    <SortableVideoCard key={video.id} video={video} />
+                  ))}
+                </SortableContext>
+                {getVideosByColumn(column.id).length === 0 && (
+                  <div className="text-center text-muted-foreground py-10">
+                    <p>No videos in this stage.</p>
                   </div>
                 )}
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              {result ? (
-                <>
-                  <Button variant="outline" onClick={handleReset}>
-                    New Optimization
-                  </Button>
-                  <Button>
-                    Save Result
-                  </Button>
-                </>
-              ) : (
-                <Button onClick={handleOptimize} disabled={isOptimizing} className="w-full">
-                  {isOptimizing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Optimizing...
-                    </>
-                  ) : (
-                    'Optimize Content'
-                  )}
-                </Button>
-              )}
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="audio" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Audio Optimization</CardTitle>
-              <CardDescription>
-                Enhance your audio content for better clarity and engagement.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-md">
-                <div className="text-center">
-                  <Volume2 className="mx-auto h-12 w-12 text-gray-300" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">Audio Optimization</h3>
-                  <p className="mt-1 text-sm text-gray-500">Coming soon</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="upload" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>File Upload</CardTitle>
-              <CardDescription>
-                Upload content files for optimization.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-md">
-                <div className="text-center">
-                  <Upload className="mx-auto h-12 w-12 text-gray-300" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">File Upload</h3>
-                  <p className="mt-1 text-sm text-gray-500">Coming soon</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <DragOverlay>
+          {activeVideo ? <SortableVideoCard video={activeVideo} /> : null}
+        </DragOverlay>
+      </div>
+    </DndContext>
   );
 }

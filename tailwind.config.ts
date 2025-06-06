@@ -20,63 +20,55 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // Core Brand Colors
+        // ClipsCommerce Theme Colors
+        background: 'hsl(210 15% 8%)',    // Premium Black Backdrop
+        foreground: 'hsl(0 0% 95%)',      // Light text for readability
+
+        primary: {
+          DEFAULT: 'hsl(162 100% 50%)', // Vibrant Green
+          foreground: 'hsl(162 100% 10%)', // Dark contrast text for green buttons/elements
+        },
+
+        secondary: {
+          DEFAULT: 'hsl(270 100% 50%)', // Vibrant Purple
+          foreground: 'hsl(0 0% 98%)',   // Light contrast text for purple buttons/elements
+        },
+        
+        accent: {
+          DEFAULT: 'hsl(162 100% 50%)', // Using Primary Green as main accent
+          foreground: 'hsl(162 100% 10%)', // Dark contrast text for accent
+        },
+
+        card: {
+          DEFAULT: 'hsl(210 15% 12%)',    // Darker card/component background
+          foreground: 'hsl(0 0% 95%)',   // Light text on cards
+        },
+        popover: {
+          DEFAULT: 'hsl(210 15% 12%)', // Consistent with card background
+          foreground: 'hsl(0 0% 95%)', // Consistent with card text
+        },
+
+        muted: {
+          DEFAULT: 'hsl(210 15% 25%)',    // For less emphasized elements or backgrounds
+          foreground: 'hsl(0 0% 60%)',   // For less emphasized text
+        },
+
+        border: 'hsl(210 15% 20%)',       // Subtle border color
+        input: 'hsl(210 15% 15%)',        // Background for input fields
+        ring: 'hsl(162 100% 50%)',        // Focus ring, using Primary Green for visibility
+
+        destructive: {
+          DEFAULT: 'hsl(0 84% 60%)',    // Standard destructive red
+          foreground: 'hsl(0 0% 98%)',   // Light text on destructive elements
+        },
+
+        // Preserving 'blitz' colors for now, review if still needed.
         'blitz': {
           blue: 'hsl(214, 100%, 50%)',
-          purple: 'hsl(270, 100%, 50%)',
+          purple: 'hsl(270, 100%, 50%)', // Note: This is now secondary.DEFAULT
           yellow: 'hsl(51, 100%, 50%)',
           teal: 'hsl(180, 100%, 50%)',
           red: 'hsl(0, 100%, 50%)',
-        },
-        // Storm Gray Scale
-        'storm': {
-          DEFAULT: 'hsl(210, 25%, 12%)',
-          light: 'hsl(210, 20%, 18%)',
-          dark: 'hsl(210, 30%, 8%)',
-        },
-        // Lightning White Scale
-        'lightning': {
-          DEFAULT: 'hsl(0, 0%, 98%)',
-          dim: 'hsl(0, 0%, 80%)',
-        },
-        // Theme colors mapped to CSS variables - using direct HSL values for better performance
-        border: {
-          DEFAULT: 'hsl(210 20% 18% / 0.5)',
-        },
-        borderColor: {
-          DEFAULT: 'hsl(210 20% 18% / 0.5)',
-        },
-        input: 'hsl(210 20% 18% / 0.8)',
-        ring: 'hsl(214 100% 50%)',
-        background: 'hsl(210 25% 12%)',
-        foreground: 'hsl(0 0% 98%)',
-        primary: {
-          DEFAULT: 'hsl(214 100% 50%)',
-          foreground: 'hsl(0 0% 98%)',
-        },
-        secondary: {
-          DEFAULT: 'hsl(270 100% 50%)',
-          foreground: 'hsl(0 0% 98%)',
-        },
-        destructive: {
-          DEFAULT: 'hsl(0 84% 60%)',
-          foreground: 'hsl(0 0% 98%)',
-        },
-        muted: {
-          DEFAULT: 'hsl(210 20% 18%)',
-          foreground: 'hsl(0 0% 80%)',
-        },
-        accent: {
-          DEFAULT: 'hsl(180 100% 50%)',
-          foreground: 'hsl(0 0% 98%)',
-        },
-        popover: {
-          DEFAULT: 'hsl(210 20% 18%)',
-          foreground: 'hsl(0 0% 98%)',
-        },
-        card: {
-          DEFAULT: 'hsl(210 20% 18%)',
-          foreground: 'hsl(0 0% 98%)',
         },
       },
       borderRadius: {

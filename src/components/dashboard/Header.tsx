@@ -19,7 +19,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <header className="bg-card border-b border-border sticky top-0 z-10 text-foreground">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Mobile menu button */}
@@ -34,11 +34,9 @@ export default function Header() {
             </Button>
           </div>
 
-          {/* Logo - desktop */}
+          {/* Desktop: Space for breadcrumbs or page title if needed later */}
           <div className="hidden md:flex md:flex-shrink-0">
-            <Link href="/dashboard" className="flex items-center">
-              <span className="text-lg font-bold text-blue-600">SocialSchedule</span>
-            </Link>
+            {/* Intentionally left blank for now, main branding is in sidebar */}
           </div>
 
           {/* Right section */}
@@ -47,14 +45,14 @@ export default function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
+                  <Bell className="h-5 w-5 text-muted-foreground group-hover:text-foreground" />
+                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-primary"></span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64">
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div className="py-2 px-4 text-sm text-gray-500">
+                <div className="py-2 px-4 text-sm text-muted-foreground">
                   No new notifications
                 </div>
               </DropdownMenuContent>
@@ -64,13 +62,13 @@ export default function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <User className="h-4 w-4 text-blue-600" />
+                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                    <User className="h-4 w-4 text-primary" />
                   </div>
-                  <span className="ml-2 hidden md:block text-sm font-medium">
+                  <span className="ml-2 hidden md:block text-sm font-medium text-foreground">
                     {user?.email?.split('@')[0] || 'User'}
                   </span>
-                  <ChevronDown className="ml-1 h-4 w-4" />
+                  <ChevronDown className="ml-1 h-4 w-4 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -97,19 +95,19 @@ export default function Header() {
 
       {/* Mobile menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-200">
+        <div className="md:hidden border-t border-border bg-card">
           <div className="space-y-1 px-4 py-3">
             {[
               { name: 'Dashboard', href: '/dashboard' },
-              { name: 'Scan', href: '/dashboard/scan' },
               { name: 'Accelerate', href: '/dashboard/accelerate' },
               { name: 'Blitz', href: '/dashboard/blitz' },
               { name: 'Cycle', href: '/dashboard/cycle' },
+              { name: 'Settings', href: '/dashboard/settings' },
             ].map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="block rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                className="block rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {item.name}
