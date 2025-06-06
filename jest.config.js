@@ -1,66 +1,48 @@
-// difficult: Jest configuration for TypeScript with ES modules support
+// Jest configuration for TypeScript with ES modules support
 
 /** @type {import('ts-jest').JestConfigWithTsJest} */
-export default {
-  preset: 'ts-jest/presets/default-esm',
+module.exports = {
+  preset: 'ts-jest',
   testEnvironment: 'node',
   
   // Test file patterns
-  roots: ['<rootDir>'],
-  testMatch: [
-    '**/__tests__/**/*.test.[jt]s',
-    '**/__tests__/**/*.spec.[jt]s',
-    '**/__tests__/**/*.test.[jt]sx',
-    '**/__tests__/**/*.spec.[jt]sx',
-    '**/?(*.)+(spec|test).[jt]s',
-    '**/?(*.)+(spec|test).[jt]sx'
-  ],
-  testPathIgnorePatterns: ['/node_modules/'],
+  roots: ['<rootDir>/src'],
+  testMatch: ['**/*.test.ts'],
+  
+  // Ignore patterns
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/.next/'],
   
   // Module handling
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  extensionsToTreatAsEsm: ['.ts', '.tsx'],
+  moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   
   // Transform settings
   transform: {
-    '^.+\.[tj]sx?$': [
-      'ts-jest',
-      {
-        useESM: true,
-        tsconfig: 'tsconfig.json'
-      },
-    ],
+    '^.+\.[tj]s$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
   },
   
   // Module name mapper
   moduleNameMapper: {
-    '^@/app/(.*)$': '<rootDir>/src/app/$1',
-    '^@/components/(.*)$': '<rootDir>/src/components/$1',
-    '^(\.{1,2}/.*)\.js$': '$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
-  
-  // Setup files
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  
-  // Coverage
-  collectCoverage: true,
-  coverageDirectory: 'coverage',
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!**/node_modules/**',
-    '!**/dist/**',
-    '!**/coverage/**',
-    '!**/__tests__/**',
-    '!**/*.d.ts',
-  ],
-  coverageReporters: ['text', 'lcov'],
-  
-  // Watch plugins
-  watchPlugins: [
-    'jest-watch-typeahead/filename',
-    'jest-watch-typeahead/testname',
-  ],
   
   // Test timeout
   testTimeout: 10000,
+  
+  // Verbose output
+  verbose: true,
+  
+  // Force exit
+  forceExit: true,
+  
+  // Clear mocks between tests
+  clearMocks: true,
+  
+  // Reset modules between tests
+  resetModules: true,
+  
+  // Show individual test results
+  testResultsProcessor: 'jest-sonar-reporter',
+  
+  // Collect coverage
+  collectCoverage: false
 };

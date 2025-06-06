@@ -1,7 +1,14 @@
 import { Video } from '@/app/analysis/types/analysis_types'; // Assuming Video type is defined here
 
 // Platform type - ensure this aligns with platform definitions used elsewhere (e.g., in SchedulerCore)
-export type Platform = 'tiktok' | 'instagram' | 'youtube' | 'facebook' | 'linkedin' | 'twitter'; // Add other platforms as needed
+export enum Platform {
+  TIKTOK = 'tiktok',
+  INSTAGRAM = 'instagram',
+  YOUTUBE = 'youtube',
+  FACEBOOK = 'facebook',
+  LINKEDIN = 'linkedin',
+  TWITTER = 'twitter'
+} // Add other platforms as needed
 
 // 1. Optimal Content Generation
 export interface OptimizedHashtag {

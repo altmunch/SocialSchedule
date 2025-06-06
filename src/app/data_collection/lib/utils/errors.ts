@@ -1,4 +1,4 @@
-import { Platform } from '../platforms/types';
+import { Platform } from '../../../deliverables/types/deliverables_types';
 
 export class PlatformError extends Error {
   constructor(
@@ -13,14 +13,37 @@ export class PlatformError extends Error {
 }
 
 export class RateLimitError extends PlatformError {
-  constructor(platform: Platform, public readonly retryAfter: number) {
-    super(platform, 'RATE_LIMIT_EXCEEDED', `Rate limit exceeded. Retry after ${retryAfter}ms`, { retryAfter });
+  constructor(
+    platform: Platform, 
+    public readonly retryAfter: number,
+    message?: string,
+    public readonly statusCode?: number,
+    details?: unknown
+  ) {
+    super(
+      platform, 
+      'RATE_LIMIT_EXCEEDED', 
+      message || `Rate limit exceeded. Retry after ${retryAfter}ms`, 
+      { retryAfter, originalMessage: message, statusCode, originalDetails: details }
+    );
   }
 }
 
 export class AuthenticationError extends PlatformError {
   constructor(platform: Platform, message: string) {
     super(platform, 'AUTHENTICATION_FAILED', message);
+  }
+}
+
+export class ValidationError extends PlatformError {
+  constructor(
+    platform: Platform,
+    message: string,
+    public readonly validationIssues?: any, // Can be ZodError.issues or similar
+    details?: unknown
+  ) {
+    super(platform, 'VALIDATION_ERROR', message, details);
+    this.name = 'ValidationError';
   }
 }
 

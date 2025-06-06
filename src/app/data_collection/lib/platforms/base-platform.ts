@@ -1,7 +1,16 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosHeaders } from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
 import { EventEmitter } from 'events';
 import { PlatformError, RateLimitError, ApiError, withRetry } from '../utils/errors';
-import { Platform } from './types';
+import { Platform } from '../../../deliverables/types/deliverables_types'; // Using canonical Platform type
+import { ApiRateLimit as ImportedApiRateLimit, ApiConfig } from './types'; // Import the specific type
+import {
+  IAuthTokenManager,
+  PlatformCredentials,
+  AuthStrategy,
+  OAuth2Credentials,
+  ApiKeyCredentials,
+  PlatformClientIdentifier // Added PlatformClientIdentifier for explicitness
+} from '../auth.types';
 
 // Extend AxiosRequestConfig with our custom options
 declare module 'axios' {
@@ -15,35 +24,7 @@ declare module 'axios' {
   }
 }
 
-export interface RateLimit {
-  limit: number;
-  remaining: number;
-  reset: number; // Unix timestamp in seconds
-}
-
 export type HeaderValue = string | string[] | undefined;
-
-export interface ApiCredentials {
-  accessToken: string;
-  clientId?: string;
-  clientSecret?: string;
-  [key: string]: any; // Allow for additional credentials
-}
-
-export interface ApiConfig {
-  baseUrl: string;
-  version: string;
-  timeout?: number;
-  rateLimit: {
-    requests: number;
-    perSeconds: number;
-  };
-  maxRetries?: number;
-  retryDelay?: number;
-  headers?: Record<string, string>;
-  enableLogging?: boolean;
-  [key: string]: any; // Allow for additional config
-}
 
 export interface ApiResponse<T = any> {
   data?: T;
@@ -52,7 +33,7 @@ export interface ApiResponse<T = any> {
     message: string;
     details?: any;
   };
-  rateLimit?: RateLimit;
+  rateLimit?: ImportedApiRateLimit;
   metadata?: {
     requestId?: string;
     timestamp?: string;
@@ -80,9 +61,10 @@ interface RequestMetadata {
  */
 export abstract class BasePlatformClient extends EventEmitter {
   protected readonly config: Required<ApiConfig>;
-  protected readonly credentials: ApiCredentials;
+  protected readonly authTokenManager: IAuthTokenManager;
+  protected readonly userId?: string;
   protected client: AxiosInstance;
-  protected rateLimit: RateLimit | null = null;
+  protected rateLimit: ImportedApiRateLimit | null = null;
   protected requestQueue: Array<() => Promise<void>> = [];
   protected isProcessingQueue = false;
   protected lastRequestTime = 0;
@@ -92,13 +74,35 @@ export abstract class BasePlatformClient extends EventEmitter {
   /**
    * Platform identifier (must be implemented by child classes)
    */
-  protected abstract readonly platform: Platform;
-  
+  protected abstract readonly platform: Platform; // Platform identifier (e.g., 'instagram', 'tiktok') used with AuthTokenManager
+
   /**
-   * Get authentication headers (must be implemented by child classes)
+   * Get authentication headers using AuthTokenManager.
+   * This method is now concrete and async.
    * @returns Record of authentication headers
+   * @throws PlatformError if credentials are not found or invalid.
    */
-  protected abstract getAuthHeaders(): Record<string, string>;
+  protected async getAuthHeaders(): Promise<Record<string, string>> {
+    const credentials = await this.authTokenManager.getValidCredentials({ platform: this.platform, userId: this.userId });
+
+    if (!credentials) {
+      this.log('error', `No valid credentials found for platform: ${this.platform}, user: ${this.userId || 'default'}`, { platform: this.platform, userId: this.userId });
+      throw new PlatformError(`Authentication failed: No valid credentials for ${this.platform}.`);
+    }
+
+    if (credentials.strategy === AuthStrategy.OAUTH2) {
+      const oauthCreds = credentials as OAuth2Credentials;
+      return { 'Authorization': `Bearer ${oauthCreds.accessToken}` };
+    } else if (credentials.strategy === AuthStrategy.API_KEY) {
+      const apiKeyCreds = credentials as ApiKeyCredentials;
+      // The header name for API keys can vary (e.g., 'X-API-Key', 'Authorization: ApiKey ...')
+      // This is a common pattern; adjust if platform requires a different header.
+      return { 'Authorization': `ApiKey ${apiKeyCreds.apiKey}` }; // Or specific header like 'X-Api-Key'
+    }
+
+    this.log('warn', `Unknown authentication strategy for platform ${this.platform}`, { strategy: (credentials as any).strategy });
+    throw new PlatformError(this.platform, 'UNSUPPORTED_AUTH_STRATEGY', `Unsupported authentication strategy: ${(credentials as any).strategy} for ${this.platform}.`, { strategy: (credentials as any).strategy });
+  }
   
   /**
    * Handle rate limit from response headers (must be implemented by child classes)
@@ -106,7 +110,7 @@ export abstract class BasePlatformClient extends EventEmitter {
    */
   protected abstract handleRateLimit(headers: Record<string, HeaderValue>): void;
 
-  constructor(config: ApiConfig, credentials: ApiCredentials) {
+  constructor(config: ApiConfig, authTokenManager: IAuthTokenManager, userId?: string) {
     super();
     
     // Merge config with defaults, being careful with rateLimit to avoid duplicates
@@ -135,7 +139,8 @@ export abstract class BasePlatformClient extends EventEmitter {
       }
     };
 
-    this.credentials = credentials;
+    this.authTokenManager = authTokenManager;
+    this.userId = userId;
     
     // Create Axios instance with default config
     this.client = axios.create({
@@ -156,34 +161,6 @@ export abstract class BasePlatformClient extends EventEmitter {
       this.handleResponse.bind(this),
       this.handleError.bind(this)
     );
-  }
-
-  /**
-   * Log a message if logging is enabled
-   * @param level Log level
-   * @param message Log message
-   * @param data Additional data to log
-   */
-  protected log(level: 'debug' | 'info' | 'warn' | 'error', message: string, data?: unknown): void {
-    if (this.config.enableLogging) {
-      const logMessage = `[${this.platform.toUpperCase()}] ${message}`;
-      const logData = data ? [logMessage, data] : [logMessage];
-      
-      switch (level) {
-        case 'debug':
-          console.debug(...logData);
-          break;
-        case 'info':
-          console.info(...logData);
-          break;
-        case 'warn':
-          console.warn(...logData);
-          break;
-        case 'error':
-          console.error(...logData);
-          break;
-      }
-    }
   }
 
   /**
@@ -332,100 +309,126 @@ export abstract class BasePlatformClient extends EventEmitter {
     const retryCount = (error.config as any)?._retryCount || 0;
     return Math.min(1000 * Math.pow(2, retryCount), 30000); // Cap at 30s
   }
+
+  /**
+   * Log a message if logging is enabled
+   * @param level Log level
+   * @param message Log message
+   * @param data Additional data to log
+   */
+  protected log(level: 'debug' | 'info' | 'warn' | 'error', message: string, data?: unknown): void {
+    if (this.config.enableLogging) {
+      const logMessage = `[${this.platform.toUpperCase()}] ${message}`;
+      const logArgs: any[] = [logMessage];
+      if (data !== undefined) {
+        logArgs.push(data);
+      }
+      console[level](...logArgs);
+    }
+  }
   
   /**
    * Get headers for a request
    */
-  protected getRequestHeaders(config: AxiosRequestConfig): Record<string, string> {
+  protected async getRequestHeaders(config: AxiosRequestConfig): Promise<Record<string, string>> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
-      ...this.config.headers
+      ...this.config.headers // Default headers from config
     };
-    
-    // Add any headers from config, ensuring they're strings
+
+    // Add any headers from the specific request config
     if (config.headers) {
       const configHeaders = this.normalizeHeaders(config.headers);
-      Object.entries(configHeaders).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          headers[key] = String(value);
+      for (const key in configHeaders) {
+        if (Object.prototype.hasOwnProperty.call(configHeaders, key)) {
+          if (configHeaders[key] !== undefined && configHeaders[key] !== null) {
+            headers[key] = String(configHeaders[key]);
+          }
         }
-      });
+      }
     }
-    
+
     // Add authorization header if needed
     if (config.useAuth !== false) {
-      const authHeaders = this.getAuthHeaders();
-      Object.entries(authHeaders).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          headers[key] = String(value);
+      try {
+        const authHeaders = await this.getAuthHeaders();
+        for (const key in authHeaders) {
+          if (Object.prototype.hasOwnProperty.call(authHeaders, key)) {
+            headers[key] = authHeaders[key];
+          }
         }
-      });
+      } catch (error) {
+         this.log('error', 'Failed to get authentication headers in getRequestHeaders', { error, platform: this.platform, userId: this.userId });
+      }
     }
-    
-    // Add rate limit headers if needed
-    if (config.useRateLimit !== false && this.rateLimit) {
-      headers['X-RateLimit-Limit'] = String(this.rateLimit.limit);
-      headers['X-RateLimit-Remaining'] = String(this.rateLimit.remaining);
-      headers['X-RateLimit-Reset'] = String(this.rateLimit.reset);
-    }
-    
     return headers;
   }
-  
+
   /**
    * Normalize Axios headers to a plain object
    */
-  private normalizeHeaders(headers: unknown): Record<string, string> {
-    if (!headers) return {};
+  protected normalizeHeaders(headers: unknown): Record<string, string> {
     if (headers instanceof AxiosHeaders) {
       return headers.toJSON() as Record<string, string>;
     }
-    if (Array.isArray(headers)) {
-      return headers.reduce<Record<string, string>>((acc, [key, value]) => ({
-        ...acc,
-        [key]: String(value)
-      }), {});
+    if (Array.isArray(headers)) { // Assuming this handles a specific [key, value][] format
+      return headers.reduce<Record<string, string>>((acc, entry) => {
+        if (Array.isArray(entry) && entry.length === 2) {
+          acc[String(entry[0])] = String(entry[1]);
+        }
+        return acc;
+      }, {});
     }
-    if (typeof headers === 'object') {
-      return Object.entries(headers).reduce<Record<string, string>>((acc, [key, value]) => ({
-        ...acc,
-        [key]: value !== undefined && value !== null ? String(value) : ''
-      }), {});
+    if (typeof headers === 'object' && headers !== null) { // Added headers !== null check
+      return Object.entries(headers).reduce<Record<string, string>>((acc, [key, value]) => {
+        if (value !== undefined && value !== null) { // Ensure value is not undefined/null before String()
+          acc[key] = String(value);
+        }
+        return acc;
+      }, {});
     }
-    return {};
+    return {}; // Default empty object if not any of the above
   }
 
   /**
-   * Axios request interceptor
+   * Axios request interceptor. Modifies the request config to add auth headers.
    */
-  private async handleRequest(config: AxiosRequestConfig) {
-    // Add auth headers if needed
+  protected async handleRequest(config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> {
+    if (!config.headers) {
+      config.headers = new AxiosHeaders();
+    }
+
+    // Add authentication headers
     if (config.useAuth !== false) {
-      const authHeaders = this.getAuthHeaders();
-      config.headers = {
-        ...config.headers,
-        ...authHeaders
-      };
+      try {
+        const authHeaders = await this.getAuthHeaders();
+        for (const key in authHeaders) {
+          if (Object.prototype.hasOwnProperty.call(authHeaders, key)) {
+            config.headers.set(key, authHeaders[key]);
+          }
+        }
+      } catch (error) {
+        this.log('error', 'Failed to get/set authentication headers in handleRequest', { error, platform: this.platform, userId: this.userId });
+        // Optionally, re-throw a new PlatformError or allow request to proceed without auth
+        // For now, logging the error and letting it proceed (might fail at server)
+      }
     }
 
-    // Add rate limit headers if needed
+    // Informational rate limit headers (actual limiting is pre-request or via retry)
+    // These are mostly for the server or for debugging, not for client-side enforcement here.
     if (config.useRateLimit !== false && this.rateLimit) {
-      config.headers = {
-        ...config.headers,
-        'X-RateLimit-Limit': String(this.rateLimit.limit),
-        'X-RateLimit-Remaining': String(this.rateLimit.remaining),
-        'X-RateLimit-Reset': String(this.rateLimit.reset)
-      };
+      config.headers.set('X-Client-RateLimit-Limit', String(this.rateLimit.limit));
+      config.headers.set('X-Client-RateLimit-Remaining', String(this.rateLimit.remaining));
+      config.headers.set('X-Client-RateLimit-Reset', String(this.rateLimit.reset));
     }
-
     return config;
   }
 
   /**
    * Axios response interceptor
    */
-  private handleResponse(response: AxiosResponse) {
+  protected handleResponse(response: AxiosResponse): AxiosResponse {
     // Update rate limit info from response headers
     this.handleRateLimit(this.normalizeHeaders(response.headers));
     return response;
@@ -434,32 +437,29 @@ export abstract class BasePlatformClient extends EventEmitter {
   /**
    * Axios error interceptor
    */
-  private async handleError(error: unknown) {
+  protected async handleError(error: any): Promise<any> {
     if (axios.isAxiosError(error)) {
-      // Update rate limit info from error response headers
-      if (error.response?.headers) {
-        this.handleRateLimit(this.normalizeHeaders(error.response.headers));
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.headers) {
+        this.handleRateLimit(this.normalizeHeaders(axiosError.response.headers));
       }
 
-      // Handle rate limit errors
-      if (error.response?.status === 429) {
-        const retryAfter = this.getRetryAfter(error);
-        throw new RateLimitError(this.platform, retryAfter);
+      if (axiosError.response?.status === 429) {
+        const retryAfter = this.getRetryAfter(axiosError);
+        this.log('warn', `Rate limit hit for ${this.platform}. Retrying after ${retryAfter}ms.`, { error: axiosError.message, platform: this.platform });
+        return Promise.reject(new RateLimitError(this.platform, retryAfter, axiosError.message, axiosError.response.status, axiosError.response.data));
       }
-
-      // Handle other API errors
-      if (error.response) {
-        throw new ApiError(
-          this.platform,
-          error.code || 'API_ERROR',
-          error.message,
-          error.response.status,
-          error.response.data
-        );
-      }
+      
+      this.log('error', `API error for ${this.platform}: ${axiosError.message}`, {
+        platform: this.platform,
+        status: axiosError.response?.status,
+        data: axiosError.response?.data,
+        code: axiosError.code,
+      });
+      return Promise.reject(new ApiError(this.platform, axiosError.code || 'AXIOS_ERROR', axiosError.message, axiosError.response?.status ?? 0, axiosError.response?.data));
     }
 
-    // Re-throw the error if it's not an Axios error
-    throw error;
+    this.log('error', `Unhandled error for ${this.platform}: ${error?.message || 'Unknown error'}`, { error, platform: this.platform });
+    return Promise.reject(new PlatformError(this.platform, 'UNHANDLED_CLIENT_ERROR', error?.message || `An unknown error occurred with ${this.platform}.`, { originalError: error }));
   }
 }
