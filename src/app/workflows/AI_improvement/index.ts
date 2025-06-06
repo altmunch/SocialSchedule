@@ -1,1 +1,1 @@
-﻿export * from './functions';
+export * from './functions/index';
