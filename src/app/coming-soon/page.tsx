@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, CalendarClock } from 'lucide-react';
 import Link from 'next/link';
 
-import NavigationBar from '@/app/(landing)/components/NavigationBar';
+import NavigationBar from '@/app/landing/components/NavigationBar';
 
 export default function ComingSoonPage() {
   return (

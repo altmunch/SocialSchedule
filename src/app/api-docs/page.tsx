@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Code, Copy, Server, Database, Lock, Check, TerminalSquare } from 'lucide-react';
 import Link from 'next/link';
 
-import NavigationBar from '@/app/(landing)/components/NavigationBar';
+import NavigationBar from '@/app/landing/components/NavigationBar';
 
 export default function ApiDocsPage() {
   const [activeTab, setActiveTab] = useState<string>('overview');

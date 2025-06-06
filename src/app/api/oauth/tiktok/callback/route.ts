@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { AuthTokenManagerService } from '../../../../data_collection/lib/auth-token-manager.service';
-import { Platform } from '../../../../deliverables/types/deliverables_types';
-import { PlatformClientIdentifier } from '../../../../data_collection/lib/auth.types';
+import { AuthTokenManagerService } from '../../../../workflows/data_collection/lib/auth-token-manager.service';
+import { Platform } from '../../../../workflows/deliverables/types/deliverables_types';
+import { PlatformClientIdentifier } from '../../../../workflows/data_collection/lib/auth.types';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
