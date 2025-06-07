@@ -1,4 +1,4 @@
-import { Platform } from '../../deliverables/types/deliverables_types'; // Adjusted path
+import { Platform } from '../functions/types'; // Using the Platform type from data_collection/functions/types
 
 // Defines the strategy used for authentication
 export enum AuthStrategy {

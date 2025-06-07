@@ -1,6 +1,8 @@
 // SEO & Keyword Integration Service
 import { semrushClient } from '../utils/semrush-client';
 import { keybertClient } from '../utils/keybert-client';
+import { CacheService } from '../utils';
+import { DEFAULT_CONFIG } from '../config';
 
 type KeywordData = {
   keyword: string;
@@ -13,16 +15,34 @@ type KeywordData = {
 };
 
 export class SEOKeywordService {
+  private _cachedGetOptimizedKeywords: (text: string) => Promise<string[]>;
+
   constructor(
     private semrush = semrushClient,
     private keybert = keybertClient
-  ) {}
+  ) {
+    // Define the function to be cached with an explicit type signature
+    const methodToCache = (text: string): Promise<string[]> => {
+      return this._getOptimizedKeywordsUncached(text);
+    };
+
+    // Rely on TypeScript's inference for withCache generic arguments
+    this._cachedGetOptimizedKeywords = CacheService.withCache(
+      methodToCache,
+      'seo:optimizedKeywords',
+      DEFAULT_CONFIG.CACHE_TTL.KEYWORDS / 1000 // Convert ms to seconds for TTL
+    ) as (text: string) => Promise<string[]>;
+  }
 
   /**
    * Get optimized keywords for a piece of text using SEMrush (trending) and KeyBERT (context-aware).
    * Dynamic weighting and positional encoding are applied.
    */
   async getOptimizedKeywords(text: string): Promise<string[]> {
+    return this._cachedGetOptimizedKeywords(text);
+  }
+
+  private async _getOptimizedKeywordsUncached(text: string): Promise<string[]> {
     try {
       // Get trending keywords from SEMrush
       const trending = await this.semrush.getTrendingKeywords(text);

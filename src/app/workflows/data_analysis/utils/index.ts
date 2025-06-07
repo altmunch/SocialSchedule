@@ -191,3 +191,5 @@ export async function withRetry<T>(
   
   throw lastError || new Error('Unknown error in withRetry');
 }
+
+export * from './cacheService';

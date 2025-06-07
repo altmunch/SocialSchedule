@@ -1,11 +1,37 @@
 // difficult: Instagram Graph API client implementation
 import { BasePlatformClient } from './BasePlatformClient';
-import { PostMetrics, Platform } from '../types';
+import { PostMetrics, Platform, InstagramMediaProductType, PaginatedResponse, Pagination } from '../types';
+
+// Helper function to extract hashtags from caption
+function extractHashtags(caption: string | undefined): string[] {
+  if (!caption) return [];
+  const matches = caption.match(/#[a-zA-Z0-9_]+/g) || [];
+  return matches.map(tag => tag.substring(1)); // Remove the '#' character
+}
+
+// Helper function to get a metric value from insights
+function getMetricValue(insights: any, metricName: string): number {
+  if (!insights?.data) return 0;
+  const metric = insights.data.find((item: any) => item.name === metricName);
+  return metric?.values?.[0]?.value || 0;
+}
+
+// Helper function to get engagement metrics
+function getEngagementMetric(insights: any, metricType: string): number {
+  if (!insights?.data) return 0;
+  const metric = insights.data.find((item: any) => 
+    item.title.toLowerCase().includes(metricType.toLowerCase())
+  );
+  return metric?.values?.[0]?.value || 0;
+}
 
 interface InstagramMedia {
   id: string;
   caption?: string;
   media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
+  media_product_type?: InstagramMediaProductType;
+  thumbnail_url?: string;
+  video_title?: string;
   media_url: string;
   permalink: string;
   timestamp: string;
@@ -37,13 +63,16 @@ export class InstagramClient extends BasePlatformClient {
     'timestamp',
     'username',
     'children{media_url,media_type}',
+    'media_product_type',
+    'thumbnail_url',
+    'video_title',
   ].join(',');
   
   constructor(accessToken: string) {
     super(accessToken, 'instagram');
   }
 
-  async getPostMetrics(postId: string): Promise<PostMetrics> {
+  async getPostMetrics(postId: string, mediaProductType?: InstagramMediaProductType): Promise<PostMetrics> {
     return this.throttleRequest(async () => {
       // First, get the basic media data
       const mediaUrl = `${this.API_BASE}/${postId}?fields=${this.FIELDS}&access_token=${this.accessToken}`;
@@ -56,7 +85,14 @@ export class InstagramClient extends BasePlatformClient {
       const media = await mediaResponse.json() as InstagramMedia;
       
       // Then get the insights
-      const insightsUrl = `${this.API_BASE}/${postId}/insights?metric=engagement,impressions,reach,saved,video_views&access_token=${this.accessToken}`;
+      let insightMetrics = ['engagement', 'impressions', 'reach', 'saved'];
+      if (mediaProductType === 'STORY') {
+        insightMetrics.push('story_replies', 'story_exits');
+      } else {
+        insightMetrics.push('video_views');
+      }
+      
+      const insightsUrl = `${this.API_BASE}/${postId}/insights?metric=${insightMetrics.join(',')}&access_token=${this.accessToken}`;
       const insightsResponse = await fetch(insightsUrl);
       
       if (!insightsResponse.ok) {
@@ -65,123 +101,304 @@ export class InstagramClient extends BasePlatformClient {
       
       const insights = await insightsResponse.json();
       
-      return this.mapToPostMetrics(media, insights);
+      return this.mapToPostMetrics(media, insights, mediaProductType);
     });
   }
 
-  async getUserPosts(userId: string, lookbackDays: number = 30): Promise<PostMetrics[]> {
-    return this.throttleRequest(async () => {
+  private async _getBusinessAccountId(username: string): Promise<string> {
+    const accountInfoUrl = `${this.API_BASE}/me/accounts?fields=instagram_business_account&access_token=${this.accessToken}`;
+    const accountResponse = await fetch(accountInfoUrl);
+
+    if (!accountResponse.ok) {
+      throw new Error(`Failed to get Instagram Business Account for user ${username}: ${accountResponse.statusText}`);
+    }
+
+    const accountData = await accountResponse.json();
+    const businessAccountId = accountData.data[0]?.instagram_business_account?.id;
+
+    if (!businessAccountId) {
+      throw new Error(`No Instagram Business Account found for user ${username}`);
+    }
+    return businessAccountId;
+  }
+
+  private async _fetchPaginatedMedia(
+    userId: string,
+    lookbackDays: number = 30,
+    mediaProductType?: InstagramMediaProductType,
+    maxPages: number = 10,
+    maxResultsPerPage: number = 20
+  ): Promise<PaginatedResponse<PostMetrics>> {
+    const allPosts: PostMetrics[] = [];
+    let nextPageUrl: string | null = null;
+    let hasMore = true;
+    let pagesFetched = 0;
+    let retryCount = 0;
+    const MAX_RETRIES = 3;
+    
+    // Build the base URL with common parameters
+    const baseUrl = `${this.API_BASE}/${userId}/media`;
+    const params = new URLSearchParams({
+      fields: this.FIELDS,
+      limit: Math.min(maxResultsPerPage, 100).toString(),
+      access_token: this.accessToken,
+    });
+    
+    // Add media product type filter if specified
+    if (mediaProductType) {
+      params.append('media_product_type', mediaProductType);
+    }
+    
+    // Add date range filter if lookbackDays is specified
+    if (lookbackDays) {
       const endTime = Math.floor(Date.now() / 1000);
       const startTime = endTime - (lookbackDays * 24 * 60 * 60);
-      
-      // First, get the Instagram Business Account ID if we don't have it
-      const accountInfoUrl = `${this.API_BASE}/me/accounts?fields=instagram_business_account&access_token=${this.accessToken}`;
-      const accountResponse = await fetch(accountInfoUrl);
-      
-      if (!accountResponse.ok) {
-        throw new Error(`Failed to get Instagram Business Account: ${accountResponse.statusText}`);
-      }
-      
-      const accountData = await accountResponse.json();
-      const businessAccountId = accountData.data[0]?.instagram_business_account?.id;
-      
-      if (!businessAccountId) {
-        throw new Error('No Instagram Business Account found');
-      }
-      
-      // Get the user's media
-      const mediaUrl = `${this.API_BASE}/${businessAccountId}/media?fields=${this.FIELDS}&since=${startTime}&until=${endTime}&access_token=${this.accessToken}`;
-      const mediaResponse = await fetch(mediaUrl);
-      
-      if (!mediaResponse.ok) {
-        throw new Error(`Failed to get user media: ${mediaResponse.statusText}`);
-      }
-      
-      const mediaData = await mediaResponse.json();
-      const posts: PostMetrics[] = [];
-      
-      // Process each media item
-      for (const media of mediaData.data) {
-        try {
-          const postMetrics = await this.getPostMetrics(media.id);
-          posts.push(postMetrics);
-        } catch (error) {
-          console.error(`Error processing post ${media.id}:`, error);
+      params.append('since', startTime.toString());
+      params.append('until', endTime.toString());
+    }
+    
+    nextPageUrl = `${baseUrl}?${params.toString()}`;
+    
+    while (hasMore && nextPageUrl && retryCount < MAX_RETRIES && pagesFetched < maxPages) {
+      try {
+        const response: Response = await fetch(nextPageUrl);
+        
+        if (!response.ok) {
+          if (response.status === 429) {
+            // Rate limited, implement exponential backoff
+            const retryAfter = parseInt(response.headers.get('Retry-After') || '5');
+            await new Promise(resolve => setTimeout(resolve, (2 ** retryCount) * retryAfter * 1000));
+            retryCount++;
+            continue;
+          }
+          throw new Error(`Instagram API error: ${response.statusText}`);
+        }
+
+        const data: {
+          data?: any[];
+          paging?: {
+            next?: string;
+          };
+        } = await response.json();
+        pagesFetched++;
+        
+        // Process the current page of media items
+        if (data.data && Array.isArray(data.data)) {
+          const pagePosts = await Promise.all(
+            data.data.map((item: any) => 
+              this.getPostMetrics(item.id, item.media_product_type as InstagramMediaProductType)
+                .catch(error => {
+                  console.error(`Error fetching metrics for post ${item.id}:`, error);
+                  return null;
+                })
+            )
+          );
+          
+          allPosts.push(...pagePosts.filter((post): post is PostMetrics => post !== null));
+        }
+
+        // Check for next page
+        if (data.paging?.next && pagesFetched < maxPages) {
+          nextPageUrl = data.paging.next;
+        } else {
+          hasMore = false;
+        }
+        
+        // Reset retry count after successful request
+        retryCount = 0;
+        
+      } catch (error) {
+        console.error('Error fetching paginated media:', error);
+        retryCount++;
+        
+        if (retryCount >= MAX_RETRIES) {
+          throw new Error(`Failed to fetch media after ${MAX_RETRIES} attempts: ${error}`);
         }
       }
-      
-      return posts;
-    });
-  }
-
-  async getCompetitorPosts(username: string, lookbackDays: number = 30): Promise<PostMetrics[]> {
-    return this.throttleRequest(async () => {
-      // Note: Instagram's API doesn't directly support searching by username for competitors
-      // In a real implementation, you would need to have the competitor's user ID
-      // This is a simplified example that would need to be adapted based on your requirements
-      
-      // For the purpose of this example, we'll return an empty array
-      // In a real implementation, you might:
-      // 1. Look up the user ID by username (if you have that permission)
-      // 2. Use the Instagram Basic Display API with proper permissions
-      // 3. Or use a third-party service that has the necessary permissions
-      
-      console.warn('Instagram API does not support direct competitor lookup by username');
-      return [];
-    });
-  }
-
-  private mapToPostMetrics(media: InstagramMedia, insights: any): PostMetrics {
-    // Extract metrics from insights
-    const metrics = {
-      impressions: this.getMetricValue(insights, 'impressions'),
-      reach: this.getMetricValue(insights, 'reach'),
-      engagement: this.getMetricValue(insights, 'engagement'),
-      saved: this.getMetricValue(insights, 'saved'),
-      video_views: this.getMetricValue(insights, 'video_views'),
-    };
-
-    // Calculate engagement rate (simplified)
-    const engagementRate = metrics.engagement / (metrics.reach || 1) * 100;
+    }
     
-    // Extract hashtags from caption
-    const hashtags = media.caption ? this.extractHashtags(media.caption) : [];
+    return {
+      data: allPosts,
+      pagination: {
+        total: allPosts.length,
+        hasMore,
+        page: pagesFetched,
+        pageSize: maxResultsPerPage,
+        cursor: nextPageUrl
+      }
+    };
+  }
+
+  private mapToPostMetrics(media: InstagramMedia, insights: any, mediaProductType?: InstagramMediaProductType): PostMetrics {
+    const timestamp = new Date(media.timestamp);
+    const caption = media.caption || '';
+    const hashtags = extractHashtags(caption);
+    
+    // Get basic metrics using helper functions
+    const likes = getMetricValue(insights, 'like');
+    const comments = getMetricValue(insights, 'comments');
+    const shares = getMetricValue(insights, 'shares');
+    const saves = getMetricValue(insights, 'saved');
+    const reach = getMetricValue(insights, 'reach');
+    const impressions = getMetricValue(insights, 'impressions');
+    const videoViews = getMetricValue(insights, 'video_views');
+    
+    // Calculate engagement rate (simplified)
+    const engagementRate = ((likes + comments + shares + saves) / Math.max(impressions, 1)) * 100;
+    
+    // Additional metrics for different media types
+    const additionalMetrics: Record<string, any> = {
+      mediaType: media.media_type,
+      mediaProductType: mediaProductType || 'FEED',
+      thumbnailUrl: media.thumbnail_url,
+      videoTitle: media.video_title
+    };
+    
+    if (mediaProductType === 'REELS') {
+      const plays = getMetricValue(insights, 'plays');
+      const accountsReached = getMetricValue(insights, 'accounts_reached');
+      const totalInteractions = getMetricValue(insights, 'total_interactions');
+      
+      additionalMetrics.videoPlays = plays;
+      additionalMetrics.accountsReached = accountsReached;
+      additionalMetrics.totalInteractions = totalInteractions;
+    } else if (mediaProductType === 'STORY') {
+      const replies = getMetricValue(insights, 'replies');
+      const exits = getMetricValue(insights, 'exits');
+      const tapsForward = getMetricValue(insights, 'taps_forward');
+      const tapsBack = getMetricValue(insights, 'taps_back');
+      
+      additionalMetrics.storyReplies = replies;
+      additionalMetrics.storyExits = exits;
+      additionalMetrics.tapsForward = tapsForward;
+      additionalMetrics.tapsBack = tapsBack;
+    }
     
     return {
       id: media.id,
-      platform: 'instagram',
-      views: metrics.video_views || metrics.impressions,
-      likes: this.getEngagementMetric(insights, 'like'),
-      comments: this.getEngagementMetric(insights, 'comments'),
-      shares: this.getEngagementMetric(insights, 'shares'),
+      platform: 'instagram' as const,
+      views: videoViews || impressions,
+      likes,
+      comments,
+      shares,
       engagementRate,
-      timestamp: new Date(media.timestamp),
-      caption: media.caption,
+      timestamp,
+      caption,
       hashtags,
       url: media.permalink,
+      mediaProductType: mediaProductType || 'FEED',
+      storyReplies: mediaProductType === 'STORY' ? additionalMetrics.storyReplies : undefined,
+      storyExits: mediaProductType === 'STORY' ? additionalMetrics.storyExits : undefined,
+      metadata: additionalMetrics,
+      metrics: {
+        engagement: {
+          likes,
+          comments,
+          shares,
+          views: videoViews || impressions,
+          saves,
+          reach,
+          impressions
+        },
+        ...(mediaProductType === 'REELS' ? {
+          video: {
+            plays: additionalMetrics.videoPlays,
+            accountsReached: additionalMetrics.accountsReached,
+            totalInteractions: additionalMetrics.totalInteractions
+          }
+        } : {}),
+        ...(mediaProductType === 'STORY' ? {
+          story: {
+            replies: additionalMetrics.storyReplies,
+            exits: additionalMetrics.storyExits,
+            tapsForward: additionalMetrics.tapsForward,
+            tapsBack: additionalMetrics.tapsBack
+          }
+        } : {})
+      }
     };
   }
-
-  private getMetricValue(insights: any, metricName: string): number {
-    if (!insights?.data) return 0;
-    
-    const metric = insights.data.find((item: any) => item.name === metricName);
-    return metric?.values?.[0]?.value || 0;
+  
+  async getUserPosts(
+    username: string,
+    lookbackDays: number = 30,
+    maxPages: number = 10,
+    maxResultsPerPage: number = 20
+  ): Promise<PaginatedResponse<PostMetrics>> {
+    try {
+      // First, get the business account ID
+      const businessAccountId = await this._getBusinessAccountId(username);
+      
+      // Fetch posts using the business account ID
+      return this._fetchPaginatedMedia(
+        businessAccountId,
+        lookbackDays,
+        'FEED',
+        maxPages,
+        maxResultsPerPage
+      );
+    } catch (error) {
+      console.error('Error in getUserPosts:', error);
+      throw error;
+    }
   }
-
-  private getEngagementMetric(insights: any, metricType: string): number {
-    if (!insights?.data) return 0;
-    
-    const engagementMetric = insights.data.find((item: any) => 
-      item.name === 'engagement' && item.title.toLowerCase().includes(metricType)
-    );
-    
-    return engagementMetric?.values?.[0]?.value || 0;
+  
+  async getReels(
+    username: string,
+    lookbackDays: number = 30,
+    maxPages: number = 10,
+    maxResultsPerPage: number = 20
+  ): Promise<PaginatedResponse<PostMetrics>> {
+    try {
+      // First, get the business account ID
+      const businessAccountId = await this._getBusinessAccountId(username);
+      
+      // Fetch reels using the business account ID
+      return this._fetchPaginatedMedia(
+        businessAccountId,
+        lookbackDays,
+        'REELS',
+        maxPages,
+        maxResultsPerPage
+      );
+    } catch (error) {
+      console.error('Error in getReels:', error);
+      throw error;
+    }
   }
-
-  private extractHashtags(caption: string): string[] {
-    const hashtagRegex = /#([\w\d]+)/g;
-    const matches = caption.match(hashtagRegex) || [];
-    return matches.map(tag => tag.substring(1)); // Remove the '#'
+  
+  async getStories(
+    username: string,
+    lookbackDays: number = 1, // Stories are only available for 24 hours
+    maxPages: number = 10,
+    maxResultsPerPage: number = 20
+  ): Promise<PaginatedResponse<PostMetrics>> {
+    try {
+      // First, get the business account ID
+      const businessAccountId = await this._getBusinessAccountId(username);
+      
+      // Fetch stories using the business account ID
+      return this._fetchPaginatedMedia(
+        businessAccountId,
+        lookbackDays,
+        'STORY',
+        maxPages,
+        maxResultsPerPage
+      );
+    } catch (error) {
+      console.error('Error in getStories:', error);
+      throw error;
+    }
+  }
+  
+  async getCompetitorPosts(
+    username: string,
+    lookbackDays: number = 30,
+    maxPages: number = 10,
+    maxResultsPerPage: number = 20
+  ): Promise<PaginatedResponse<PostMetrics>> {
+    // For Instagram, getting competitor posts is similar to getting user posts
+    // since we can access public content with the right permissions
+    return this.getUserPosts(username, lookbackDays, maxPages, maxResultsPerPage);
   }
 }

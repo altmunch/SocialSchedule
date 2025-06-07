@@ -79,6 +79,16 @@ interface YouTubeChannel {
   };
 }
 
+interface YouTubePlaylistItemsApiResponse {
+  items: YouTubePlaylistItem[];
+  nextPageToken?: string;
+  prevPageToken?: string;
+  pageInfo?: {
+    totalResults: number;
+    resultsPerPage: number;
+  };
+}
+
 export class YouTubeClient extends BasePlatformClient {
   private readonly API_BASE = 'https://www.googleapis.com/youtube/v3';
   private readonly SHORTS_MAX_DURATION = 60; // 60 seconds for Shorts
@@ -101,7 +111,7 @@ export class YouTubeClient extends BasePlatformClient {
    * @param channelId The YouTube channel ID
    * @param lookbackDays Number of days to look back for posts (default: 30)
    */
-  async getUserPosts(channelId: string, lookbackDays: number = this.DEFAULT_LOOKBACK_DAYS): Promise<PostMetrics[]> {
+  async getUserPosts(channelId: string, lookbackDays: number = this.DEFAULT_LOOKBACK_DAYS, maxPagesToFetch: number = 5): Promise<PostMetrics[]> {
     const cacheKey = `user_posts_${channelId}_${lookbackDays}`;
     const cached = this.getFromCache(cacheKey);
     if (cached) {
@@ -113,7 +123,7 @@ export class YouTubeClient extends BasePlatformClient {
       const uploadsPlaylistId = await this.getUploadsPlaylistId(channelId);
       
       // Get videos from the uploads playlist
-      const videos = await this.getVideosFromPlaylist(uploadsPlaylistId, lookbackDays);
+      const videos = await this.getVideosFromPlaylist(uploadsPlaylistId, lookbackDays, maxPagesToFetch);
       
       // Convert to PostMetrics format and cache the result
       const posts = videos.map(video => this.mapToPostMetrics(video));
@@ -131,9 +141,9 @@ export class YouTubeClient extends BasePlatformClient {
    * @param channelId The competitor's YouTube channel ID
    * @param lookbackDays Number of days to look back for posts (default: 30)
    */
-  async getCompetitorPosts(channelId: string, lookbackDays: number = this.DEFAULT_LOOKBACK_DAYS): Promise<PostMetrics[]> {
+  async getCompetitorPosts(channelId: string, lookbackDays: number = this.DEFAULT_LOOKBACK_DAYS, maxPagesToFetch: number = 5): Promise<PostMetrics[]> {
     // Reuse the same logic as getUserPosts
-    return this.getUserPosts(channelId, lookbackDays);
+    return this.getUserPosts(channelId, lookbackDays, maxPagesToFetch);
   }
   
   /**
@@ -205,7 +215,7 @@ export class YouTubeClient extends BasePlatformClient {
    * Gets videos from a playlist with optional date filtering
    * @private
    */
-  private async getVideosFromPlaylist(playlistId: string, lookbackDays: number): Promise<YouTubeVideo[]> {
+  private async getVideosFromPlaylist(playlistId: string, lookbackDays: number, maxPagesToFetch: number = 5): Promise<YouTubeVideo[]> {
     const cacheKey = `playlist_${playlistId}_${lookbackDays}`;
     const cached = this.getFromCache(cacheKey);
     if (cached) {
@@ -213,24 +223,24 @@ export class YouTubeClient extends BasePlatformClient {
     }
 
     const videos: YouTubeVideo[] = [];
-    let nextPageToken = '';
+    let nextPageToken: string | undefined = undefined;
+    let pagesFetched = 0;
     const publishedAfter = new Date();
     publishedAfter.setDate(publishedAfter.getDate() - lookbackDays);
     
     do {
+      if (pagesFetched >= maxPagesToFetch) break;
       // Get playlist items
-      const playlistItemsUrl = `${this.API_BASE}/playlistItems?part=snippet,contentDetails&playlistId=${playlistId}` +
-        `&maxResults=${this.MAX_RESULTS}&pageToken=${nextPageToken}&key=${this.accessToken}`;
+      const playlistItemsUrl: string = `${this.API_BASE}/playlistItems?part=snippet,contentDetails&playlistId=${playlistId}` +
+        `&maxResults=${this.MAX_RESULTS}&pageToken=${nextPageToken || ''}&key=${this.accessToken}`;
       
-      const playlistData = await this.fetchWithRetry<{ 
-        items: YouTubePlaylistItem[], 
-        nextPageToken?: string 
-      }>(playlistItemsUrl);
+      const playlistData = await this.fetchWithRetry<YouTubePlaylistItemsApiResponse>(playlistItemsUrl);
       
-      nextPageToken = playlistData.nextPageToken || '';
+      nextPageToken = playlistData.nextPageToken;
+      pagesFetched++;
       
       // Get video details in batches (YouTube allows up to 50 video IDs per request)
-      const videoIds = playlistData.items.map(item => item.contentDetails.videoId).join(',');
+      const videoIds = playlistData.items.map((item: YouTubePlaylistItem) => item.contentDetails.videoId).join(',');
       const videosUrl = `${this.API_BASE}/videos?part=snippet,contentDetails,statistics,player&id=${videoIds}&key=${this.accessToken}`;
       
       const videosData = await this.fetchWithRetry<{ items: YouTubeVideo[] }>(videosUrl);
@@ -243,10 +253,24 @@ export class YouTubeClient extends BasePlatformClient {
       
       videos.push(...newVideos);
       
-      // Stop if we've reached the lookback period or the max results
-      if (newVideos.length < this.MAX_RESULTS || videos.length >= 200) {
-        break;
+      // Stop if the API returned fewer items than requested (likely end of playlist for the period)
+      // or if we've fetched enough pages.
+      if (newVideos.length < playlistData.items.length) { 
+        // This condition implies that the publishedAfter filter removed some items, 
+        // or it's the last page with fewer than MAX_RESULTS items.
+        // If all fetched items are older than 'publishedAfter', nextPageToken might still exist,
+        // but we should stop if newVideos is empty for the current page of playlistItems.
+        const allFetchedAreOld = playlistData.items.length > 0 && newVideos.length === 0;
+        if (allFetchedAreOld) {
+            // Check if the *oldest* item on this page of playlist items is already older than our lookback.
+            // This is a heuristic to stop early if we are fetching very old playlist items.
+            const oldestPlaylistItemDate = playlistData.items.length > 0 ? new Date(playlistData.items[playlistData.items.length -1].snippet.publishedAt) : new Date(0);
+            if (oldestPlaylistItemDate < publishedAfter) {
+                 break; // All further playlist items will also be too old.
+            }
+        }
       }
+      // The primary stop condition is no nextPageToken or maxPagesFetched reached (handled by the loop condition and initial check)
       
     } while (nextPageToken);
     

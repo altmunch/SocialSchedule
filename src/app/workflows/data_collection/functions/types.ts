@@ -44,6 +44,39 @@ const timezoneSchema = z.string().refine(
   { message: 'Invalid IANA timezone format' }
 );
 
+export const InstagramMediaProductTypeSchema = z.enum(['FEED', 'STORY', 'REELS']);
+export type InstagramMediaProductType = z.infer<typeof InstagramMediaProductTypeSchema>;
+
+// Common pagination interface
+export interface Pagination {
+  cursor?: string | null;
+  hasMore: boolean;
+  total?: number;
+  page?: number;
+  pageSize?: number;
+}
+
+// Common response type for paginated results
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: Pagination;
+}
+
+export const MetricsSchema = z.object({
+  engagement: z.object({
+    likes: z.number().int().nonnegative(),
+    comments: z.number().int().nonnegative(),
+    shares: z.number().int().nonnegative(),
+    views: z.number().int().nonnegative(),
+    saves: z.number().int().nonnegative().optional(),
+    reach: z.number().int().nonnegative().optional(),
+    impressions: z.number().int().nonnegative().optional(),
+  }),
+  // Add other metric categories as needed
+}).optional();
+
+export type Metrics = z.infer<typeof MetricsSchema>;
+
 export const PostMetricsSchema = z.object({
   id: z.string().min(1, 'Post ID is required'),
   platform: PlatformSchema,
@@ -58,19 +91,24 @@ export const PostMetricsSchema = z.object({
   caption: z.string().optional(),
   hashtags: z.array(z.string()).optional(),
   url: z.string().url('Invalid post URL'),
+  mediaProductType: InstagramMediaProductTypeSchema.optional(), // Primarily for Instagram
+  storyReplies: z.number().int().nonnegative().optional(),
+  storyExits: z.number().int().nonnegative().optional(),
   metadata: z.record(z.unknown()).optional()
     .refine((val) => {
       if (!val) return true;
-      const { title, thumbnail, duration, isShort, channelTitle, tags, ...rest } = val as any;
+      const { title, thumbnail, duration, isShort, channelTitle, tags, videoTitle, ...rest } = val as any;
       return (
         (title === undefined || typeof title === 'string') &&
         (thumbnail === undefined || typeof thumbnail === 'string') &&
         (duration === undefined || typeof duration === 'number') &&
         (isShort === undefined || typeof isShort === 'boolean') &&
         (channelTitle === undefined || typeof channelTitle === 'string') &&
-        (tags === undefined || (Array.isArray(tags) && tags.every(t => typeof t === 'string')))
+        (tags === undefined || (Array.isArray(tags) && tags.every(t => typeof t === 'string'))) &&
+        (videoTitle === undefined || typeof videoTitle === 'string')
       );
-    }, 'Invalid metadata structure')
+    }, 'Invalid metadata structure'),
+  metrics: MetricsSchema.optional()
 });
 
 export type PostMetrics = z.infer<typeof PostMetricsSchema>;

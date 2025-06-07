@@ -1,4 +1,4 @@
-import { Platform } from '../../deliverables/types/deliverables_types';
+import { Platform } from '../functions/types'; // Using the Platform type from data_collection/functions/types
 import {
   IAuthTokenManager,
   PlatformCredentials,
@@ -87,7 +87,7 @@ export class AuthTokenManagerService implements IAuthTokenManager {
 
     // --- PLATFORM-SPECIFIC REFRESH LOGIC --- 
 
-    if (id.platform === Platform.INSTAGRAM) {
+    if (id.platform === 'instagram') {
       console.log(`[AuthTokenManager] Attempting to refresh Instagram OAuth2 token.`);
       // Instagram uses the long-lived access token itself to refresh.
       // The grant_type is 'ig_refresh_token'.
@@ -137,7 +137,7 @@ export class AuthTokenManagerService implements IAuthTokenManager {
         }
         return null; // Indicate refresh failure
       }
-    } else if (id.platform === Platform.TIKTOK) {
+    } else if (id.platform === 'tiktok') {
       console.log(`[AuthTokenManager] Attempting to refresh TikTok OAuth2 token.`);
       if (!currentCredentials.clientId || !currentCredentials.clientSecret) {
         console.error(`[AuthTokenManager] TikTok client_key (clientId) or client_secret not found in current credentials for ${this.generateStoreKey(id)}. Cannot refresh.`);
@@ -285,7 +285,7 @@ export class AuthTokenManagerService implements IAuthTokenManager {
     redirectUri: string
   ): Promise<OAuth2Credentials | null> {
     // --- PLATFORM-SPECIFIC AUTH CODE EXCHANGE LOGIC --- 
-    if (id.platform === Platform.TIKTOK) {
+    if (id.platform === 'tiktok') {
       console.log(`[AuthTokenManager] Attempting to exchange auth code for TikTok token for user: ${id.userId || 'unknown'}.`);
       const tiktokTokenEndpoint = 'https://open-api.tiktok.com/oauth/token/';
       try {

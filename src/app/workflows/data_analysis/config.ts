@@ -14,6 +14,7 @@ export const DEFAULT_CONFIG = {
     HOOKS: 24 * 60 * 60 * 1000, // 24 hours
     TRENDING_AUDIO: 6 * 60 * 60 * 1000, // 6 hours
     KEYWORDS: 12 * 60 * 60 * 1000, // 12 hours
+    ANALYSIS_RESULTS: 1 * 60 * 60 * 1000, // 1 hour
   },
   
   // API rate limiting

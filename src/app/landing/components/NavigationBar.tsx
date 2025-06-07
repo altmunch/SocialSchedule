@@ -66,6 +66,7 @@ const navItems: NavItem[] = [
       ]
     },
     { label: 'Pricing', href: '/pricing', hasDropdown: false },
+    { label: 'Terms of Service', href: '/terms-of-service', hasDropdown: false },
     { 
       label: 'Resources', 
       key: 'resources',

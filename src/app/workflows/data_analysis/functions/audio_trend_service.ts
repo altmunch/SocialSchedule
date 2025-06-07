@@ -1,6 +1,8 @@
 // difficult
 // Audio Trend Detection Service: TikTok API, Librosa, CNN, Shazam
-import { Sound, AudioClient, LibrosaClient, CNNModel, ShazamClient } from '../types/audio';
+import { Sound, AudioClient, LibrosaClient, CNNModel, ShazamClient, PlatformSchema, AudioClientTrendingSoundsResponseSchema } from '../types/audio';
+import { CacheService } from '../utils/cacheService'; // Added CacheService import
+import { DEFAULT_CONFIG } from '../config'; // Added DEFAULT_CONFIG import
 
 /**
  * Service for analyzing and filtering trending audio for content acceleration.
@@ -8,6 +10,34 @@ import { Sound, AudioClient, LibrosaClient, CNNModel, ShazamClient } from '../ty
  * Each analysis step is modular and robustly logged for maintainability.
  */
 export class AudioTrendService {
+  private _cachedGetTrendingAudio: (
+    platform: string,
+    tiktokClient: AudioClient,
+    librosa: LibrosaClient,
+    cnnModel: CNNModel,
+    shazamClient: ShazamClient
+  ) => Promise<Sound[]>;
+
+  constructor() {
+    // Note: If client instances (tiktokClient, etc.) have state that affects outcomes
+    // and isn't captured by simple stringification, the cache key might not be unique enough.
+    // For now, assuming platform is the primary differentiator for cache.
+    const methodToCache = (
+      platform: string,
+      tiktokClient: AudioClient,
+      librosa: LibrosaClient,
+      cnnModel: CNNModel,
+      shazamClient: ShazamClient
+    ): Promise<Sound[]> => {
+      return this._getTrendingAudioUncached(platform, tiktokClient, librosa, cnnModel, shazamClient);
+    };
+
+    this._cachedGetTrendingAudio = CacheService.withCache(
+      methodToCache,
+      'audioTrend:getTrendingAudio',
+      DEFAULT_CONFIG.CACHE_TTL.TRENDING_AUDIO / 1000 // Convert ms to seconds
+    ) as typeof methodToCache;
+  }
   /**
    * Get trending audio for a platform, filter by velocity, analyze BPM/mood, and check copyright.
    * @param platform TikTok, Instagram, etc.
@@ -24,10 +54,34 @@ export class AudioTrendService {
     cnnModel: CNNModel,
     shazamClient: ShazamClient
   ): Promise<Sound[]> {
+    return this._cachedGetTrendingAudio(platform, tiktokClient, librosa, cnnModel, shazamClient);
+  }
+
+  private async _getTrendingAudioUncached(
+    platform: string,
+    tiktokClient: AudioClient,
+    librosa: LibrosaClient,
+    cnnModel: CNNModel,
+    shazamClient: ShazamClient
+  ): Promise<Sound[]> {
+    const platformValidation = PlatformSchema.safeParse(platform);
+    if (!platformValidation.success) {
+      console.error(`[AudioTrendService] Invalid platform input: ${platform}`, platformValidation.error.flatten());
+      return []; // Or throw error
+    }
+    const validatedPlatform = platformValidation.data;
+
     try {
       // Step 1: Get trending sounds from TikTok API
-      const trending = await tiktokClient.getTrendingSounds(platform); // [{sound_id, url, velocity, ...}]
-      console.log(`[AudioTrendService] Fetched ${trending.length} trending sounds for ${platform}`);
+      const rawTrending = await tiktokClient.getTrendingSounds(validatedPlatform); // [{sound_id, url, velocity, ...}]
+      console.log(`[AudioTrendService] Fetched ${rawTrending.length} trending sounds for ${validatedPlatform}`);
+
+      const trendingValidation = AudioClientTrendingSoundsResponseSchema.safeParse(rawTrending);
+      if (!trendingValidation.success) {
+        console.error(`[AudioTrendService] Invalid data structure from tiktokClient.getTrendingSounds for platform ${validatedPlatform}:`, trendingValidation.error.flatten());
+        return []; // Or throw error
+      }
+      const trending = trendingValidation.data;
       // Step 2: Filter for velocity > 15% daily growth
       const fastGrowing = trending.filter((sound: Sound) => sound.velocity > 0.15);
       console.log(`[AudioTrendService] ${fastGrowing.length} sounds are growing >15% daily`);
