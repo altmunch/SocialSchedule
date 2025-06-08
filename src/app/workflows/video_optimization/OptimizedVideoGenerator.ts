@@ -138,7 +138,8 @@ export class OptimizedVideoGenerator {
   private generatePrompt(
     analysisData: VideoOptimizationAnalysisData,
     preferences: UserPreferences,
-    productLinks?: ProductLink[]
+    productLinks?: ProductLink[],
+    mode: 'fast' | 'thorough' = 'thorough'
   ): string {
     let prompt = `Generate optimized video content based on the following analysis and preferences:\n\n`;
     prompt += `Platform: ${preferences.platform || 'Not specified'}\n`;
@@ -163,13 +164,14 @@ export class OptimizedVideoGenerator {
       prompt += `${index + 1}. #${hashtag.tag}\n`;
     });
 
-    prompt += `\nAudio Virality (for inspiration):\n`;
-    analysisData.audioViralityAnalysis?.forEach((audio: AudioVirality, index: number) => {
-      prompt += `${index + 1}. Audio ID: ${audio.audioId}, Virality Score: ${audio.viralityScore}\n`;
-    });
+    if (mode !== 'fast') {
+      prompt += `\nAudio Virality (for inspiration):\n`;
+      analysisData.audioViralityAnalysis?.forEach((audio: AudioVirality, index: number) => {
+        prompt += `${index + 1}. Audio ID: ${audio.audioId}, Virality Score: ${audio.viralityScore}\n`;
+      });
+    }
 
-    // --- Add Real-time Sentiment Analysis ---
-    if (analysisData.realTimeSentiment) {
+    if (mode !== 'fast' && analysisData.realTimeSentiment) {
       prompt += `\n--- Real-time Sentiment Analysis ---\n`;
       prompt += `Overall Sentiment: ${analysisData.realTimeSentiment.overallSentiment}\n`;
       if (analysisData.realTimeSentiment.dominantEmotion) {
@@ -180,8 +182,7 @@ export class OptimizedVideoGenerator {
       }
     }
 
-    // --- Add ML-based Audio Recommendations ---
-    if (analysisData.audioRecommendations && analysisData.audioRecommendations.recommendations.length > 0) {
+    if (mode !== 'fast' && analysisData.audioRecommendations && analysisData.audioRecommendations.recommendations.length > 0) {
       prompt += `\n--- ML-based Audio Recommendations ---\n`;
       analysisData.audioRecommendations.recommendations.forEach((track, index) => {
         prompt += `${index + 1}. Title: ${track.title}\n`;
@@ -197,8 +198,7 @@ export class OptimizedVideoGenerator {
       }
     }
 
-    // --- Add Detailed Platform Analytics ---
-    if (analysisData.detailedPlatformAnalytics) {
+    if (mode !== 'fast' && analysisData.detailedPlatformAnalytics) {
       prompt += `\n--- Detailed Platform Analytics ---\n`;
       if (analysisData.detailedPlatformAnalytics.audienceDemographics) {
         prompt += `Audience Demographics:\n`;
@@ -253,7 +253,8 @@ export class OptimizedVideoGenerator {
   async generateOptimizedContent(
     analysisData: VideoOptimizationAnalysisData,
     userPreferences: UserPreferences,
-    productLinks?: ProductLink[]
+    productLinks?: ProductLink[],
+    mode: 'fast' | 'thorough' = 'thorough'
   ): Promise<OptimizedVideoContent> {
     if (!analysisData) {
       console.error(`[${userPreferences?.correlationId || 'N/A'}] User: ${userPreferences?.userId || 'N/A'} - Invalid input: analysisData is required.`);
@@ -271,7 +272,7 @@ export class OptimizedVideoGenerator {
 
     console.log(`[${correlationId}] User: ${userId} - Starting optimized content generation.`);
 
-    const cacheKey = JSON.stringify({ analysisData, userPreferences, productLinks });
+    const cacheKey = JSON.stringify({ analysisData, userPreferences, productLinks, mode });
     const cached = this.cache.get(cacheKey);
     if (cached && cached.timestamp + this.cacheTTL > Date.now()) {
       console.log(`[${correlationId}] User: ${userId} - Returning cached optimized content.`);
@@ -283,7 +284,7 @@ export class OptimizedVideoGenerator {
       throw new Error(`Rate limit exceeded for user ${userId}. Please try again later.`);
     }
 
-    const prompt = this.generatePrompt(analysisData, userPreferences, productLinks);
+    const prompt = this.generatePrompt(analysisData, userPreferences, productLinks, mode);
     try {
       const completion = await this._callOpenAIWithRetries(prompt, userId, correlationId);
 

@@ -12,8 +12,10 @@ import { ContentInsightsEngine } from '../data_analysis/engines/ContentInsightsE
 import { ViralityEngine } from '../data_analysis/engines/ViralityEngine';
 import { SentimentAnalysisEngine } from './engines/SentimentAnalysisEngine'; // Added new engine
 import { AudioRecommendationEngine } from './engines/AudioRecommendationEngine'; // Added new engine
-import { analyzeHashtags } from '../data_analysis/functions/hashtag_analysis';
+import { analyzeHashtags, analyzeHashtagsWithTrends } from '../data_analysis/functions/hashtag_analysis';
 import { OptimizedVideoGenerator, ProductLink, OptimizedVideoContent, UserPreferences, OptimizedVideoGeneratorConfig } from './OptimizedVideoGenerator';
+
+type OptimizationMode = 'fast' | 'thorough';
 
 interface GetVideoOptimizationInsightsRequest extends BaseAnalysisRequest {
   audioIds?: string[];
@@ -21,6 +23,7 @@ interface GetVideoOptimizationInsightsRequest extends BaseAnalysisRequest {
   platform: Platform;
   timeRange: TimeRange;
   correlationId?: string;
+  mode?: OptimizationMode; // Add mode for cost control
 }
 
 @Injectable()
@@ -126,15 +129,20 @@ export class VideoOptimizationAnalysisService {
         detailedPlatformAnalytics: detailedAnalyticsResult.success && detailedAnalyticsResult.data ? detailedAnalyticsResult.data : undefined,
       };
 
-      // Extract and analyze hashtags from top performing content
+      // Extract and analyze hashtags from top performing content, merging with trending
       if (contentInsightsResult.data?.topPerformingVideoCaptions && contentInsightsResult.data.topPerformingVideoCaptions.length > 0) {
-        // Pass the array of captions directly to analyzeHashtags
-        combinedData.trendingHashtags = analyzeHashtags(contentInsightsResult.data.topPerformingVideoCaptions).map(tagString => ({ tag: tagString }));
+        const hashtags = await analyzeHashtagsWithTrends(
+          contentInsightsResult.data.topPerformingVideoCaptions,
+          request.platform,
+          5
+        );
+        combinedData.trendingHashtags = hashtags.map(tagString => ({ tag: tagString }));
       }
 
-      // Step 2: Perform Sentiment Analysis (if captions exist)
-      if (combinedData.topPerformingVideoCaptions.length > 0) {
-        const textToAnalyze = combinedData.topPerformingVideoCaptions.join(' \n\n '); // Analyze joined captions
+      // Step 2: Perform Sentiment Analysis (if captions exist and mode is not 'fast')
+      const mode = request.mode || 'thorough';
+      if (mode !== 'fast' && combinedData.topPerformingVideoCaptions.length > 0) {
+        const textToAnalyze = combinedData.topPerformingVideoCaptions.join(' \n\n ');
         console.log(`VideoOptimizationAnalysisService: Requesting sentiment analysis for ${textToAnalyze.substring(0,100)}...`);
         const sentimentResult = await this.sentimentAnalysisEngine.analyzeTextSentiment(
           textToAnalyze,
@@ -145,7 +153,6 @@ export class VideoOptimizationAnalysisService {
           console.log('VideoOptimizationAnalysisService: Sentiment analysis successful.');
         } else {
           console.warn('VideoOptimizationAnalysisService: Sentiment analysis failed or returned no data:', sentimentResult.error);
-          // Optionally, add a warning to the main result metadata if needed
         }
       }
 
@@ -154,25 +161,25 @@ export class VideoOptimizationAnalysisService {
         console.warn('VideoOptimizationAnalysisService: Detailed platform analytics failed or returned no data:', detailedAnalyticsResult.error);
       }
 
-      // Step 4: Perform Audio Recommendation
-      console.log('VideoOptimizationAnalysisService: Requesting audio recommendations.');
-      const audioFeatures: AudioFeaturesInput = {
-        videoContentSummary: combinedData.topPerformingVideoCaptions.length > 0 
-                             ? combinedData.topPerformingVideoCaptions.join(' \n\n ')
-                             : undefined,
-        existingAudioContext: combinedData.audioViralityAnalysis,
-        // desiredMood, genrePreferences, etc., could be passed via GetVideoOptimizationInsightsRequest if needed
-      };
-      const audioRecommendationResult = await this.audioRecommendationEngine.recommendAudio(
-        audioFeatures,
-        request.correlationId
-      );
-      if (audioRecommendationResult.success && audioRecommendationResult.data) {
-        combinedData.audioRecommendations = audioRecommendationResult.data;
-        console.log('VideoOptimizationAnalysisService: Audio recommendation successful.');
-      } else {
-        console.warn('VideoOptimizationAnalysisService: Audio recommendation failed or returned no data:', audioRecommendationResult.error);
-        // Optionally, add a warning to the main result metadata if needed
+      // Step 4: Perform Audio Recommendation (skip if mode is 'fast')
+      if (mode !== 'fast') {
+        console.log('VideoOptimizationAnalysisService: Requesting audio recommendations.');
+        const audioFeatures: AudioFeaturesInput = {
+          videoContentSummary: combinedData.topPerformingVideoCaptions.length > 0 
+                               ? combinedData.topPerformingVideoCaptions.join(' \n\n ')
+                               : undefined,
+          existingAudioContext: combinedData.audioViralityAnalysis,
+        };
+        const audioRecommendationResult = await this.audioRecommendationEngine.recommendAudio(
+          audioFeatures,
+          request.correlationId
+        );
+        if (audioRecommendationResult.success && audioRecommendationResult.data) {
+          combinedData.audioRecommendations = audioRecommendationResult.data;
+          console.log('VideoOptimizationAnalysisService: Audio recommendation successful.');
+        } else {
+          console.warn('VideoOptimizationAnalysisService: Audio recommendation failed or returned no data:', audioRecommendationResult.error);
+        }
       }
 
       return {
@@ -200,5 +207,5 @@ export class VideoOptimizationAnalysisService {
         }
       };
     }
-}
+  }
 }

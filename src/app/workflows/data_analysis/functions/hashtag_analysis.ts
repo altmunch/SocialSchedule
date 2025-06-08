@@ -33,3 +33,60 @@ export function analyzeHashtags(contents: string[], topN: number = 5): string[] 
     .slice(0, topN)
     .map(([tag]) => `#${tag}`);
 }
+
+// Simple in-memory cache for trending hashtags per platform
+const trendingHashtagCache: Record<string, { hashtags: string[]; timestamp: number }> = {};
+const TRENDING_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+/**
+ * Mock function to fetch trending hashtags for a platform.
+ * In production, replace with real API call.
+ */
+async function fetchTrendingHashtags(platform: string): Promise<string[]> {
+  // Simulate API call latency
+  await new Promise(res => setTimeout(res, 100));
+  // Mocked trending hashtags
+  if (platform === 'tiktok') return ['#fyp', '#viral', '#trending', '#tiktok', '#explore'];
+  if (platform === 'instagram') return ['#instagood', '#photooftheday', '#fashion', '#beautiful', '#happy'];
+  if (platform === 'youtube') return ['#youtube', '#subscribe', '#like', '#youtuber', '#video'];
+  return ['#social', '#media', '#content'];
+}
+
+/**
+ * Get cached or fresh trending hashtags for a platform.
+ */
+export async function getTrendingHashtags(platform: string): Promise<string[]> {
+  const now = Date.now();
+  const cached = trendingHashtagCache[platform];
+  if (cached && now - cached.timestamp < TRENDING_CACHE_TTL) {
+    return cached.hashtags;
+  }
+  const hashtags = await fetchTrendingHashtags(platform);
+  trendingHashtagCache[platform] = { hashtags, timestamp: now };
+  return hashtags;
+}
+
+/**
+ * Analyzes a list of captions or content strings and returns the top N hashtags by frequency,
+ * merged with trending hashtags for the platform, deduplicated and prioritized.
+ * @param contents Array of strings (e.g., captions)
+ * @param platform Social platform (e.g., 'tiktok', 'instagram', 'youtube')
+ * @param topN Number of top hashtags to return
+ */
+export async function analyzeHashtagsWithTrends(contents: string[], platform: string, topN: number = 5): Promise<string[]> {
+  const freqTags = analyzeHashtags(contents, topN * 2); // Get more for merging
+  const trending = await getTrendingHashtags(platform);
+  // Merge, prioritize by frequency, then trending, then dedupe
+  const all = [...freqTags, ...trending];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const tag of all) {
+    const norm = tag.toLowerCase();
+    if (!seen.has(norm) && tag.length > 1) {
+      seen.add(norm);
+      result.push(tag);
+    }
+    if (result.length >= topN) break;
+  }
+  return result;
+}

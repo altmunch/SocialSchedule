@@ -82,63 +82,72 @@ ${JSON.stringify(features, null, 2)}
 Return ONLY the JSON object.
 `;
 
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview', // Or your preferred model
-        messages: [{ role: 'user', content: prompt }],
-        response_format: { type: 'json_object' }, // Ensure JSON output
-        temperature: 0.5, // Higher temperature for more creative/diverse suggestions
-      });
-
-      if (!completion.choices[0]?.message?.content) {
-        return {
-          success: false,
-          error: {
-            code: 'OPENAI_API_ERROR',
-            message: 'No content received from OpenAI API for audio recommendations.',
-          },
-          metadata: {
-            generatedAt: new Date(),
-            source: 'AudioRecommendationEngine.recommendAudio',
-            correlationId,
-          },
-        };
-      }
-
-      let audioData: AudioRecommendationResult;
       try {
-        audioData = JSON.parse(completion.choices[0].message.content);
-        // Basic validation, ideally use Zod here
-        if (!audioData.recommendations || !Array.isArray(audioData.recommendations)) {
-            throw new Error('Invalid JSON structure for recommendations received from OpenAI.');
+        const completion = await this.openai.chat.completions.create({
+          model: 'gpt-4-turbo-preview', // Or your preferred model
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: 'json_object' }, // Ensure JSON output
+          temperature: 0.5, // Higher temperature for more creative/diverse suggestions
+        });
+
+        if (!completion.choices[0]?.message?.content) {
+          throw new Error('No content received from OpenAI API for audio recommendations.');
         }
-      } catch (parseError) {
-        console.error('AudioRecommendationEngine: Error parsing OpenAI response', parseError);
-        const pError = parseError as Error;
+
+        let audioData: AudioRecommendationResult;
+        try {
+          audioData = JSON.parse(completion.choices[0].message.content);
+          // Basic validation, ideally use Zod here
+          if (!audioData.recommendations || !Array.isArray(audioData.recommendations)) {
+              throw new Error('Invalid JSON structure for recommendations received from OpenAI.');
+          }
+        } catch (parseError) {
+          throw new Error('Failed to parse audio recommendation data from OpenAI: ' + (parseError as Error).message);
+        }
+
         return {
-          success: false,
-          error: {
-            code: 'OPENAI_RESPONSE_PARSE_ERROR',
-            message: 'Failed to parse audio recommendation data from OpenAI: ' + pError.message,
-            details: completion.choices[0].message.content, // Include raw response for debugging
-          },
+          success: true,
+          data: audioData,
           metadata: {
             generatedAt: new Date(),
             source: 'AudioRecommendationEngine.recommendAudio',
             correlationId,
           },
         };
+      } catch (error) {
+        // Fallback: return a generic audio recommendation result
+        console.warn('AudioRecommendationEngine: Falling back to generic audio recommendation due to error:', error);
+        return {
+          success: true,
+          data: {
+            recommendations: [
+              {
+                trackId: 'fallback-track',
+                title: 'Default Track',
+                artist: 'Unknown',
+                source: 'Fallback',
+                genre: ['pop'],
+                mood: ['neutral'],
+                tempo: 120,
+                instrumentation: ['synth'],
+                energyLevel: 'medium',
+                suggestedUseCases: ['general'],
+                relevanceScore: 0.5,
+                previewUrl: '',
+                licensingInfo: 'Royalty-free',
+                reasoning: 'Fallback generic recommendation.'
+              }
+            ],
+            diversificationSuggestions: ['Try trending tracks for more engagement.']
+          },
+          metadata: {
+            generatedAt: new Date(),
+            source: 'AudioRecommendationEngine.recommendAudio',
+            correlationId,
+            fallback: true,
+          },
+        };
       }
-
-      return {
-        success: true,
-        data: audioData,
-        metadata: {
-          generatedAt: new Date(),
-          source: 'AudioRecommendationEngine.recommendAudio',
-          correlationId,
-          // Potentially add model used, tokens, etc.
-        },
-      };
     } catch (error) {
       console.error('AudioRecommendationEngine: Error recommending audio', error);
       const err = error as Error;
