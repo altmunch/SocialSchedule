@@ -28,6 +28,7 @@ export class AIImprovementEngine {
     };
 
     return {
+      success: true,
       data: placeholderData,
       metadata: {
         generatedAt: new Date(),

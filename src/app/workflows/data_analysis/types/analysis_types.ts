@@ -109,11 +109,7 @@ export const AudioViralitySchema = z.object({
 });
 export type AudioVirality = z.infer<typeof AudioViralitySchema>;
 
-export interface VideoOptimizationAnalysisData { // New interface
-  topPerformingVideoCaptions: string[];
-  trendingHashtags: TrendingHashtag[];
-  audioViralityAnalysis: AudioVirality[];
-}
+
 
 // --- AI Improvement Workflow Specific Types (New) ---
 export const AIContentInsightSchema = z.object({
@@ -199,6 +195,119 @@ export const CompetitorVideoSchema = z.object({ // Kept
 export type CompetitorVideo = z.infer<typeof CompetitorVideoSchema>;
 
 // Specific TopPerformingContent for CompetitorAnalysis context (Kept)
+
+// --- Feature Enhancement: Sentiment Analysis Types ---
+export const SentimentLabelSchema = z.enum(['positive', 'negative', 'neutral', 'mixed', 'objective']);
+export type SentimentLabel = z.infer<typeof SentimentLabelSchema>;
+
+export const SentimentScoreSchema = z.object({
+  positive: z.number().min(0).max(1),
+  negative: z.number().min(0).max(1),
+  neutral: z.number().min(0).max(1),
+  mixed: z.number().min(0).max(1).optional(),
+  objective: z.number().min(0).max(1).optional(), // For factual, non-opinionated text
+});
+export type SentimentScore = z.infer<typeof SentimentScoreSchema>;
+
+export const AnalyzedTextSegmentSchema = z.object({
+  text: z.string(),
+  offset: z.number().int().nonnegative(), // Character offset in the original text
+  length: z.number().int().positive(),   // Length of the segment
+  sentiment: SentimentLabelSchema,
+  scores: SentimentScoreSchema,
+  keyPhrases: z.array(z.string()).optional(), // Key phrases contributing to sentiment
+});
+export type AnalyzedTextSegment = z.infer<typeof AnalyzedTextSegmentSchema>;
+
+export interface SentimentAnalysisResult {
+  overallSentiment: SentimentLabel;
+  overallScores: SentimentScore;
+  segments?: AnalyzedTextSegment[]; // Optional detailed breakdown
+  dominantEmotion?: string; // e.g., joy, anger, sadness (if model supports it)
+}
+
+// --- Feature Enhancement: ML-based Audio Recommendation Types ---
+export const AudioFeaturesInputSchema = z.object({
+  videoContentSummary: z.string().optional(), // Summary/transcript of video
+  desiredMood: z.array(z.string()).optional(), // e.g., ['upbeat', 'energetic']
+  genrePreferences: z.array(z.string()).optional(), // e.g., ['electronic', 'pop']
+  tempoRange: z.tuple([z.number().min(0), z.number().min(0)]).optional(), // [minBPM, maxBPM]
+  videoTheme: z.string().optional(), // e.g., 'tutorial', 'comedy skit', 'product review'
+  targetAudienceDemographics: z.string().optional(), // e.g., 'Gen Z, urban'
+  existingAudioContext: z.array(AudioViralitySchema).optional(), // Context from current audio trends
+});
+export type AudioFeaturesInput = z.infer<typeof AudioFeaturesInputSchema>;
+
+export const RecommendedAudioTrackSchema = z.object({
+  trackId: z.string(),
+  title: z.string(),
+  artist: z.string().optional(),
+  source: z.string(), // e.g., 'Epidemic Sound', 'YouTube Audio Library', 'TikTok Commercial Sounds'
+  genre: z.array(z.string()).optional(),
+  mood: z.array(z.string()).optional(),
+  tempo: z.number().optional(),
+  relevanceScore: z.number().min(0).max(1),
+  previewUrl: z.string().url().optional(),
+  licensingInfo: z.string().optional(), // e.g., 'royalty-free', 'requires attribution'
+  reasoning: z.string().optional(), // Why this track is recommended
+});
+export type RecommendedAudioTrack = z.infer<typeof RecommendedAudioTrackSchema>;
+
+export interface AudioRecommendationResult {
+  recommendations: RecommendedAudioTrack[];
+  diversificationSuggestions?: string[]; // e.g., "Consider a track with a contrasting mood for section B"
+}
+
+// --- Feature Enhancement: Detailed Social Media Analytics ---
+export const AudienceDemographicsSchema = z.object({
+  ageGroups: z.record(z.string(), z.number().min(0).max(1)).optional(), // e.g., {"18-24": 0.4, "25-34": 0.3}
+  genderDistribution: z.record(z.string(), z.number().min(0).max(1)).optional(), // e.g., {"male": 0.5, "female": 0.45, "other": 0.05}
+  topCountries: z.record(z.string(), z.number().min(0).max(1)).optional(), // e.g., {"US": 0.6, "CA": 0.2}
+  topCities: z.record(z.string(), z.number().min(0).max(1)).optional(), // e.g., {"New York": 0.1, "Los Angeles": 0.08}
+});
+export type AudienceDemographics = z.infer<typeof AudienceDemographicsSchema>;
+
+export const PeakEngagementTimeSchema = z.object({
+  dayOfWeek: z.enum(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]),
+  hourOfDay: z.number().int().min(0).max(23), // 0-23
+  engagementScore: z.number().min(0), // Could be views, likes, or a combined score
+});
+export type PeakEngagementTime = z.infer<typeof PeakEngagementTimeSchema>;
+
+export const ContentFormatPerformanceSchema = z.object({
+  formatName: z.string(), // e.g., "Shorts", "Reels", "Carousel", "Long-form Video"
+  averageViews: z.number().int().nonnegative().optional(),
+  averageLikes: z.number().int().nonnegative().optional(),
+  averageComments: z.number().int().nonnegative().optional(),
+  averageShares: z.number().int().nonnegative().optional(),
+  averageEngagementRate: z.number().nonnegative().optional(),
+  totalPosts: z.number().int().nonnegative().optional(),
+});
+export type ContentFormatPerformance = z.infer<typeof ContentFormatPerformanceSchema>;
+
+export const DetailedPlatformMetricsSchema = z.object({
+  audienceDemographics: AudienceDemographicsSchema.optional(),
+  peakEngagementTimes: z.array(PeakEngagementTimeSchema).optional(), // Array of peak times
+  contentFormatPerformance: z.array(ContentFormatPerformanceSchema).optional(), // Performance per format
+  // geoDistribution is covered by topCountries/topCities in AudienceDemographicsSchema
+  // We can add more specific fields as needed, e.g.,
+  // topPerformingContentTopics: z.array(z.string()).optional(),
+  // audienceInterests: z.array(z.string()).optional(),
+});
+export type DetailedPlatformMetrics = z.infer<typeof DetailedPlatformMetricsSchema>;
+
+// Conceptual update to VideoOptimizationAnalysisData to include these new insights.
+// Actual integration will require careful refactoring of VideoOptimizationAnalysisData in a subsequent step.
+// Example: (do not uncomment here, this is for planning)
+export interface VideoOptimizationAnalysisData {
+  topPerformingVideoCaptions: string[];
+  trendingHashtags: TrendingHashtag[];
+  audioViralityAnalysis: AudioVirality[];
+  realTimeSentiment?: SentimentAnalysisResult; // NEW: Integrated for sentiment insights
+  audioRecommendations?: AudioRecommendationResult; // NEW: Integrated for audio suggestions
+  detailedPlatformAnalytics?: DetailedPlatformMetrics; // NEW: Integrated for richer analytics
+}
+
 export interface CompetitorContextTopPerformingContent {
   videos: CompetitorVideo[];
   keySuccessFactors: string[];

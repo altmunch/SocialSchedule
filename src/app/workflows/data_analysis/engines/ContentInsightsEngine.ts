@@ -1,6 +1,8 @@
 // Placeholder for ContentInsightsEngine
 import { BaseAnalysisRequest, VideoOptimizationAnalysisData, AnalysisResult } from '../types';
 
+import { DetailedPlatformMetrics, AudienceDemographics, PeakEngagementTime, ContentFormatPerformance } from '../types'; // Added new types
+
 export class ContentInsightsEngine {
   constructor() {}
 
@@ -43,6 +45,66 @@ export class ContentInsightsEngine {
         generatedAt: new Date(),
         source: 'ContentInsightsEngine',
         warnings: ['Using placeholder data'],
+        correlationId: request.correlationId,
+      },
+    };
+  }
+
+  async getDetailedPlatformAnalytics(
+    request: BaseAnalysisRequest
+  ): Promise<AnalysisResult<DetailedPlatformMetrics>> {
+    console.log(`ContentInsightsEngine: Fetching detailed platform analytics for userId: ${request.userId}, platform: ${request.platform}`);
+    // TODO (PRIORITY 1 - Core Engine): Implement actual logic for getDetailedPlatformAnalytics.
+    // 1. Integrate with Platform Clients to fetch detailed analytics data.
+    //    - Audience Demographics: Age, gender, location (top countries/cities).
+    //    - Peak Engagement Times: Days and hours when the user's audience is most active.
+    //    - Content Format Performance: Metrics for different post types (Reels, Stories, static posts, etc.).
+    // 2. Process and structure the data according to the DetailedPlatformMetrics schema.
+    // 3. Handle API errors, data unavailability, and platform-specific nuances.
+
+    // Mock data for now
+    const mockAudienceDemographics: AudienceDemographics = {
+      ageGroups: { '18-24': 0.35, '25-34': 0.40, '35-44': 0.15 },
+      genderDistribution: { 'female': 0.6, 'male': 0.38, 'other': 0.02 },
+      topCountries: { 'US': 0.7, 'CA': 0.1, 'UK': 0.05 },
+    };
+
+    const mockPeakEngagementTimes: PeakEngagementTime[] = [
+      { dayOfWeek: 'Friday', hourOfDay: 18, engagementScore: 1200 },
+      { dayOfWeek: 'Saturday', hourOfDay: 15, engagementScore: 1500 },
+      { dayOfWeek: 'Wednesday', hourOfDay: 12, engagementScore: 950 },
+    ];
+
+    const mockContentFormatPerformance: ContentFormatPerformance[] = [
+      {
+        formatName: 'Reels',
+        averageViews: 15000,
+        averageLikes: 1200,
+        averageEngagementRate: 0.08,
+        totalPosts: 20,
+      },
+      {
+        formatName: 'Static Image Post',
+        averageViews: 5000,
+        averageLikes: 400,
+        averageEngagementRate: 0.075,
+        totalPosts: 50,
+      },
+    ];
+
+    const placeholderData: DetailedPlatformMetrics = {
+      audienceDemographics: mockAudienceDemographics,
+      peakEngagementTimes: mockPeakEngagementTimes,
+      contentFormatPerformance: mockContentFormatPerformance,
+    };
+
+    return {
+      success: true,
+      data: placeholderData,
+      metadata: {
+        generatedAt: new Date(),
+        source: 'ContentInsightsEngine.getDetailedPlatformAnalytics',
+        warnings: ['Using placeholder data for detailed analytics'],
         correlationId: request.correlationId,
       },
     };

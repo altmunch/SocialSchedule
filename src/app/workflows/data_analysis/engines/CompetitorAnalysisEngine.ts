@@ -39,6 +39,7 @@ export class CompetitorAnalysisEngine {
     if (!idValidation.success) {
       console.error(`[CompetitorAnalysisEngine] Invalid competitorId: ${request.competitorId}`, idValidation.error.flatten());
       return {
+        success: false,
         data: {} as CompetitorAnalysis,
         metadata: { generatedAt: new Date(), source: 'CompetitorAnalysisEngine', warnings: ['Invalid competitorId'], correlationId: request.correlationId },
       };
@@ -46,6 +47,7 @@ export class CompetitorAnalysisEngine {
     if (!nicheValidation.success) {
       console.error(`[CompetitorAnalysisEngine] Invalid niche: ${request.niche}`, nicheValidation.error.flatten());
       return {
+        success: false,
         data: {} as CompetitorAnalysis,
         metadata: { generatedAt: new Date(), source: 'CompetitorAnalysisEngine', warnings: ['Invalid niche'], correlationId: request.correlationId },
       };
@@ -62,17 +64,44 @@ export class CompetitorAnalysisEngine {
 
     if (competitorError) {
       console.error(`[CompetitorAnalysisEngine] Error fetching competitor ${validatedCompetitorId}:`, competitorError);
-      return { data: {} as CompetitorAnalysis, metadata: { generatedAt: new Date(), source: 'CompetitorAnalysisEngine', warnings: [`Error fetching competitor: ${competitorError.message}`], correlationId: request.correlationId } };
+      return { 
+        success: false,
+        data: {} as CompetitorAnalysis, 
+        metadata: { 
+          generatedAt: new Date(), 
+          source: 'CompetitorAnalysisEngine', 
+          warnings: [`Error fetching competitor: ${competitorError.message}`], 
+          correlationId: request.correlationId 
+        } 
+      };
     }
     if (!competitorData) {
       console.error(`[CompetitorAnalysisEngine] Competitor ${validatedCompetitorId} not found.`);
-      return { data: {} as CompetitorAnalysis, metadata: { generatedAt: new Date(), source: 'CompetitorAnalysisEngine', warnings: ['Competitor not found'], correlationId: request.correlationId } };
+      return { 
+        success: false,
+        data: {} as CompetitorAnalysis, 
+        metadata: { 
+          generatedAt: new Date(), 
+          source: 'CompetitorAnalysisEngine', 
+          warnings: ['Competitor not found'], 
+          correlationId: request.correlationId 
+        } 
+      };
     }
 
     const competitorApiDataValidation = CompetitorApiDataSchema.safeParse(competitorData);
     if (!competitorApiDataValidation.success) {
       console.error(`[CompetitorAnalysisEngine] Invalid competitor data structure for ${validatedCompetitorId}:`, competitorApiDataValidation.error.flatten());
-      return { data: {} as CompetitorAnalysis, metadata: { generatedAt: new Date(), source: 'CompetitorAnalysisEngine', warnings: ['Invalid competitor data structure from DB'], correlationId: request.correlationId } };
+      return { 
+        success: false,
+        data: {} as CompetitorAnalysis, 
+        metadata: { 
+          generatedAt: new Date(), 
+          source: 'CompetitorAnalysisEngine', 
+          warnings: ['Invalid competitor data structure from DB'], 
+          correlationId: request.correlationId 
+        } 
+      };
     }
     const validatedCompetitorData = competitorApiDataValidation.data;
 
@@ -85,7 +114,16 @@ export class CompetitorAnalysisEngine {
 
     if (videosError) {
       console.error(`[CompetitorAnalysisEngine] Error fetching videos for competitor ${validatedCompetitorId}:`, videosError);
-      return { data: {} as CompetitorAnalysis, metadata: { generatedAt: new Date(), source: 'CompetitorAnalysisEngine', warnings: [`Error fetching competitor videos: ${videosError.message}`], correlationId: request.correlationId } };
+      return { 
+        success: false,
+        data: {} as CompetitorAnalysis, 
+        metadata: { 
+          generatedAt: new Date(), 
+          source: 'CompetitorAnalysisEngine', 
+          warnings: [`Error fetching competitor videos: ${videosError.message}`], 
+          correlationId: request.correlationId 
+        } 
+      };
     }
     
     if (!videosData || videosData.length === 0) {
@@ -100,13 +138,31 @@ export class CompetitorAnalysisEngine {
         recommendations: [],
         lastAnalyzed: new Date().toISOString(),
       };
-      return { data: emptyAnalysis, metadata: { generatedAt: new Date(), source: 'CompetitorAnalysisEngine', warnings: ['No videos found for competitor'], correlationId: request.correlationId } };
+      return { 
+        success: true,
+        data: emptyAnalysis, 
+        metadata: { 
+          generatedAt: new Date(), 
+          source: 'CompetitorAnalysisEngine', 
+          warnings: ['No videos found for competitor'], 
+          correlationId: request.correlationId 
+        } 
+      };
     }
 
     const videosValidation = CompetitorVideoSchema.array().safeParse(videosData);
     if (!videosValidation.success) {
       console.error(`[CompetitorAnalysisEngine] Invalid video data structure for competitor ${validatedCompetitorId}:`, videosValidation.error.flatten());
-      return { data: {} as CompetitorAnalysis, metadata: { generatedAt: new Date(), source: 'CompetitorAnalysisEngine', warnings: ['Invalid video data structure for competitor from DB'], correlationId: request.correlationId } };
+      return { 
+        success: false,
+        data: {} as CompetitorAnalysis, 
+        metadata: { 
+          generatedAt: new Date(), 
+          source: 'CompetitorAnalysisEngine', 
+          warnings: ['Invalid video data structure for competitor from DB'], 
+          correlationId: request.correlationId 
+        } 
+      };
     }
     const videos: CompetitorVideo[] = videosValidation.data;
 
@@ -126,7 +182,15 @@ export class CompetitorAnalysisEngine {
       lastAnalyzed: new Date().toISOString(),
     };
     
-    return { data: analysisData, metadata: { generatedAt: new Date(), source: 'CompetitorAnalysisEngine', correlationId: request.correlationId } };
+    return { 
+      success: true,
+      data: analysisData, 
+      metadata: { 
+        generatedAt: new Date(), 
+        source: 'CompetitorAnalysisEngine', 
+        correlationId: request.correlationId 
+      } 
+    };
   }
 
   private async _analyzeContentPatterns(videos: CompetitorVideo[]): Promise<ContentAnalysis> {

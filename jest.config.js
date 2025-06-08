@@ -7,7 +7,7 @@ module.exports = {
   
   // Test file patterns
   roots: ['<rootDir>/src'],
-  testMatch: ['**/*.test.ts'],
+  testMatch: ['**/*.spec.ts', '**/*.test.ts'], // Keep this fix
   
   // Ignore patterns
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '/.next/'],
@@ -17,7 +17,7 @@ module.exports = {
   
   // Transform settings
   transform: {
-    '^.+\.[tj]s$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }],
+    '^.+\.[tj]s$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }], // Reverted to simpler ts-jest config
   },
   
   // Module name mapper
@@ -41,7 +41,7 @@ module.exports = {
   resetModules: true,
   
   // Show individual test results
-  testResultsProcessor: 'jest-sonar-reporter',
+  // testResultsProcessor: 'jest-sonar-reporter', // Keep this commented
   
   // Collect coverage
   collectCoverage: false
