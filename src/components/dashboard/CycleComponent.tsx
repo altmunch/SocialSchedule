@@ -50,10 +50,30 @@ export default function CycleComponent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-background text-text min-h-screen p-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Cycle</h1>
-        <p className="text-gray-500">Analyze performance and generate new content ideas</p>
+        <h1 className="text-2xl font-bold tracking-tight text-creative">Cycle</h1>
+        <p className="text-secondaryText">How to improve</p>
+      </div>
+      <div className="bg-panel rounded-lg p-6 shadow-md border border-border mb-8">
+        <h2 className="text-lg font-bold mb-4 text-creative">AI Suggestions</h2>
+        <div className="space-y-4">
+          {contentIdeas.map((idea) => (
+            <div key={idea.id} className="flex items-center justify-between bg-panel border border-border rounded-lg p-4">
+              <div className="flex flex-col">
+                <span className="font-semibold text-text">{idea.title}</span>
+                <span className="text-secondaryText text-sm">{idea.description}</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-creative font-bold text-lg">+{idea.estimated_engagement}% views</span>
+                <Button className="bg-primary text-black hover:bg-creative hover:text-white">Apply</Button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-end mt-6">
+          <Button className="bg-primary text-black hover:bg-creative hover:text-white px-8 py-2 font-semibold">Apply all</Button>
+        </div>
       </div>
 
       <Tabs defaultValue="analytics" className="w-full">

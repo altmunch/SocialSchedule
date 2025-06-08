@@ -200,15 +200,15 @@ export default function AccelerateComponent() {
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="p-4 md:p-6 space-y-6 bg-background text-foreground min-h-screen">
+      <div className="p-4 md:p-6 space-y-8 bg-background text-text min-h-screen">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Accelerate: Bulk Video Optimization</h1>
-            <p className="text-muted-foreground mt-1">
-              Streamline your video enhancement process. Upload, optimize, and prepare content for posting.
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-creative">Accelerate: Optimize your content</h1>
+            <p className="text-secondaryText mt-1">
+              Upload your videos and optimize audio, description, and hashtags for best results.
             </p>
           </div>
-          <Button onClick={handleAddVideos} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button onClick={handleAddVideos} className="bg-primary text-black hover:bg-creative hover:text-white">
             <PlusCircle className="mr-2 h-5 w-5" />
             Add Videos
           </Button>
@@ -221,14 +221,46 @@ export default function AccelerateComponent() {
           style={{ display: 'none' }}
           onChange={handleFileSelected}
         />
-
+        {/* Add Videos Drop Area */}
+        <div className="w-full flex justify-center">
+          <div className="bg-panel border-2 border-dashed border-highlight rounded-lg p-12 flex flex-col items-center justify-center w-full max-w-xl shadow-md cursor-pointer hover:border-creative transition-all" onClick={handleAddVideos}>
+            <PlusCircle className="h-10 w-10 text-primary mb-2" />
+            <span className="text-lg font-semibold">Add videos</span>
+            <span className="text-secondaryText text-sm mt-2">Click or drag files here to upload</span>
+          </div>
+        </div>
+        {/* Progress Section */}
+        <div className="w-full max-w-xl mx-auto mt-8">
+          <h2 className="text-lg font-bold mb-4 text-creative">Progress</h2>
+          <div className="space-y-4">
+            <div>
+              <span className="text-secondaryText">Audio</span>
+              <div className="w-full h-3 bg-hover rounded-full mt-1">
+                <div className="h-3 bg-primary rounded-full" style={{ width: '40%' }}></div>
+              </div>
+            </div>
+            <div>
+              <span className="text-secondaryText">Description</span>
+              <div className="w-full h-3 bg-hover rounded-full mt-1">
+                <div className="h-3 bg-primary rounded-full" style={{ width: '60%' }}></div>
+              </div>
+            </div>
+            <div>
+              <span className="text-secondaryText">Hashtags</span>
+              <div className="w-full h-3 bg-hover rounded-full mt-1">
+                <div className="h-3 bg-primary rounded-full" style={{ width: '30%' }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* Video Kanban Columns (optional, keep for advanced view) */}
         <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-4">
           {columns.map((column) => (
-            <Card key={column.id} className="w-full md:w-80 lg:w-96 flex-shrink-0 bg-card border-border shadow-md">
+            <Card key={column.id} className="w-full md:w-80 lg:w-96 flex-shrink-0 bg-panel border-border shadow-md">
               <CardHeader className="border-b border-border p-4">
-                <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-creative flex items-center justify-between">
                   {column.title}
-                  <span className="text-sm font-normal text-muted-foreground bg-muted px-2 py-1 rounded-md">
+                  <span className="text-sm font-normal text-secondaryText bg-hover px-2 py-1 rounded-md">
                     {getVideosByColumn(column.id).length}
                   </span>
                 </CardTitle>
@@ -240,7 +272,7 @@ export default function AccelerateComponent() {
                   ))}
                 </SortableContext>
                 {getVideosByColumn(column.id).length === 0 && (
-                  <div className="text-center text-muted-foreground py-10">
+                  <div className="text-center text-secondaryText py-10">
                     <p>No videos in this stage.</p>
                   </div>
                 )}

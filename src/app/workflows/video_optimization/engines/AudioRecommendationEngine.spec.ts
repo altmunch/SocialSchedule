@@ -38,7 +38,7 @@ describe('AudioRecommendationEngine', () => {
 
   describe('constructor', () => {
     it('should throw an error if API key is not provided', () => {
-      expect(() => new AudioRecommendationEngine('')).toThrow('OpenAI API key is required for AudioRecommendationEngine');
+      expect(() => new AudioRecommendationEngine('')).toThrow('API key is required for AudioRecommendationEngine');
     });
 
     it('should initialize OpenAI client with the provided API key', () => {
@@ -60,8 +60,8 @@ describe('AudioRecommendationEngine', () => {
             message: {
               content: JSON.stringify({
                 recommendations: [
-                  { trackId: 'track1', title: 'Action Beat', artist: 'Composer A', genre: ['Electronic', 'Action'], mood: ['energetic'] },
-                  { trackId: 'track2', title: 'Intense Drive', artist: 'Composer B', genre: ['Orchestral', 'Hybrid'], mood: ['intense', 'suspenseful'] },
+                  { trackId: 'track1', title: 'Action Beat', artist: 'Composer A', source: 'Epidemic Sound', genre: ['Electronic', 'Action'], mood: ['energetic'], relevanceScore: 0.95 },
+                  { trackId: 'track2', title: 'Intense Drive', artist: 'Composer B', source: 'YouTube Audio Library', genre: ['Orchestral', 'Hybrid'], mood: ['intense', 'suspenseful'], relevanceScore: 0.89 },
                 ],
                 diversificationSuggestions: ['Consider a track with a contrasting calm section for buildup.'],
               }),
@@ -82,7 +82,7 @@ describe('AudioRecommendationEngine', () => {
       expect(result.data?.recommendations).toHaveLength(2);
       expect(result.data?.recommendations[0].title).toBe('Action Beat');
       expect(result.data?.diversificationSuggestions).toContain('Consider a track with a contrasting calm section for buildup.');
-      expect(result.metadata?.source).toBe('AudioRecommendationEngine');
+      expect(result.metadata?.source).toBe('AudioRecommendationEngine.recommendAudio');
       expect(result.metadata?.correlationId).toBe(correlationId);
       expect(mockOpenAICreate).toHaveBeenCalledTimes(1);
       expect(mockOpenAICreate).toHaveBeenCalledWith(expect.objectContaining({
@@ -101,7 +101,7 @@ describe('AudioRecommendationEngine', () => {
       expect(result.error).toBeDefined();
       expect(result.error?.code).toBe('API_ERROR');
       expect(result.error?.message).toBe('Failed to recommend audio due to API error: OpenAI API Error');
-      expect(result.metadata?.source).toBe('AudioRecommendationEngine');
+      expect(result.metadata?.source).toBe('AudioRecommendationEngine.recommendAudio');
     });
 
     it('should return failure on invalid JSON response', async () => {

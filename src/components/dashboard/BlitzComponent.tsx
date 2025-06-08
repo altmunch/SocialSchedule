@@ -87,216 +87,44 @@ export default function BlitzComponent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-background text-text min-h-screen p-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Blitz</h1>
-        <p className="text-gray-500">Schedule posts at optimal times for visibility</p>
+        <h1 className="text-2xl font-bold tracking-tight text-creative">Blitz</h1>
+        <p className="text-secondaryText">Autopost your marketing at optimal times</p>
       </div>
-
-      <Tabs defaultValue="schedule" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="schedule">Schedule Post</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming Posts</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="schedule" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Schedule a New Post</CardTitle>
-              <CardDescription>
-                Create and schedule your content for the optimal posting time.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="platform" className="text-sm font-medium">
-                    Platform
-                  </label>
-                  <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
-                    <SelectTrigger id="platform" className="w-full">
-                      <SelectValue placeholder="Select platform" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="instagram">
-                        <div className="flex items-center">
-                          <Instagram className="h-4 w-4 mr-2" />
-                          Instagram
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="twitter">
-                        <div className="flex items-center">
-                          <Twitter className="h-4 w-4 mr-2" />
-                          Twitter
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="facebook">
-                        <div className="flex items-center">
-                          <Facebook className="h-4 w-4 mr-2" />
-                          Facebook
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="linkedin">
-                        <div className="flex items-center">
-                          <Linkedin className="h-4 w-4 mr-2" />
-                          LinkedIn
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="content" className="text-sm font-medium">
-                    Post Content
-                  </label>
-                  <Textarea
-                    id="content"
-                    placeholder="What do you want to share?"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Date</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
+      <div className="bg-panel rounded-lg p-6 shadow-md border border-border">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <span className="font-semibold text-lg text-creative">Autopost your marketing</span>
+            <div className="flex gap-2 ml-4">
+              <Button variant="ghost" className="px-4 py-1 rounded-full text-creative border border-creative bg-background hover:bg-highlight hover:text-white">Week</Button>
+              <Button variant="ghost" className="px-4 py-1 rounded-full text-creative border border-creative bg-background hover:bg-highlight hover:text-white">Month</Button>
+            </div>
+          </div>
+          <Button className="bg-primary text-black hover:bg-creative hover:text-white">Next</Button>
+        </div>
+        {/* Calendar Grid */}
+        <div className="overflow-x-auto">
+          <div className="grid grid-cols-8 border-t border-l border-border">
+            <div className="bg-panel"></div>
+            {["Mon","Tues","Wed","Thurs","Fri","Sat","Sun"].map(day => (
+              <div key={day} className="text-center py-2 px-4 font-semibold text-secondaryText border-b border-r border-border bg-panel">{day}</div>
+            ))}
+            {[1,2,3,4,5].map(row => (
+              <>
+                <div className="text-secondaryText text-center py-2 px-2 border-b border-r border-border bg-panel">{row}</div>
+                {Array(7).fill(0).map((_, colIdx) => (
+                  <div key={colIdx} className="h-20 border-b border-r border-border bg-background hover:bg-highlight/30 transition-colors flex items-center justify-center cursor-pointer">
+                    {/* Placeholder for drag-and-drop post slot */}
+                    <span className="text-xs text-secondaryText">{row === 1 && colIdx < 3 ? `Pillar ${colIdx+1}` : ''}</span>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="time" className="text-sm font-medium">
-                      Time
-                    </label>
-                    <div className="flex">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        <Input
-                          id="time"
-                          type="time"
-                          value={selectedTime}
-                          onChange={(e) => setSelectedTime(e.target.value)}
-                          className="border-0 p-0 focus-visible:ring-0"
-                        />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-                
-                {successMessage && (
-                  <Alert className="bg-green-50 text-green-800 border-green-200">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <AlertDescription>{successMessage}</AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                onClick={handleSchedule} 
-                disabled={isScheduling} 
-                className="w-full"
-              >
-                {isScheduling ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Scheduling...
-                  </>
-                ) : (
-                  'Schedule Post'
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="upcoming" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Posts</CardTitle>
-              <CardDescription>
-                Manage your scheduled content across platforms.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {scheduledPosts.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No scheduled posts yet</p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => document.querySelector('[value="schedule"]')?.dispatchEvent(new Event('click'))}
-                  >
-                    Schedule Your First Post
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {scheduledPosts.map((post) => (
-                    <div 
-                      key={post.id} 
-                      className="border rounded-md p-4 space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div className="p-1.5 rounded-md bg-gray-100">
-                            {getPlatformIcon(post.platform)}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium capitalize">{post.platform}</p>
-                            <p className="text-xs text-gray-500">
-                              {format(post.scheduledDate, 'MMM d, yyyy')} at {post.scheduledTime}
-                            </p>
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                            Scheduled
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-sm">{post.content}</p>
-                      <div className="flex justify-end space-x-2">
-                        <Button variant="ghost" size="sm">Edit</Button>
-                        <Button variant="ghost" size="sm" className="text-red-500">Delete</Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                ))}
+              </>
+            ))}
+          </div>
+        </div>
+        <div className="text-xs text-secondaryText mt-2">All pairings are optional already when user first sees the page.</div>
+      </div>
     </div>
   );
 }

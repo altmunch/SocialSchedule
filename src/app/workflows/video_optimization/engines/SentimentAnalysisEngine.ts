@@ -84,19 +84,66 @@ Return ONLY the JSON object.
           temperature: 0.2, // Lower temperature for more deterministic output
         });
 
-        if (!completion.choices[0]?.message?.content) {
-          throw new Error('No content received from OpenAI API.');
+        if (!completion.choices || completion.choices.length === 0) {
+          return {
+            success: false,
+            error: {
+              code: 'INVALID_RESPONSE_FORMAT',
+              message: 'Failed to parse sentiment analysis response: No choices returned from API.',
+            },
+            metadata: {
+              generatedAt: new Date(),
+              source: 'SentimentAnalysisEngine.analyzeTextSentiment',
+              correlationId,
+            },
+          };
+        }
+        const content = completion.choices[0]?.message?.content;
+        if (content == null) {
+          return {
+            success: false,
+            error: {
+              code: 'INVALID_RESPONSE_FORMAT',
+              message: 'Failed to parse sentiment analysis response: API response content is null or empty.',
+            },
+            metadata: {
+              generatedAt: new Date(),
+              source: 'SentimentAnalysisEngine.analyzeTextSentiment',
+              correlationId,
+            },
+          };
         }
 
         let sentimentData: SentimentAnalysisResult;
         try {
-          sentimentData = JSON.parse(completion.choices[0].message.content);
-          // Basic validation, ideally use Zod here if schemas are set up for it
+          sentimentData = JSON.parse(content);
           if (!sentimentData.overallSentiment || !sentimentData.overallScores) {
-              throw new Error('Invalid JSON structure received from OpenAI.');
+            return {
+              success: false,
+              error: {
+                code: 'INVALID_RESPONSE_FORMAT',
+                message: 'Failed to parse sentiment analysis response: No overallSentiment or overallScores in API response.',
+              },
+              metadata: {
+                generatedAt: new Date(),
+                source: 'SentimentAnalysisEngine.analyzeTextSentiment',
+                correlationId,
+              },
+            };
           }
         } catch (parseError) {
-          throw new Error('Failed to parse sentiment analysis data from OpenAI: ' + (parseError as Error).message);
+          return {
+            success: false,
+            error: {
+              code: 'INVALID_RESPONSE_FORMAT',
+              message: 'Failed to parse sentiment analysis response: ' + (parseError instanceof Error ? parseError.message : String(parseError)),
+            },
+            metadata: {
+              generatedAt: new Date(),
+              source: 'SentimentAnalysisEngine.analyzeTextSentiment',
+              correlationId,
+            },
+          };
         }
 
         return {
@@ -109,21 +156,17 @@ Return ONLY the JSON object.
           },
         };
       } catch (error) {
-        // Fallback: return a generic neutral sentiment result
-        console.warn('SentimentAnalysisEngine: Falling back to generic sentiment result due to error:', error);
+        // API error
         return {
-          success: true,
-          data: {
-            overallSentiment: 'neutral',
-            overallScores: { positive: 0.33, neutral: 0.34, negative: 0.33 },
-            segments: [],
-            dominantEmotion: 'neutral',
+          success: false,
+          error: {
+            code: 'API_ERROR',
+            message: 'Failed to analyze sentiment due to API error: ' + (error instanceof Error ? error.message : String(error)),
           },
           metadata: {
             generatedAt: new Date(),
             source: 'SentimentAnalysisEngine.analyzeTextSentiment',
             correlationId,
-            fallback: true,
           },
         };
       }

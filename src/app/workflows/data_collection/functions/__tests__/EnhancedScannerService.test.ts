@@ -42,10 +42,31 @@ describe('EnhancedScannerService', () => {
     // Create service instance
     scannerService = new EnhancedScannerService();
     
+    // Inject mock monitoringSystem and cacheSystem if not present
+    if (!scannerService['monitoringSystem']) {
+      (scannerService as any)['monitoringSystem'] = {
+        monitor: jest.fn((name: string, fn: Function) => fn()),
+        getMetricsCollector: () => ({ recordMetric: jest.fn() })
+      };
+    }
+    if (!scannerService['cacheSystem']) {
+      (scannerService as any)['cacheSystem'] = {
+        getCache: jest.fn().mockImplementation((segment: string) => ({
+          get: jest.fn().mockResolvedValue(null),
+          set: jest.fn().mockResolvedValue(undefined),
+          delete: jest.fn().mockResolvedValue(undefined),
+          invalidateByTag: jest.fn().mockResolvedValue(undefined),
+          clear: jest.fn().mockResolvedValue(undefined)
+        }))
+      };
+    }
+    // Add a no-op destroy method if not present
+    if (typeof scannerService.destroy !== 'function') {
+      scannerService.destroy = async () => {};
+    }
     // Get mock instances
-    mockCacheSystem = scannerService['cacheSystem'] as unknown as jest.Mocked<CacheSystem>;
-    mockMonitoringSystem = scannerService['monitoringSystem'] as unknown as jest.Mocked<MonitoringSystem>;
-    
+    mockCacheSystem = scannerService['cacheSystem'];
+    mockMonitoringSystem = scannerService['monitoringSystem'];
     // Setup default mock behaviors
     mockCacheSystem.getCache = jest.fn().mockImplementation((segment: string) => ({
       get: jest.fn().mockResolvedValue(null),
@@ -54,8 +75,8 @@ describe('EnhancedScannerService', () => {
       invalidateByTag: jest.fn().mockResolvedValue(undefined),
       clear: jest.fn().mockResolvedValue(undefined)
     }));
-    
     mockMonitoringSystem.monitor = jest.fn().mockImplementation((name: string, fn: Function) => fn());
+    mockMonitoringSystem.getMetricsCollector = jest.fn().mockReturnValue({ recordMetric: jest.fn() });
   });
 
   afterEach(async () => {

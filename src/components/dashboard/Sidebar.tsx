@@ -29,7 +29,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="w-64 h-screen bg-card text-foreground border-r border-border flex flex-col">
+    <div className="w-64 h-screen bg-panel text-text border-r border-border flex flex-col">
       <div className="p-4 border-b border-border flex items-center justify-center">
         <Link href="/dashboard" className="flex items-center space-x-2">
           <div className="relative h-8 w-8 rounded-full overflow-hidden">
@@ -37,18 +37,27 @@ export default function Sidebar() {
               src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png"
               alt="ClipsCommerce Logo"
               fill
-              style={{
-                objectFit: 'cover',
-                filter: 'invert(1)'
-              }}
+              style={{ objectFit: 'cover', filter: 'invert(1)' }}
               priority
             />
           </div>
-          <span className="text-xl font-bold text-foreground">ClipsCommerce</span>
+          <span className="text-xl font-bold text-text">ClipsCommerce</span>
         </Link>
       </div>
-      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-4">
         <ul>
+          <li>
+            <Link 
+              href="/dashboard"
+              className={cn(
+                "flex items-center p-2 rounded-md text-sm font-medium transition-colors mb-2",
+                pathname === '/dashboard' ? "bg-hover text-primary" : "text-secondaryText hover:bg-hover hover:text-primary"
+              )}
+            >
+              <HomeIcon className={cn("mr-3 h-5 w-5", pathname === '/dashboard' ? "text-primary" : "text-secondaryText group-hover:text-primary")} />
+              Home
+            </Link>
+          </li>
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -57,12 +66,10 @@ export default function Sidebar() {
                   href={item.href}
                   className={cn(
                     "flex items-center p-2 rounded-md text-sm font-medium transition-colors",
-                    isActive 
-                      ? "bg-primary text-primary-foreground" 
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    isActive ? "bg-hover text-primary" : "text-secondaryText hover:bg-hover hover:text-primary"
                   )}
                 >
-                  <item.icon className={cn("mr-3 h-5 w-5", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                  <item.icon className={cn("mr-3 h-5 w-5", isActive ? "text-primary" : "text-secondaryText group-hover:text-primary")} />
                   {item.name}
                 </Link>
               </li>
@@ -71,7 +78,7 @@ export default function Sidebar() {
         </ul>
       </nav>
       <div className="p-4 mt-auto border-t border-border">
-        <div className="text-xs text-muted-foreground text-center">
+        <div className="text-xs text-secondaryText text-center">
           &copy; {new Date().getFullYear()} ClipsCommerce
         </div>
       </div>

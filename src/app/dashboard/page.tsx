@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Zap, BarChart3, RefreshCw, ArrowRight } from 'lucide-react';
+import { LineChart } from '@/components/dashboard/charts';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -51,75 +52,55 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-background text-text flex flex-col gap-8">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight">
           {greeting}, {user?.email?.split('@')[0] || 'User'}
         </h1>
       </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {features.map((feature) => (
-          <Card key={feature.title} className="overflow-hidden">
-            <CardHeader className="pb-0">
-              <div className={`p-2 rounded-md w-10 h-10 flex items-center justify-center ${feature.color} text-white mb-2`}>
-                <feature.icon className="h-6 w-6" />
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Workflow Cards */}
+        <div className="flex-1 flex flex-col gap-6">
+          <h2 className="text-xl font-semibold mb-2 text-creative">Choose your workflow</h2>
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="bg-panel rounded-lg p-6 flex-1 flex flex-col justify-between shadow-md border border-border">
+              <div>
+                <h3 className="text-lg font-bold text-creative mb-2">Sell Better</h3>
+                <p className="text-secondaryText mb-4">Optimize your sales workflow for better results. Click below to start.</p>
               </div>
-              <CardTitle>{feature.title}</CardTitle>
-              <CardDescription>{feature.description}</CardDescription>
-            </CardHeader>
-            <CardFooter className="pt-4">
-              <Button asChild variant="ghost" className="w-full justify-between">
-                <Link href={feature.href}>
-                  Get Started <ArrowRight className="h-4 w-4 ml-2" />
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your latest platform activity</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="border rounded-md p-4">
-                <p className="text-sm text-gray-500">No recent activity found</p>
+              <Link href="/dashboard/accelerate">
+                <Button className="bg-primary text-black hover:bg-creative hover:text-white w-full">Start Sell Better</Button>
+              </Link>
+            </div>
+            <div className="bg-panel rounded-lg p-6 flex-1 flex flex-col justify-between shadow-md border border-border">
+              <div>
+                <h3 className="text-lg font-bold text-creative mb-2">How to Sell</h3>
+                <p className="text-secondaryText mb-4">Learn and implement proven selling tactics. Click below to explore.</p>
+              </div>
+              <Link href="/dashboard/ideation">
+                <Button className="bg-primary text-black hover:bg-creative hover:text-white w-full">Start How to Sell</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+        {/* Performance Charts */}
+        <div className="flex-1 flex flex-col gap-6">
+          <h2 className="text-xl font-semibold mb-2 text-creative">Performance</h2>
+          <div className="flex flex-col gap-6">
+            <div className="bg-panel rounded-lg p-6 shadow-md border border-border flex flex-col items-center">
+              <span className="text-creative font-bold mb-2">Sales</span>
+              <div className="w-full h-32">
+                <LineChart />
               </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Stats</CardTitle>
-            <CardDescription>Your performance overview</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="border rounded-md p-4">
-                <p className="text-sm font-medium">Total Posts</p>
-                <p className="text-2xl font-bold">0</p>
-              </div>
-              <div className="border rounded-md p-4">
-                <p className="text-sm font-medium">Total Engagement</p>
-                <p className="text-2xl font-bold">0</p>
-              </div>
-              <div className="border rounded-md p-4">
-                <p className="text-sm font-medium">Scans Completed</p>
-                <p className="text-2xl font-bold">0</p>
-              </div>
-              <div className="border rounded-md p-4">
-                <p className="text-sm font-medium">Content Optimized</p>
-                <p className="text-2xl font-bold">0</p>
+            <div className="bg-panel rounded-lg p-6 shadow-md border border-border flex flex-col items-center">
+              <span className="text-highlight font-bold mb-2">Conversion</span>
+              <div className="w-full h-32">
+                <LineChart />
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

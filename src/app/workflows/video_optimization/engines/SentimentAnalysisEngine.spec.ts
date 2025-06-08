@@ -44,7 +44,7 @@ describe('SentimentAnalysisEngine', () => {
 
   describe('constructor', () => {
     it('should throw an error if API key is not provided', () => {
-      expect(() => new SentimentAnalysisEngine('')).toThrow('OpenAI API key is required for SentimentAnalysisEngine');
+      expect(() => new SentimentAnalysisEngine('')).toThrow('API key is required for SentimentAnalysisEngine');
     });
 
     it('should initialize OpenAI client with the provided API key', () => {
@@ -83,7 +83,7 @@ describe('SentimentAnalysisEngine', () => {
       
       expect(result.data?.overallSentiment).toBe('positive');
       expect(result.data?.dominantEmotion).toBe('joy');
-      expect(result.metadata?.source).toBe('SentimentAnalysisEngine');
+      expect(result.metadata?.source).toBe('SentimentAnalysisEngine.analyzeTextSentiment');
       expect(result.metadata?.correlationId).toBe(correlationId);
       expect(mockOpenAICreate).toHaveBeenCalledTimes(1);
       expect(mockOpenAICreate).toHaveBeenCalledWith(expect.objectContaining({
@@ -102,7 +102,7 @@ describe('SentimentAnalysisEngine', () => {
       expect(result.error).toBeDefined();
       expect(result.error?.code).toBe('API_ERROR');
       expect(result.error?.message).toBe('Failed to analyze sentiment due to API error: OpenAI API Error');
-      expect(result.metadata?.source).toBe('SentimentAnalysisEngine');
+      expect(result.metadata?.source).toBe('SentimentAnalysisEngine.analyzeTextSentiment');
       expect(result.metadata?.correlationId).toBe(correlationId);
     });
 
@@ -125,7 +125,7 @@ describe('SentimentAnalysisEngine', () => {
       expect(result.error).toBeDefined();
       expect(result.error?.code).toBe('INVALID_RESPONSE_FORMAT');
       expect(result.error?.message).toMatch(/Failed to parse sentiment analysis response: Unexpected token 'T'/); // Error message might vary slightly
-      expect(result.metadata?.source).toBe('SentimentAnalysisEngine');
+      expect(result.metadata?.source).toBe('SentimentAnalysisEngine.analyzeTextSentiment');
     });
     
     it('should return failure if API response content is null', async () => {

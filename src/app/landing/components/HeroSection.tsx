@@ -43,7 +43,7 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <div className="text-[#5afcc0] text-sm uppercase tracking-normal mb-6 font-medium">
-              The only AI tool that sells your clips for you
+              The only AI tool that sells through clips for you
             </div>
             <div className="relative pb-6 mb-4">
               <div className="whitespace-nowrap text-5xl sm:text-6xl font-medium text-white leading-tight tracking-tight">
