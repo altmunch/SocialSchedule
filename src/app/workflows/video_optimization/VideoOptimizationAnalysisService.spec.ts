@@ -63,7 +63,7 @@ describe('VideoOptimizationAnalysisService', () => {
 
     // Setup default successful mock responses
     mockContentInsightsEngine.getTopPerformingContentInsights.mockResolvedValue({
-      success: true, data: { topPerformingVideoCaptions: ['caption1', 'hashtag #cool'], keySuccessFactors: [] } as TopPerformingContent,
+      success: true, data: { topPerformingVideoCaptions: ['caption1', 'hashtag #cool'], trendingHashtags: [] },
       metadata: { generatedAt: new Date(), source: 'mock' }
     });
     mockContentInsightsEngine.getDetailedPlatformAnalytics.mockResolvedValue({
@@ -83,8 +83,10 @@ describe('VideoOptimizationAnalysisService', () => {
       metadata: { generatedAt: new Date(), source: 'mock' }
     });
     mockOptimizedVideoGenerator.generateOptimizedContent.mockResolvedValue({
-       title: 'Optimized Title', script: 'Optimized script'
-    } as OptimizedVideoContent);
+      captions: { main: 'Optimized Main Caption', alternatives: ['Alt 1', 'Alt 2'] },
+      hashtags: ['#test'],
+      audio: { suggestion: 'Test Audio', reason: 'It fits' }
+    });
     mockAnalyzeHashtags.mockReturnValue(['#cool']);
   });
 
@@ -125,27 +127,134 @@ describe('VideoOptimizationAnalysisService', () => {
       expect(result.data?.audioRecommendations).toBeDefined();
     });
 
-    // TODO: Add more tests for:
-    // - Failure in one or more engines
-    // - No captions found (sentiment analysis and hashtag analysis should be skipped or handle empty input)
-    // - Error handling (e.g., if an engine throws an unexpected error)
+    it('should handle failure in ContentInsightsEngine gracefully', async () => {
+      mockContentInsightsEngine.getTopPerformingContentInsights.mockResolvedValueOnce({
+        success: false,
+        error: { code: 'ENGINE_ERROR', message: 'Failed to fetch content insights' },
+        data: { topPerformingVideoCaptions: [], trendingHashtags: [] },
+        metadata: { generatedAt: new Date(), source: 'mock' }
+      });
+      const result = await service.getVideoOptimizationInsights({
+        userId: 'testUser',
+        platform: 'Instagram' as Platform,
+        timeRange: { start: '', end: '' },
+        correlationId: 'fail-content',
+      });
+      expect(result.success).toBe(true); // Should still succeed, but with missing data
+      expect(result.data?.topPerformingVideoCaptions).toEqual([]);
+    });
+
+    it('should handle failure in ViralityEngine gracefully', async () => {
+      mockViralityEngine.analyzeAudioVirality.mockResolvedValueOnce({
+        success: false,
+        error: { code: 'ENGINE_ERROR', message: 'Failed to fetch virality' },
+        data: [],
+        metadata: { generatedAt: new Date(), source: 'mock' }
+      });
+      const result = await service.getVideoOptimizationInsights({
+        userId: 'testUser',
+        platform: 'Instagram' as Platform,
+        timeRange: { start: '', end: '' },
+        correlationId: 'fail-virality',
+      });
+      expect(result.success).toBe(true);
+      expect(result.data?.audioViralityAnalysis).toEqual([]);
+    });
+
+    it('should handle failure in SentimentAnalysisEngine gracefully', async () => {
+      mockSentimentAnalysisEngine.analyzeTextSentiment.mockResolvedValueOnce({
+        success: false,
+        error: { code: 'ENGINE_ERROR', message: 'Failed to analyze sentiment' },
+        data: undefined,
+        metadata: { generatedAt: new Date(), source: 'mock' }
+      });
+      const result = await service.getVideoOptimizationInsights({
+        userId: 'testUser',
+        platform: 'Instagram' as Platform,
+        timeRange: { start: '', end: '' },
+        correlationId: 'fail-sentiment',
+      });
+      expect(result.success).toBe(true);
+      expect(result.data?.realTimeSentiment).toBeUndefined();
+    });
+
+    it('should handle failure in AudioRecommendationEngine gracefully', async () => {
+      mockAudioRecommendationEngine.recommendAudio.mockResolvedValueOnce({
+        success: false,
+        error: { code: 'ENGINE_ERROR', message: 'Failed to recommend audio' },
+        data: undefined,
+        metadata: { generatedAt: new Date(), source: 'mock' }
+      });
+      const result = await service.getVideoOptimizationInsights({
+        userId: 'testUser',
+        platform: 'Instagram' as Platform,
+        timeRange: { start: '', end: '' },
+        correlationId: 'fail-audio',
+      });
+      expect(result.success).toBe(true);
+      expect(result.data?.audioRecommendations).toBeUndefined();
+    });
+
+    it('should handle no captions found gracefully', async () => {
+      mockContentInsightsEngine.getTopPerformingContentInsights.mockResolvedValueOnce({
+        success: true, data: { topPerformingVideoCaptions: [], trendingHashtags: [] },
+        metadata: { generatedAt: new Date(), source: 'mock' }
+      });
+      const result = await service.getVideoOptimizationInsights({
+        userId: 'testUser',
+        platform: 'Instagram' as Platform,
+        timeRange: { start: '', end: '' },
+        correlationId: 'no-captions',
+      });
+      expect(result.success).toBe(true);
+      expect(result.data?.topPerformingVideoCaptions).toEqual([]);
+      expect(result.data?.trendingHashtags).toEqual([]);
+      expect(result.data?.realTimeSentiment).toBeUndefined();
+    });
+
+    it('should handle unexpected errors from engines', async () => {
+      mockContentInsightsEngine.getTopPerformingContentInsights.mockImplementationOnce(() => { throw new Error('Unexpected'); });
+      const result = await service.getVideoOptimizationInsights({
+        userId: 'testUser',
+        platform: 'Instagram' as Platform,
+        timeRange: { start: '', end: '' },
+        correlationId: 'unexpected',
+      });
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('ANALYSIS_ERROR');
+      expect(result.error?.message).toMatch(/Unexpected/);
+    });
   });
 
   describe('generateOptimizedContent', () => {
     const mockAnalysisData: VideoOptimizationAnalysisData = {
         topPerformingVideoCaptions: [], trendingHashtags: [], audioViralityAnalysis: []
     };
-    const mockUserPreferences: UserPreferences = { userId: 'testUser', videoLength: 'short' };
+    const mockUserPreferences: UserPreferences = { userId: 'testUser' };
 
     it('should call OptimizedVideoGenerator with correct parameters', async () => {
       const result = await service.generateOptimizedContent(mockAnalysisData, mockUserPreferences);
       expect(mockOptimizedVideoGenerator.generateOptimizedContent).toHaveBeenCalledWith(mockAnalysisData, mockUserPreferences, undefined);
       expect(result.success).toBe(true);
-      expect(result.data?.title).toBe('Optimized Title');
+      expect(result.data?.captions.main).toBe('Optimized Main Caption');
     });
     
-    // TODO: Add more tests for:
-    // - Invalid input (missing analysis or userPreferences)
-    // - Generator failure
+    it('should return error for missing analysis', async () => {
+      const result = await service.generateOptimizedContent(undefined as any, { userId: 'testUser' });
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_INPUT');
+    });
+    it('should return error for missing userPreferences', async () => {
+      const result = await service.generateOptimizedContent({ topPerformingVideoCaptions: [], trendingHashtags: [], audioViralityAnalysis: [] }, undefined as any);
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_INPUT');
+    });
+    it('should handle generator failure gracefully', async () => {
+      mockOptimizedVideoGenerator.generateOptimizedContent.mockImplementationOnce(() => { throw new Error('Generator failed'); });
+      const result = await service.generateOptimizedContent({ topPerformingVideoCaptions: [], trendingHashtags: [], audioViralityAnalysis: [] }, { userId: 'testUser' });
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('GENERATION_ERROR');
+      expect(result.error?.message).toMatch(/Generator failed/);
+    });
   });
 });
