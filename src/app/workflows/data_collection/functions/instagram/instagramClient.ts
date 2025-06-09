@@ -96,6 +96,7 @@ class InstagramApiClient {
 
   /**
    * Fetches recent media for an Instagram user.
+   * NOTE: The 'caption' field is always treated as the video/post description (not subtitle).
    * @param userId The Instagram User ID (platform ID).
    * @param fields A comma-separated string of fields for each media item. 
    *               Defaults to 'id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,username,children{media_url,media_type},comments_count,like_count,owner'.

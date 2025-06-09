@@ -1,45 +1,41 @@
 // difficult: Base class for platform-specific clients
 import { PostMetrics, Platform, PaginatedResponse } from '../types';
+import { RateLimiter } from '../utils/RateLimiter';
+import EventEmitter from 'events';
 
-export abstract class BasePlatformClient {
+export abstract class BasePlatformClient extends EventEmitter {
   protected accessToken: string;
   protected platform: Platform;
+  protected rateLimiter: RateLimiter;
   protected rateLimitQueue: Array<() => Promise<any>> = [];
   protected isProcessingQueue = false;
   protected readonly RATE_LIMIT = 5; // 5 requests per second
   protected lastRequestTime = 0;
 
-  constructor(accessToken: string, platform: Platform) {
+  constructor(accessToken: string, platform: Platform, rateLimiter?: RateLimiter) {
+    super();
     this.accessToken = accessToken;
     this.platform = platform;
+    this.rateLimiter = rateLimiter || new RateLimiter({ requestsPerMinute: 60 });
+    this.rateLimiter.on('tokenUsed', (data) => this.emit('rateLimitTokenUsed', data));
+    this.rateLimiter.on('rateLimitUpdated', (data) => this.emit('rateLimitUpdated', data));
+    this.rateLimiter.on('rateLimitDepleted', (data) => this.emit('rateLimitDepleted', data));
   }
 
-  protected async throttleRequest<T>(fn: () => Promise<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-      this.rateLimitQueue.push(async () => {
-        try {
-          const now = Date.now();
-          const timeSinceLastRequest = now - this.lastRequestTime;
-          const minDelay = 1000 / this.RATE_LIMIT;
-          
-          if (timeSinceLastRequest < minDelay) {
-            await new Promise(resolve => setTimeout(resolve, minDelay - timeSinceLastRequest));
-          }
-          
-          this.lastRequestTime = Date.now();
-          const result = await fn();
-          resolve(result);
-        } catch (error) {
-          reject(error);
-        } finally {
-          this.processQueue();
-        }
-      });
-      
-      if (!this.isProcessingQueue) {
-        this.processQueue();
-      }
-    });
+  protected async throttleRequest<T>(fn: () => Promise<T>, correlationId?: string): Promise<T> {
+    await this.rateLimiter.acquire();
+    this.log('info', 'API request throttled', { correlationId });
+    return fn();
+  }
+
+  updateRateLimit(options: Partial<{ requestsPerMinute: number; burstCapacity: number }>) {
+    this.rateLimiter.updateOptions(options);
+  }
+
+  protected log(level: string, message: string, context: Record<string, any> = {}) {
+    // Add correlationId to all logs for traceability
+    if (!context.correlationId) context.correlationId = 'N/A';
+    console.log(`[${level.toUpperCase()}][${this.platform}] ${message}`, context);
   }
 
   private async processQueue() {

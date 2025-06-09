@@ -1,11 +1,15 @@
 /**
  * Represents the structure of a raw Instagram post stored in the database.
+ * NOTE: The 'caption' field is always treated as the video/post description (not subtitle).
  */
 export interface RawInstagramPost {
   id: string; // UUID, primary key in the database
   post_id: string; // Instagram's ID for the post (unique)
   user_id: string; // Internal system user ID who initiated the data fetch
   platform_user_id: string; // Instagram user ID of the post's author
+  /**
+   * The description of the post or video (not a subtitle).
+   */
   caption?: string | null;
   media_type: string; // e.g., IMAGE, VIDEO, CAROUSEL_ALBUM
   media_url?: string | null;
@@ -21,6 +25,7 @@ export interface RawInstagramPost {
 
 /**
  * Data Transfer Object for creating a new raw Instagram post record.
+ * NOTE: The 'caption' field is always treated as the video/post description (not subtitle).
  */
 export type CreateRawInstagramPostDto = Omit<RawInstagramPost, 'id' | 'created_at' | 'updated_at'>;
 

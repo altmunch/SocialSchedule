@@ -17,6 +17,9 @@ import { PlatformError, RateLimitError, ApiError, ValidationError } from "../uti
 
 export class YouTubeClient extends BasePlatformClient {
   protected readonly platform = Platform.YOUTUBE;
+  private quotaUsed: number = 0;
+  private quotaLimit: number = 10000; // Default YouTube quota per day
+  private quotaResetTime: string = 'Midnight PST';
 
   constructor(config: ApiConfig, authTokenManager: IAuthTokenManager, userId?: string) {
     super(
@@ -45,10 +48,24 @@ export class YouTubeClient extends BasePlatformClient {
       this.log('debug', `YouTubeClient: Observed Google-specific headers.`, { googleHeaders });
     }
     // No direct update to this.rateLimit as YouTube quotas are not communicated this way.
+    // Emit quota usage event for monitoring
+    this.emit('quotaUsage', { quotaUsed: this.quotaUsed, quotaLimit: this.quotaLimit, resetTime: this.quotaResetTime });
+  }
+
+  private trackQuota(cost: number, correlationId?: string) {
+    this.quotaUsed += cost;
+    this.log('info', `YouTube quota used: ${this.quotaUsed}/${this.quotaLimit}`, { correlationId });
+    if (this.quotaUsed > this.quotaLimit * 0.9) {
+      this.emit('quotaLow', { quotaUsed: this.quotaUsed, quotaLimit: this.quotaLimit, resetTime: this.quotaResetTime });
+    }
+    if (this.quotaUsed >= this.quotaLimit) {
+      this.emit('quotaExceeded', { quotaUsed: this.quotaUsed, quotaLimit: this.quotaLimit, resetTime: this.quotaResetTime });
+    }
   }
 
   // Example method: Get Video Details
-  public async getVideoDetails(videoId: string): Promise<ApiResponse<YouTubeVideo | null>> {
+  public async getVideoDetails(videoId: string, correlationId?: string): Promise<ApiResponse<YouTubeVideo | null>> {
+    this.trackQuota(1, correlationId);
     try {
       const response = await this.request<YouTubeVideoListResponse>({
         method: 'GET',

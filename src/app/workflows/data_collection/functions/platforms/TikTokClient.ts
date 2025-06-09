@@ -12,6 +12,9 @@ interface TikTokVideo {
     share_count: number;
     play_time: number;
   };
+  /**
+   * The description of the video (not a subtitle). This is the main caption/description field.
+   */
   desc?: string;
   video_url: string;
   [key: string]: any; // For any additional fields

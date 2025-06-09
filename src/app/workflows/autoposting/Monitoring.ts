@@ -18,7 +18,7 @@ export class MonitoringService {
   }
 
   getQueueLength(queue: ContentQueue): number {
-    return queue.getNextBatch().length;
+    return queue.getNextBatch(Number.MAX_SAFE_INTEGER).length;
   }
 
   getSuccessRate(): number {

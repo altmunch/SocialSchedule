@@ -74,6 +74,10 @@ interface AnalyticsWorker {
   processTimeSlotsBatch(posts: PostMetrics[], timezone: string): Promise<any>;
 }
 
+/**
+ * Optimized Post Analyzer
+ * NOTE: All 'caption' (Instagram) and 'description'/'desc' (TikTok) fields are always treated as the video description (not subtitle).
+ */
 export class OptimizedPostAnalyzer {
   private posts: PostMetrics[];
   private precomputed: PrecomputedMetrics;

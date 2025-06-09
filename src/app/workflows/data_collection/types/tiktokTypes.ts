@@ -1,11 +1,15 @@
 /**
  * Represents the structure of a raw TikTok video stored in the database.
+ * NOTE: The 'description' field is always treated as the video description (not subtitle).
  */
 export interface RawTikTokVideo {
   id: string; // UUID, primary key in the database
   video_id: string; // TikTok's ID for the video (unique)
   user_id: string; // Internal system user ID who initiated the data fetch
   platform_user_id: string; // TikTok user ID of the video's author
+  /**
+   * The description of the video (not a subtitle).
+   */
   description?: string | null;
   video_url?: string | null; // URL to the video file
   cover_image_url?: string | null;
@@ -25,6 +29,7 @@ export interface RawTikTokVideo {
 
 /**
  * Data Transfer Object for creating a new raw TikTok video record.
+ * NOTE: The 'description' field is always treated as the video description (not subtitle).
  */
 export type CreateRawTikTokVideoDto = Omit<RawTikTokVideo, 'id' | 'created_at' | 'updated_at'>;
 

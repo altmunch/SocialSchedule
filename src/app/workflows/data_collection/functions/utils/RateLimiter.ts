@@ -1,11 +1,13 @@
 // difficult: Implements a token bucket rate limiter for API requests
 
+import EventEmitter from 'events';
+
 interface RateLimiterOptions {
   requestsPerMinute: number;
   burstCapacity?: number;
 }
 
-export class RateLimiter {
+export class RateLimiter extends EventEmitter {
   private tokens: number;
   private lastRefillTime: number;
   private _tokensPerSecond: number;
@@ -14,6 +16,7 @@ export class RateLimiter {
   private isProcessingQueue = false;
 
   constructor(options: RateLimiterOptions) {
+    super();
     this._tokensPerSecond = options.requestsPerMinute / 60;
     this._maxTokens = options.burstCapacity || options.requestsPerMinute;
     this.tokens = this._maxTokens;
@@ -82,25 +85,23 @@ export class RateLimiter {
     if (this.isProcessingQueue) {
       return;
     }
-
     this.isProcessingQueue = true;
-    
     const processNext = () => {
       if (this.queue.length === 0) {
         this.isProcessingQueue = false;
         return;
       }
-
       this.refillTokens();
-      
       if (this.tokens >= 1) {
         this.tokens--;
         const next = this.queue.shift();
         next?.();
-        // Process next in the queue immediately if we have more tokens
+        this.emit('tokenUsed', { tokens: this.tokens, maxTokens: this._maxTokens });
         processNext();
       } else {
-        // Wait until we have at least one token
+        if (this.tokens < 1) {
+          this.emit('rateLimitDepleted', { tokens: this.tokens, maxTokens: this._maxTokens });
+        }
         const timeToNextToken = Math.ceil((1 / this.tokensPerSecond) * 1000);
         setTimeout(() => {
           this.refillTokens();
@@ -108,7 +109,6 @@ export class RateLimiter {
         }, timeToNextToken);
       }
     };
-
     processNext();
   }
 
@@ -122,5 +122,18 @@ export class RateLimiter {
     }
     const tokensNeeded = 1 - this.tokens;
     return Math.ceil((tokensNeeded / this.tokensPerSecond) * 1000);
+  }
+
+  updateOptions(options: Partial<RateLimiterOptions>) {
+    if (options.requestsPerMinute !== undefined) {
+      this._tokensPerSecond = options.requestsPerMinute / 60;
+      this._maxTokens = options.burstCapacity || options.requestsPerMinute;
+      this.tokens = Math.min(this.tokens, this._maxTokens);
+    }
+    if (options.burstCapacity !== undefined) {
+      this._maxTokens = options.burstCapacity;
+      this.tokens = Math.min(this.tokens, this._maxTokens);
+    }
+    this.emit('rateLimitUpdated', { ...options });
   }
 }
