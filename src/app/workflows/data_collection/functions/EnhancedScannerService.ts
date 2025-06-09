@@ -43,9 +43,12 @@ export class EnhancedScannerService {
     resetTimeout: number;
   }> = new Map();
   
-  constructor() {
+  constructor(
+    cacheSystem?: CacheSystem,
+    monitoringSystem?: MonitoringSystem
+  ) {
     // Initialize enhanced caching system
-    this.cacheSystem = new CacheSystem({
+    this.cacheSystem = cacheSystem || new CacheSystem({
       namespace: 'socialschedule',
       environment: process.env.NODE_ENV as any || 'development',
       redis: process.env.REDIS_URL ? { url: process.env.REDIS_URL } : undefined,
@@ -56,7 +59,7 @@ export class EnhancedScannerService {
     });
     
     // Initialize monitoring system
-    this.monitoringSystem = new MonitoringSystem({
+    this.monitoringSystem = monitoringSystem || new MonitoringSystem({
       serviceName: 'scanner-service',
       environment: process.env.NODE_ENV as any || 'development',
       performanceBudgets: [
