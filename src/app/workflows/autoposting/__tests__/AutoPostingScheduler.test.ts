@@ -19,4 +19,8 @@ describe('AutoPostingScheduler', () => {
     const batch = queue.getNextBatch();
     expect(batch.find(item => item.id === id)).toBeUndefined();
   });
+
+  afterEach(() => {
+    if (scheduler) scheduler.stop();
+  });
 }); 

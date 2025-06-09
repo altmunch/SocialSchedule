@@ -36,10 +36,13 @@ export class MonitoringService {
     return this.processingTimes.reduce((a, b) => a + b, 0) / this.processingTimes.length;
   }
 
+  /**
+   * Returns queue health based on length: healthy < 10, warning < 30, critical >= 30
+   */
   checkQueueHealth(queue: ContentQueue): 'healthy' | 'warning' | 'critical' {
     const length = this.getQueueLength(queue);
     if (length < 10) return 'healthy';
-    if (length < 50) return 'warning';
+    if (length < 30) return 'warning';
     return 'critical';
   }
 

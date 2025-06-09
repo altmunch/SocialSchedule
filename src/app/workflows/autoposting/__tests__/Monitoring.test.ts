@@ -12,13 +12,14 @@ describe('MonitoringService', () => {
 
   it('checks queue health', () => {
     expect(monitoring.checkQueueHealth(queue)).toBe('healthy');
-    for (let i = 0; i < 15; i++) {
+    for (let i = 0; i < 10; i++) {
       queue.addToQueue({ content: {}, platforms: ['tiktok'], metadata: { scheduledTime: new Date() } });
     }
     expect(monitoring.checkQueueHealth(queue)).toBe('warning');
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 20; i++) {
       queue.addToQueue({ content: {}, platforms: ['tiktok'], metadata: { scheduledTime: new Date() } });
     }
+    console.log('Queue length before critical check:', queue.getNextBatch().length);
     expect(monitoring.checkQueueHealth(queue)).toBe('critical');
   });
 
