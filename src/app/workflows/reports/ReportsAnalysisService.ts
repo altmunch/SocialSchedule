@@ -9,6 +9,7 @@ import { collectReportData } from './ReportDataCollector';
 import { generateInsights } from './InsightsEngine';
 import { ReportGenerator, ReportOptions } from './ReportGenerator';
 import { ChartGenerator, ChartData } from './ChartGenerator';
+import { TextSummaryEngine } from './TextSummaryEngine';
 
 interface GetReportRequest extends BaseAnalysisRequest {
   eCommerceData?: any; // Define a more specific type if eCommerce data structure is known
@@ -102,6 +103,12 @@ export class ReportsAnalysisService {
       timeSeries: data.timeSeries,
       platform: request.platform,
     });
+    // 2.5. Summarize insights and data
+    const summaryEngine = new TextSummaryEngine(process.env.HF_API_KEY || '');
+    const summary = await summaryEngine.summarizeText(
+      `Key findings: ${insights.keyFindings.join('; ')}. Recommendations: ${insights.recommendations.join('; ')}.`,
+      30, 120
+    );
     // 3. Generate charts (stub)
     const chart: ChartData = {
       type: 'line',
@@ -114,7 +121,7 @@ export class ReportsAnalysisService {
     // 4. Generate report
     const generator = new ReportGenerator();
     const report = await generator.generateReport(
-      { ...data, chart: chartSvg },
+      { ...data, chart: chartSvg, summary },
       insights,
       options
     );

@@ -33,7 +33,7 @@ export class ReportGenerator {
   ): Promise<string | Buffer> {
     // TODO: Implement HTML/JSON report generation
     if (options.format === 'html') {
-      return `<html><body><h1>Report</h1></body></html>`;
+      return `<html><body><h1>Report</h1>${data.summary ? `<div class='summary'><strong>Summary:</strong> ${data.summary}</div>` : ''}</body></html>`;
     }
     if (options.format === 'json') {
       return JSON.stringify({ data, insights }, null, 2);
