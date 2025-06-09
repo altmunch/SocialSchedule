@@ -1,4 +1,4 @@
-import { TikTokApiVideoNode, TikTokApiUserNode } from '@/app/data_collection/types/tiktokTypes';
+import { TikTokApiVideoNode, TikTokApiUserNode } from '../../../types/tiktokTypes';
 
 /**
  * Validates a TikTok API Video Node.

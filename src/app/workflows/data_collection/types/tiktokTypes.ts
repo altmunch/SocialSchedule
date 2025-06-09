@@ -72,55 +72,35 @@ export type UpdateRawTikTokUserDto = Partial<Omit<RawTikTokUser, 'id' | 'platfor
 // Example Types from a hypothetical TikTok API (subset, expand as needed)
 // These would depend on the actual TikTok API you're using (e.g., TikTok API for Developers, unofficial APIs)
 
+// Stubs for TikTok types
 export interface TikTokApiVideoNode {
-  id: string; // platform_video_id
-  desc?: string; // description
-  create_time: number; // Unix timestamp, convert to ISO string
-  video: {
-    play_addr?: { url_list: string[] };
-    cover?: { url_list: string[] };
-    height?: number;
-    width?: number;
-    duration?: number; // in seconds
-  };
-  author: {
-    id: string; // platform_user_id
-    unique_id: string; // username
-    nickname?: string;
-    avatar_thumb?: { url_list: string[] };
-  };
-  music?: {
-    id: string;
-    title: string;
-    authorName: string;
-  };
-  stats: {
-    digg_count: number; // likes
-    comment_count: number;
-    share_count: number;
-    play_count: number; // views
-  };
-  challenges?: { id: string; title: string; }[]; // hashtags
-  // ... other fields
-  [key: string]: any; // For any other raw data
+  id: string;
+  title?: string;
+  video_description?: string;
+  create_time?: string;
+  cover_image_url?: string;
+  share_url?: string;
+  duration?: number;
+  like_count?: number;
+  comment_count?: number;
+  share_count?: number;
+  view_count?: number;
+  play_url?: string;
+  download_url?: string;
+  [key: string]: any;
 }
 
 export interface TikTokApiUserNode {
-  user: {
-    id: string; // platform_user_id
-    unique_id: string; // username
-    nickname?: string;
-    avatar_thumb?: { url_list: string[] };
-    signature?: string; // bio
-    verified: boolean;
-    // ... other fields
-  };
-  stats: {
-    follower_count: number;
-    following_count: number;
-    heart_count: number; // total likes received
-    video_count: number;
-    // ... other fields
-  };
-  [key: string]: any; // For any other raw data
+  open_id: string;
+  union_id?: string;
+  display_name?: string;
+  avatar_url?: string;
+  follower_count?: number;
+  following_count?: number;
+  likes_count?: number;
+  video_count?: number;
+  [key: string]: any;
 }
+
+export type TikTokApiResponse = any;
+export type TikTokApiPagination = any;

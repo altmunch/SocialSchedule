@@ -6,7 +6,9 @@ import {
   RawInstagramUser,
   CreateRawInstagramUserDto,
   UpdateRawInstagramUserDto,
-} from '@/app/data_collection/types/instagramTypes'; // Adjusted path
+  InstagramApiMediaNode,
+  InstagramApiUserNode,
+} from '../../../types/instagramTypes';
 
 export class InstagramPostRepository extends BaseRepository<
   RawInstagramPost,

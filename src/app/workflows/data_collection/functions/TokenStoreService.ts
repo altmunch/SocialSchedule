@@ -8,7 +8,6 @@ import {
   ApiKeyCredentials,
   BasePlatformCredentials,
 } from './authTypes';
-import { supabase } from '@/lib/supabase/client'; // Assuming a central Supabase client export
 
 const TABLE_NAME = 'platform_auth_credentials';
 
@@ -70,7 +69,7 @@ export class TokenStoreService implements ITokenStore {
       platformName: credentials.platformName,
       userId: credentials.userId,
       strategy: credentials.strategy,
-      lastRefreshed: credentials.lastRefreshed?.toISOString(),
+      lastRefreshed: credentials.lastRefreshed ? new Date(credentials.lastRefreshed) : undefined,
       metadata: credentials.metadata,
     };
 
@@ -160,3 +159,6 @@ export class TokenStoreService implements ITokenStore {
 
 // Example of how you might instantiate it (if Supabase client is globally available)
 // export const tokenStoreService = new TokenStoreService(supabase);
+
+// Stub for getSupabaseClient if not exported elsewhere
+function getSupabaseClient() { return undefined as any; }

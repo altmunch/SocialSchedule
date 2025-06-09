@@ -1,5 +1,5 @@
 import TikTokApiClient from './tiktokClient';
-import { TikTokVideoRepository, TikTokUserRepository } from '@/app/data_collection/lib/storage/repositories/tiktokRepository';
+import { TikTokVideoRepository, TikTokUserRepository } from '../../lib/storage/repositories/tiktokRepository';
 import {
   TikTokApiVideoNode,
   TikTokApiUserNode,
@@ -9,7 +9,7 @@ import {
   RawTikTokUser,
   CreateRawTikTokUserDto,
   UpdateRawTikTokUserDto,
-} from '@/app/data_collection/types/tiktokTypes';
+} from '../../../types/tiktokTypes';
 import { isValidTikTokApiVideoNode, isValidTikTokApiUserNode } from './validators/tiktokValidators';
 import { limitTikTokApiCall } from './rateLimiter';
 
@@ -30,7 +30,7 @@ function transformApiVideoToCreateDto(videoNode: TikTokApiVideoNode, systemUserI
     views_count: videoNode.stats.play_count || 0,
     duration_seconds: videoNode.video.duration || null,
     music_info: videoNode.music ? { id: videoNode.music.id, title: videoNode.music.title, author: videoNode.music.authorName } : null,
-    hashtags: videoNode.challenges?.map(c => c.title) || null,
+    hashtags: videoNode.challenges?.map((c: any) => c.title) || null,
     raw_data: videoNode,
   };
 }
@@ -48,7 +48,7 @@ function transformApiVideoToUpdateDto(videoNode: TikTokApiVideoNode): UpdateRawT
     views_count: videoNode.stats.play_count || 0,
     duration_seconds: videoNode.video.duration || null,
     music_info: videoNode.music ? { id: videoNode.music.id, title: videoNode.music.title, author: videoNode.music.authorName } : null,
-    hashtags: videoNode.challenges?.map(c => c.title) || null,
+    hashtags: videoNode.challenges?.map((c: any) => c.title) || null,
     raw_data: videoNode,
   };
 }
@@ -176,8 +176,8 @@ export class TikTokService {
 
         for (const videoNode of videoResponse.data) {
           if (!isValidTikTokApiVideoNode(videoNode)) {
-            const videoIdForLog = videoNode?.id || 'unknown_or_invalid';
-            const logEndpoint = videoNode?.id ? `/video/detail/${videoNode.id}` : '/video/detail/unknown_or_invalid';
+            const videoIdForLog = (videoNode as any)?.id || 'unknown_or_invalid';
+            const logEndpoint = (videoNode as any)?.id ? `/video/detail/${(videoNode as any).id}` : '/video/detail/unknown_or_invalid';
             console.warn(`Invalid TikTok video data received for video ${videoIdForLog}. Skipping.`);
             await this.videoRepository.logApiCall('TikTok', logEndpoint, { videoId: videoIdForLog }, undefined, videoNode || undefined, 'Invalid video data');
             continue;

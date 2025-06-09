@@ -112,3 +112,5 @@ export class AuthTokenManagerService implements IAuthTokenManager {
     }
   }
 }
+
+export type { IPlatformTokenRefresher };

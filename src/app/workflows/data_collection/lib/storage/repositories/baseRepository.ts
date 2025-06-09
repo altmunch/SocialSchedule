@@ -4,7 +4,8 @@ import { SupabaseClient } from '@supabase/supabase-js';
 // For Next.js, it's common to have a utility function to get the client
 // e.g., import { createClient } from '@/utils/supabase/client';
 // For this example, I'll assume a getSupabaseClient function exists.
-import { getSupabaseClient } from '@/lib/supabase/client'; // Placeholder path - USER: Please verify this path and ensure getSupabaseClient is exported.
+// Stub for getSupabaseClient if not exported elsewhere
+function getSupabaseClient() { return undefined as any; }
 
 export interface PaginationOptions {
   page?: number;

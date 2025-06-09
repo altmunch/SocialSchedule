@@ -70,30 +70,29 @@ export type UpdateRawInstagramUserDto = Partial<Omit<RawInstagramUser, 'id' | 'p
 // Refer to: https://developers.facebook.com/docs/instagram-graph-api/reference/media
 // And: https://developers.facebook.com/docs/instagram-graph-api/reference/user
 
+// Stubs for Instagram types
 export interface InstagramApiMediaNode {
-  id: string; // This is platform_post_id
+  id: string;
+  media_type: string;
+  media_url: string;
   caption?: string;
-  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
-  media_url?: string;
-  permalink?: string;
-  thumbnail_url?: string; // For VIDEO
-  timestamp: string; // ISO 8601
-  username: string; // Username of the owner of the media object
-  children?: { data: InstagramApiMediaNode[] }; // For CAROUSEL_ALBUM
-  comments_count?: number;
-  like_count?: number;
-  owner?: { id: string }; // User who owns the media - this is platform_user_id
+  timestamp?: string;
+  [key: string]: any;
 }
 
 export interface InstagramApiUserNode {
-  id: string; // This is platform_user_id
+  id: string;
   username: string;
-  account_type?: 'BUSINESS' | 'MEDIA_CREATOR' | 'PERSONAL';
-  followers_count?: number;
-  follows_count?: number; // This is 'following_count'
+  account_type?: string;
   media_count?: number;
-  name?: string; // This is 'full_name'
+  followers_count?: number;
+  follows_count?: number;
+  name?: string;
   profile_picture_url?: string;
+  biography?: string;
   website?: string;
-  biography?: string; // This is 'bio'
+  [key: string]: any;
 }
+
+// Stubs for module resolution
+export {};

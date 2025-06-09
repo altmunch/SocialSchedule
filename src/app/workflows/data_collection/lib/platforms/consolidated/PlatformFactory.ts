@@ -1,6 +1,7 @@
-import { ApiCredentials } from '../base-platform';
+// import { ApiCredentials } from '../base-platform'; // Not used or not exported, comment out for now
 import InstagramClient from './InstagramClient';
 import TikTokClient from './TikTokClient';
+import { ApiConfig, ApiCredentials, Platform } from '../types';
 
 export type PlatformType = 'instagram' | 'tiktok' | 'youtube';
 
@@ -11,16 +12,18 @@ class PlatformFactory {
   /**
    * Creates a platform client based on the specified platform type
    * @param platform The platform type (e.g., 'instagram', 'tiktok')
-   * @param credentials Platform API credentials
+   * @param authTokenManager Platform API credentials
+   * @param userId Optional user ID
+   * @param config Optional configuration
    * @returns An instance of the platform client
    * @throws {Error} If the platform is not supported
    */
-  static createClient(platform: PlatformType, credentials: ApiCredentials) {
+  static createClient(platform: Platform, authTokenManager: any, userId?: string, config: Partial<ApiConfig> = {}) {
     switch (platform) {
-      case 'instagram':
-        return new InstagramClient(credentials);
-      case 'tiktok':
-        return new TikTokClient(credentials);
+      case Platform.INSTAGRAM:
+        return new InstagramClient(authTokenManager, userId, config);
+      case Platform.TIKTOK:
+        return new TikTokClient(authTokenManager, userId, config);
       case 'youtube':
         throw new Error('YouTube client is not yet implemented');
       default:
@@ -30,17 +33,17 @@ class PlatformFactory {
 
   /**
    * Creates multiple platform clients at once
-   * @param platformCredentials Array of objects containing platform type and credentials
-   * @returns Object mapping platform types to their respective clients
+   * @param platformCredentials Array of objects containing platform type, authTokenManager, userId, and config
+   * @returns Object mapping platforms to their respective clients
    */
-  static createClients(platformCredentials: Array<{ platform: PlatformType; credentials: ApiCredentials }>) {
+  static createClients(platformCredentials: Array<{ platform: Platform; authTokenManager: any; userId?: string; config?: Partial<ApiConfig> }>) {
     const clients: Record<string, any> = {};
     
-    for (const { platform, credentials } of platformCredentials) {
-      clients[platform] = this.createClient(platform, credentials);
+    for (const { platform, authTokenManager, userId, config } of platformCredentials) {
+      clients[platform] = this.createClient(platform, authTokenManager, userId, config);
     }
     
-    return clients as Record<PlatformType, any>;
+    return clients as Record<Platform, any>;
   }
 
   /**

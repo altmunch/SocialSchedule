@@ -6,7 +6,9 @@ import {
   RawTikTokUser,
   CreateRawTikTokUserDto,
   UpdateRawTikTokUserDto,
-} from '@/app/data_collection/types/tiktokTypes'; // Adjusted path
+  TikTokApiVideoNode,
+  TikTokApiUserNode,
+} from '../../../types/tiktokTypes';
 
 export class TikTokVideoRepository extends BaseRepository<
   RawTikTokVideo,

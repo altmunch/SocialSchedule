@@ -107,3 +107,5 @@ export interface PlatformClient {
   getVideoComments(postId: string, options?: { cursor?: string; limit?: number; }): Promise<ApiResponse<{ comments: PlatformComment[]; nextPageCursor?: string; hasMore?: boolean }>>;
   // Add other platform-specific methods as needed
 }
+
+export { Platform };
