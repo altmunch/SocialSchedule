@@ -6,8 +6,9 @@ const scannerService = new ScannerService();
 
 export async function GET(
   request: Request,
-  { params }: { params: { scanId: string } }
+  context: any
 ) {
+  const { params } = context;
   try {
     const { scanId } = params;
     

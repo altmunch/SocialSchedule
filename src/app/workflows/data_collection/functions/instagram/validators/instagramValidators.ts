@@ -1,4 +1,4 @@
-import { InstagramApiMediaNode, InstagramApiUserNode } from '@/app/data_collection/types/instagramTypes';
+import { InstagramApiMediaNode, InstagramApiUserNode } from '../../../types/instagramTypes';
 
 /**
  * Validates an Instagram API Media Node.

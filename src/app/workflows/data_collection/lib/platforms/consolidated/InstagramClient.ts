@@ -8,6 +8,7 @@ import {
   ApiResponse,
   RequestOptions 
 } from '../base-platform';
+import { Platform } from '../../../../deliverables/types/deliverables_types';
 
 const INSTAGRAM_GRAPH_API_VERSION = 'v19.0';
 

@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { InstagramApiMediaNode, InstagramApiUserNode } from '@/app/data_collection/types/instagramTypes';
+import { InstagramApiMediaNode, InstagramApiUserNode } from '../../types/instagramTypes';
 
 const INSTAGRAM_GRAPH_API_VERSION = 'v19.0'; // Using a more recent version
 const INSTAGRAM_BASE_URL = `https://graph.instagram.com/${INSTAGRAM_GRAPH_API_VERSION}`;
@@ -102,7 +102,7 @@ class InstagramApiClient {
    * @param limit The maximum number of media items to retrieve (default 25, max typically 100-200 depending on endpoint and token type).
    * @returns A paginated list of media items or null if an error occurs.
    */
-  asyncgetUserMedia(
+  async getUserMedia(
     userId: string = 'me',
     fields?: string,
     limit: number = 25

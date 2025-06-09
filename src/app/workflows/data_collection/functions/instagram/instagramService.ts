@@ -1,5 +1,5 @@
 import InstagramApiClient from './instagramClient';
-import { InstagramPostRepository, InstagramUserRepository } from '@/app/data_collection/lib/storage/repositories/instagramRepository';
+import { InstagramPostRepository, InstagramUserRepository } from '../../lib/storage/repositories/instagramRepository';
 import {
   InstagramApiMediaNode,
   InstagramApiUserNode,
@@ -9,7 +9,7 @@ import {
   RawInstagramUser,
   CreateRawInstagramUserDto,
   UpdateRawInstagramUserDto,
-} from '@/app/data_collection/types/instagramTypes';
+} from '../../types/instagramTypes';
 import { isValidInstagramApiMediaNode, isValidInstagramApiUserNode } from './validators/instagramValidators';
 import { limitInstagramApiCall } from './rateLimiter';
 
@@ -168,43 +168,41 @@ export class InstagramService {
       apiCallCount++;
 
       while (mediaResponse?.data && mediaResponse.data.length > 0) {
-        for (const mediaNode of mediaResponse.data) {
-          if (!isValidInstagramApiMediaNode(mediaNode)) {
-            const mediaIdForLog = mediaNode?.id || 'unknown_or_invalid';
-            const logEndpoint = mediaNode?.id ? `/media/${mediaNode.id}` : '/media/unknown_or_invalid';
-            console.warn(`Invalid media data received for post ${mediaIdForLog}. Skipping.`);
-            await this.postRepository.logApiCall('Instagram', logEndpoint, { platformUserId, mediaId: mediaIdForLog }, undefined, mediaNode || undefined, 'Invalid media data');
-            continue;
-          }
-
-          // Ensure owner ID is present, critical for platform_user_id in posts table
-          if (!mediaNode.owner?.id && platformUserId === 'me') {
-            // If fetching 'me' and owner is missing, we might need to fetch user profile first to get the ID
-            // Or assume the 'username' from mediaNode can be used if owner.id is consistently missing for 'me' posts
-            console.warn(`Media node ${mediaNode.id} for user 'me' is missing owner.id. Using username as fallback for platform_user_id.`);
-            // This might require adjustment based on API behavior for 'me' endpoint if owner.id is not always present.
-          }
-          const effectivePlatformUserId = mediaNode.owner?.id || (platformUserId !== 'me' ? platformUserId : mediaNode.username);
-          if (!effectivePlatformUserId) {
-            console.error(`Could not determine platform_user_id for media ${mediaNode.id}. Skipping.`);
-            continue;
-          }
-
-          const createDto = transformApiMediaToCreateDto({ ...mediaNode, owner: { id: effectivePlatformUserId } }, systemUserId);
-
-          const existingPost = await this.postRepository.findByPlatformPostId(mediaNode.id);
-          let currentPost: RawInstagramPost | null = null;
-
-          if (existingPost) {
-            const updateDto = transformApiMediaToUpdateDto(mediaNode);
-            currentPost = await this.postRepository.update(existingPost.id, updateDto);
-            if (currentPost) storedPosts.push(currentPost);
-            await this.postRepository.logApiCall('Instagram', `/media/${mediaNode.id}`, { platformUserId, mediaId: mediaNode.id }, 200, mediaNode, 'Post updated');
+        for (const mediaNodeRaw of mediaResponse.data) {
+          if (isValidInstagramApiMediaNode(mediaNodeRaw)) {
+            const mediaNode = mediaNodeRaw;
+            // Ensure owner ID is present, critical for platform_user_id in posts table
+            if (!mediaNode.owner?.id && platformUserId === 'me') {
+              // If fetching 'me' and owner is missing, we might need to fetch user profile first to get the ID
+              // Or assume the 'username' from mediaNode can be used if owner.id is consistently missing for 'me' posts
+              console.warn(`Media node ${mediaNode.id} for user 'me' is missing owner.id. Using username as fallback for platform_user_id.`);
+              // This might require adjustment based on API behavior for 'me' endpoint if owner.id is not always present.
+            }
+            const effectivePlatformUserId = mediaNode.owner?.id || (platformUserId !== 'me' ? platformUserId : mediaNode.username);
+            if (!effectivePlatformUserId) {
+              console.error(`Could not determine platform_user_id for media ${mediaNode.id}. Skipping.`);
+              continue;
+            }
+            const createDto = transformApiMediaToCreateDto({ ...mediaNode, owner: { id: effectivePlatformUserId } }, systemUserId);
+            const existingPost = await this.postRepository.findByPlatformPostId(mediaNode.id);
+            let currentPost: RawInstagramPost | null = null;
+            if (existingPost) {
+              const updateDto = transformApiMediaToUpdateDto(mediaNode);
+              currentPost = await this.postRepository.update(existingPost.id, updateDto);
+              if (currentPost) storedPosts.push(currentPost);
+              await this.postRepository.logApiCall('Instagram', `/media/${mediaNode.id}`, { platformUserId, mediaId: mediaNode.id }, 200, mediaNode, 'Post updated');
+            } else {
+              currentPost = await this.postRepository.create(createDto);
+              if (currentPost) storedPosts.push(currentPost);
+              // Log with mediaNode.id for consistency, as currentPost might be null if creation failed
+              await this.postRepository.logApiCall('Instagram', `/media/${mediaNode.id}`, { platformUserId, mediaId: mediaNode.id }, currentPost ? 201 : undefined, mediaNode, currentPost ? 'Post created' : 'Post creation attempted');
+            }
           } else {
-            currentPost = await this.postRepository.create(createDto);
-            if (currentPost) storedPosts.push(currentPost);
-            // Log with mediaNode.id for consistency, as currentPost might be null if creation failed
-            await this.postRepository.logApiCall('Instagram', `/media/${mediaNode.id}`, { platformUserId, mediaId: mediaNode.id }, currentPost ? 201 : undefined, mediaNode, currentPost ? 'Post created' : 'Post creation attempted');
+            const mediaIdForLog = (mediaNodeRaw as any)?.id || 'unknown_or_invalid';
+            const logEndpoint = (mediaNodeRaw as any)?.id ? `/media/${(mediaNodeRaw as any).id}` : '/media/unknown_or_invalid';
+            console.warn(`Invalid media data received for post ${mediaIdForLog}. Skipping.`);
+            await this.postRepository.logApiCall('Instagram', logEndpoint, { platformUserId, mediaId: mediaIdForLog }, undefined, mediaNodeRaw || undefined, 'Invalid media data');
+            continue;
           }
         }
 

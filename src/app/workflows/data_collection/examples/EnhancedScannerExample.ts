@@ -2,10 +2,10 @@
  * Comprehensive example demonstrating the EnhancedScannerService with advanced
  * caching and monitoring capabilities
  */
-import { EnhancedScannerService } from '../services/EnhancedScannerService';
-import { CacheSystem } from '../services/cache/CacheSystem';
-import { MonitoringSystem } from '../services/monitoring/MonitoringSystem';
-import { Platform, ScanOptions, ScanStatus, PostMetrics } from '../services/types';
+import { EnhancedScannerService } from '../functions/EnhancedScannerService';
+import { CacheSystem } from '../functions/cache/CacheSystem';
+import { MonitoringSystem } from '../functions/monitoring/MonitoringSystem';
+import { Platform, ScanOptions, ScanStatus, PostMetrics } from '../functions/types';
 
 /**
  * Example of how to configure and use the EnhancedScannerService

@@ -4,7 +4,7 @@
  */
 
 import crypto from 'crypto';
-import type { ChatCompletionMessageParam } from 'openai/resources/chat';
+import type { ChatCompletionMessageParam } from './openai-chat-types';
 import { Platform } from '@/types/platform';
 
 // Import utility modules
@@ -330,7 +330,7 @@ export class EnhancedTextAnalyzer {
         this.metrics.recordError(error);
         
         // Use local fallback
-        const fallbackResult = this.summarizeContentLocally(text);
+        const fallbackResult = await this.summarizeContentLocally(text);
         results.push({
           ...fallbackResult,
           shortSummary: `[Error in batch processing] ${fallbackResult.shortSummary}`,
@@ -345,7 +345,7 @@ export class EnhancedTextAnalyzer {
    * Local implementation of content summarization
    * @param text Text to summarize
    */
-  private summarizeContentLocally(text: string): ContentSummaryResult {
+  private async summarizeContentLocally(text: string): Promise<ContentSummaryResult> {
     const startTime = Date.now();
     
     // Simple extractive summarization
@@ -542,7 +542,7 @@ export class EnhancedTextAnalyzer {
       // Ensure we return a Promise that resolves to ContentSummaryResult
       return this.metrics.timeAsync('localSummarization', 
         async () => {
-          const fallbackResult = this.summarizeContentLocally(text);
+          const fallbackResult = await this.summarizeContentLocally(text);
           return {
             ...fallbackResult,
             shortSummary: `[Error] ${fallbackResult.shortSummary}`,

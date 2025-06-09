@@ -484,29 +484,26 @@ export class EnhancedScannerService {
       
       // Fetch with retry
       try {
-        return await this.withRetry(async () => {
+        const posts = await this.withRetry(async () => {
           const client = this.platformClients.get(platform);
           if (!client) {
             throw new Error(`No client configured for platform: ${platform}`);
           }
-          
-          const posts = await client.getUserPosts(userId, lookbackDays);
-          
-          // Cache the results
-          await this.cacheSystem.set('posts', cacheKey, posts, {
-            tags: ['posts', `platform:${platform}`, `user:${userId}`],
-            ttl: this.cacheSystem.calculateAdaptiveTTL('posts', cacheKey, 60 * 60 * 1000) // 1 hour base TTL
-          });
-          
-          // Record success in circuit breaker
-          this.recordSuccess(circuitBreakerKey);
-          
-          return posts;
+          const result = await client.getUserPosts(userId, lookbackDays);
+          // If result is a PaginatedResponse, return result.data, else return result
+          return Array.isArray(result) ? result : result.data;
         }, 3);
+        // Cache the results
+        await this.cacheSystem.set('posts', cacheKey, posts, {
+          tags: ['posts', `platform:${platform}`, `user:${userId}`],
+          ttl: this.cacheSystem.calculateAdaptiveTTL('posts', cacheKey, 60 * 60 * 1000) // 1 hour base TTL
+        });
+        // Record success in circuit breaker
+        this.recordSuccess(circuitBreakerKey);
+        return posts;
       } catch (error) {
         // Record failure in circuit breaker
         this.recordFailure(circuitBreakerKey);
-        
         throw error;
       }
     });
@@ -547,178 +544,27 @@ export class EnhancedScannerService {
       
       // Fetch with retry
       try {
-        return await this.withRetry(async () => {
+        const posts = await this.withRetry(async () => {
           const client = this.platformClients.get(platform);
           if (!client) {
             throw new Error(`No client configured for platform: ${platform}`);
           }
-          
-          const posts = await client.getCompetitorPosts(competitorId, lookbackDays);
-          
-          // Cache the results
-          await this.cacheSystem.set('posts', cacheKey, posts, {
-            tags: ['posts', `platform:${platform}`, `competitor:${competitorId}`],
-            ttl: this.cacheSystem.calculateAdaptiveTTL('posts', cacheKey, 60 * 60 * 1000) // 1 hour base TTL
-          });
-          
-          // Record success in circuit breaker
-          this.recordSuccess(circuitBreakerKey);
-          
-          return posts;
+          const result = await client.getCompetitorPosts(competitorId, lookbackDays);
+          // If result is a PaginatedResponse, return result.data, else return result
+          return Array.isArray(result) ? result : result.data;
         }, 3);
+        // Cache the results
+        await this.cacheSystem.set('posts', cacheKey, posts, {
+          tags: ['posts', `platform:${platform}`, `competitor:${competitorId}`],
+          ttl: this.cacheSystem.calculateAdaptiveTTL('posts', cacheKey, 60 * 60 * 1000) // 1 hour base TTL
+        });
+        // Record success in circuit breaker
+        this.recordSuccess(circuitBreakerKey);
+        return posts;
       } catch (error) {
         // Record failure in circuit breaker
         this.recordFailure(circuitBreakerKey);
-        
         throw error;
-      }
-    });
-  }
-  
-  /**
-        
-        // 1. Collect posts from all sources
-        const allPosts: PostMetrics[] = [];
-        
-        // Initialize analytics cache key
-        const analyticsCacheKey = `analysis:${scan.userId}:${options.platforms.join(',')}:${options.lookbackDays}`;
-        
-        // Get posts for each platform
-      for (const platform of options.platforms) {
-        const client = this.platformClients.get(platform);
-        if (!client) {
-          throw new Error(`No client configured for platform: ${platform}`);
-        }
-        
-        span.addEvent('fetching_platform_posts', { platform });
-        
-        // Get user's posts
-        if (options.includeOwnPosts) {
-          try {
-            const userPosts = await this.getUserPosts(platform, scan.userId, options.lookbackDays);
-            allPosts.push(...userPosts);
-            span.addEvent('user_posts_fetched', { platform, count: userPosts.length });
-          } catch (error) {
-            span.recordException(error as Error);
-            this.logStructured('error', `Failed to fetch user posts for ${platform}`, {
-              userId: scan.userId,
-              platform,
-              error: (error as Error).message
-            });
-            // Continue with other platforms even if one fails
-          }
-        }
-        
-        // Get competitor posts
-        if (options.competitors?.length) {
-          await Promise.all(
-            options.competitors.map(async (competitorId) => {
-              try {
-                const competitorPosts = await this.getCompetitorPosts(platform, competitorId, options.lookbackDays);
-                allPosts.push(...competitorPosts);
-                span.addEvent('competitor_posts_fetched', { platform, competitorId, count: competitorPosts.length });
-              } catch (error) {
-                span.recordException(error as Error);
-                this.logStructured('error', `Failed to fetch posts for competitor ${competitorId} on ${platform}`, {
-                  competitorId,
-                  platform,
-                  error: (error as Error).message
-                });
-                // Continue with other competitors even if one fails
-              }
-            })
-          );
-        }
-      }
-      
-      span.addEvent('all_posts_collected', { count: allPosts.length });
-      
-      if (allPosts.length === 0) {
-        return {
-          totalPosts: 0,
-          averageEngagement: 0,
-          peakTimes: [],
-          topPerformingPosts: []
-        };
-      }
-      
-      // 2. Analyze the collected data
-      span.addEvent('starting_analysis');
-      
-      // Use analytics cache if possible
-      const cachedAnalysis = await this.cacheSystem.get('analytics', analyticsCacheKey);
-      
-      if (cachedAnalysis) {
-        span.addEvent('using_cached_analysis');
-        return cachedAnalysis;
-      }
-      
-      // Create analyzer with optimized performance
-      const analyzer = new OptimizedPostAnalyzer(allPosts, {
-        ttl: 30 * 60 * 1000, // 30 minute TTL for internal analyzer cache
-        compressionThreshold: 1000, // Compress cached items larger than 1KB
-        maxSize: 100 // Maximum number of items in the analyzer's internal cache
-      }, {
-        batchSize: 50, // Process in batches of 50 posts
-        processingDelay: 0 // No delay between batch processing
-        // useParallelProcessing is supported by BatchConfig type, but only if OptimizedPostAnalyzer supports it
-      });
-      
-      // Run analysis
-      const peakTimes = await analyzer.findPeakTimesParallel(options.timezone);
-      span.addEvent('peak_times_analyzed', { count: peakTimes.length });
-      
-      // For top performing posts, we'll sort by engagement score
-      const postsWithScores = await Promise.all(
-        allPosts.map(async (post) => {
-          const engagementScore = await analyzer.getEngagementScore(post.id);
-          return {
-            ...post,
-            engagementScore
-          };
-        })
-      );
-      
-      span.addEvent('engagement_scores_calculated');
-      
-      // Sort by engagement score and get top 10
-      const topPerformingPosts = [...postsWithScores]
-        .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0))
-        .slice(0, 10);
-      
-      // Calculate average engagement
-      const totalEngagement = postsWithScores.reduce(
-        (sum, post) => sum + (post.engagementScore || 0), 
-        0
-      );
-      const averageEngagement = allPosts.length > 0 ? totalEngagement / allPosts.length : 0;
-      
-      const result = {
-        totalPosts: allPosts.length,
-        averageEngagement,
-        peakTimes: peakTimes || [],
-        topPerformingPosts: topPerformingPosts.map(({ engagementScore, ...post }) => post)
-      };
-      
-      // Cache analysis results
-      await this.cacheSystem.set('analytics', analyticsCacheKey, result, {
-        tags: ['analysis', `user:${scan.userId}`],
-        ttl: 4 * 60 * 60 * 1000, // 4 hours TTL for analysis results
-        volatility: 0.3 // Analysis results change less frequently than raw data
-      });
-      
-      span.addEvent('analysis_complete');
-      
-      return result;
-      } catch (error) {
-        span?.recordException?.(error as Error);
-        this.logStructured('error', 'Error in performScan', { error: (error as Error).message });
-        return {
-          totalPosts: 0,
-          averageEngagement: 0,
-          peakTimes: [],
-          topPerformingPosts: []
-        };
       }
     });
   }
@@ -889,7 +735,7 @@ export class EnhancedScannerService {
       }
     });
   }
-
+  
   /**
    * Process a scan asynchronously
    * @param scanId Scan ID

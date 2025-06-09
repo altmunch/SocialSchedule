@@ -3,11 +3,11 @@ import { randomUUID } from 'crypto';
 import {
   CompetitorAnalysis,
   AnalysisResult,
-} from '../types'; 
+} from './types'; 
 import { EnhancedTextAnalyzer } from '@/lib/ai/enhancedTextAnalyzer';
-import { CacheService } from '../utils/cacheService';
-import { DEFAULT_CONFIG } from '../config';
-import { CompetitorAnalysisEngine } from '../engines/CompetitorAnalysisEngine';
+import { CacheService } from './utils/cacheService';
+import { DEFAULT_CONFIG } from './config';
+import { CompetitorAnalysisEngine } from './engines/CompetitorAnalysisEngine';
 
 export class CompetitorAnalysisService { 
   private engine: CompetitorAnalysisEngine;
@@ -61,10 +61,20 @@ export class CompetitorAnalysisService {
     console.log(`[CompetitorAnalysisServiceFacade] Cache miss for competitor: ${competitorId}, niche: ${niche}, correlationId: ${correlationId}. Fetching from engine.`);
     try {
       const result = await this.engine.analyzeCompetitor({ competitorId, niche, correlationId });
-      return result;
+      return {
+        success: true,
+        data: result.data,
+        metadata: {
+          generatedAt: new Date(),
+          source: 'CompetitorAnalysisServiceFacade',
+          warnings: result.metadata.warnings,
+          correlationId, // Include correlationId in error metadata
+        },
+      };
     } catch (error) {
       console.error(`[CompetitorAnalysisServiceFacade] Error calling CompetitorAnalysisEngine for ${competitorId}:`, error);
       return {
+        success: false,
         data: {} as CompetitorAnalysis, 
         metadata: {
           generatedAt: new Date(),

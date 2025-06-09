@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import type { ChatCompletionMessageParam } from 'openai/resources/chat';
+import type { ChatCompletionMessageParam } from './openai-chat-types';
 import { Platform } from '@/types/platform';
 
 // Import new utility modules

@@ -10,8 +10,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ScannerServiceAdapter } from '../services/ScannerServiceAdapter';
-import type { Platform, ScanOptions, ScanStatus } from '../services/types';
+import { ScannerServiceAdapter } from '../functions/ScannerServiceAdapter';
+import type { Platform, ScanOptions, ScanStatus } from '../functions/types';
 
 // Custom hook for managing scanner service
 function useScannerService(userId: string) {

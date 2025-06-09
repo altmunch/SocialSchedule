@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
 import { EventEmitter } from 'events';
 import { PlatformError, RateLimitError, ApiError, withRetry } from '../utils/errors';
-import { Platform } from '../../../deliverables/types/deliverables_types'; // Using canonical Platform type
+import { Platform } from '../../../deliverables/types/deliverables_types';
 import { ApiRateLimit as ImportedApiRateLimit, ApiConfig } from './types'; // Import the specific type
 import {
   IAuthTokenManager,

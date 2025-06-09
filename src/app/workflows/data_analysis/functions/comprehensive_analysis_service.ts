@@ -1,11 +1,13 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { CompetitorAnalysisService } from './competitor_analysis_service';
-import { HistoricalAnalysisService } from './historical_analysis_service'; // Added import
+import { CompetitorAnalysisService } from '../competitor_analysis_service';
+import { HistoricalAnalysisService } from '../historical_analysis_service'; // Added import
 import {
   CompetitorAnalysis,
   PerformanceTrends, // Added import
   TimeRange, // Added import
 } from '../types/analysis_types';
+import { randomUUID } from 'crypto';
+import { EnhancedTextAnalyzer } from '@/lib/ai/enhancedTextAnalyzer';
 
 /**
  * Orchestrates various analysis services to provide a comprehensive analytical overview.
@@ -17,7 +19,7 @@ export class ComprehensiveAnalysisService {
   // private viralityPredictionService: ViralityPredictionService; // Future addition
 
   constructor(private supabase: SupabaseClient) {
-    this.competitorAnalysisService = new CompetitorAnalysisService(this.supabase);
+    this.competitorAnalysisService = new CompetitorAnalysisService(this.supabase, new EnhancedTextAnalyzer({}));
     this.historicalAnalysisService = new HistoricalAnalysisService(this.supabase); // Uncommented and activated
     // this.viralityPredictionService = new ViralityPredictionService(this.supabase); // Future addition
   }
@@ -34,11 +36,13 @@ export class ComprehensiveAnalysisService {
     niche: string
   ): Promise<CompetitorAnalysis | null> {
     try {
-      const analysis = await this.competitorAnalysisService.analyzeCompetitor(
+      const correlationId = randomUUID();
+      const analysisResult = await this.competitorAnalysisService.analyzeCompetitor(
         competitorId,
-        niche
+        niche,
+        correlationId
       );
-      return analysis;
+      return analysisResult?.data || null;
     } catch (error) {
       console.error(
         `Error getting competitor insights for ${competitorId} in niche ${niche}:`,

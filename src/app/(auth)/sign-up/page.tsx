@@ -9,13 +9,6 @@ import { useFormStatus } from "react-dom";
 import { useEffect, useState, useActionState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-interface SignUpPageProps {
-  searchParams?: { 
-    message?: string; 
-    type?: 'success' | 'error' | 'info' | 'warning';
-  };
-}
-
 function SubmitButton({ 
   children, 
   loading = false 
@@ -36,7 +29,7 @@ function SubmitButton({
   );
 }
 
-export default function SignUpPage({ searchParams: initialSearchParams }: SignUpPageProps) {
+export default function SignUpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [state, formAction] = useActionState(signUpAction, null);
