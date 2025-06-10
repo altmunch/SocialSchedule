@@ -60,9 +60,8 @@ const navItems: NavItem[] = [
       key: 'solutions',
       hasDropdown: true,
       dropdown: [
-        { label: 'E-commerce', href: '/solutions/ecommerce' },
-        { label: 'Agencies', href: '/solutions/agencies' },
-        { label: 'Creators', href: '/solutions/creators' },
+        { label: 'E-commerce', href: '/solutions' },
+        { label: 'Short-form Content Marketing', href: '/solutions' },
       ]
     },
     { label: 'Pricing', href: '/pricing', hasDropdown: false },
@@ -89,7 +88,7 @@ const navItems: NavItem[] = [
             AI-powered e-commerce content creation and optimization platform
           </span>
           <Link 
-            href="/signup" 
+            href="/dashboard" 
             className="font-bold underline hover:text-white/90 transition-colors"
             onClick={() => setMobileMenuOpen(false)}
           >
@@ -182,7 +181,7 @@ const navItems: NavItem[] = [
               Sign In
             </Link>
             <button
-              onClick={() => router.push('/signup')}
+              onClick={() => router.push('/dashboard')}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
             >
               Get Started
@@ -263,7 +262,7 @@ const navItems: NavItem[] = [
               </Link>
               <button
                 onClick={() => {
-                  router.push('/signup');
+                  router.push('/dashboard');
                   setMobileMenuOpen(false);
                 }}
                 className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300"

@@ -278,7 +278,7 @@ export default function ResultsPage() {
           <p className="text-white/70 max-w-2xl mx-auto mb-8">
             Join thousands of creators and businesses who have transformed their social media presence with SocialSchedule.
           </p>
-          <Link href="/pricing" className="bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white px-8 py-4 rounded-lg font-bold inline-block shadow-lg shadow-[#8D5AFF]/30 transition-all">
+          <Link href="/dashboard" className="bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white px-8 py-4 rounded-lg font-bold inline-block shadow-lg shadow-[#8D5AFF]/30 transition-all">
             Get started today
           </Link>
           <p className="text-white/40 text-sm mt-4">10-day results guarantee</p>

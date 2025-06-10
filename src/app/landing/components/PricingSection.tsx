@@ -179,17 +179,16 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                     </div>
                   </div>
 
-                  <motion.button
-                    onClick={onGetStarted}
-                    className={`w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 ${plan.highlighted 
-                      ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 
-                      : 'bg-white/10 hover:bg-white/15 border border-white/10'}`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="relative z-10">Get Started</span>
-                    <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
-                  </motion.button>
+                  <a href="/dashboard">
+                    <button
+                      className={`w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 ${plan.highlighted 
+                        ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 
+                        : 'bg-white/10 hover:bg-white/15 border border-white/10'}`}
+                    >
+                      <span className="relative z-10">Get Started</span>
+                      <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
+                    </button>
+                  </a>
                   
                   {/* 10-day guarantee */}
                   <div className="flex items-center justify-center text-sm text-white/60 mb-6">
