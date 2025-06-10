@@ -1,6 +1,6 @@
 // difficult: Enhanced YouTube Data API client with rate limiting and caching
 import { BasePlatformClient } from './BasePlatformClient';
-import { PostMetrics, Platform } from '../types';
+import { PostMetrics, Platform, PaginatedResponse } from '../types';
 
 interface YouTubeVideo {
   id: string;
@@ -111,25 +111,39 @@ export class YouTubeClient extends BasePlatformClient {
    * @param channelId The YouTube channel ID
    * @param lookbackDays Number of days to look back for posts (default: 30)
    */
-  async getUserPosts(channelId: string, lookbackDays: number = this.DEFAULT_LOOKBACK_DAYS, maxPagesToFetch: number = 5): Promise<PostMetrics[]> {
-    const cacheKey = `user_posts_${channelId}_${lookbackDays}`;
-    const cached = this.getFromCache(cacheKey);
+  async getUserPosts(
+    userId: string, 
+    lookbackDays: number = this.DEFAULT_LOOKBACK_DAYS, 
+    maxPages: number = 5,
+    maxResultsPerPage: number = 20
+  ): Promise<PaginatedResponse<PostMetrics>> {
+    const cacheKey = `user_posts_${userId}_${lookbackDays}`;
+    const cached = this.getFromCache<PaginatedResponse<PostMetrics>>(cacheKey);
     if (cached) {
-      return cached as PostMetrics[];
+      return cached;
     }
 
     try {
       // Get the uploads playlist ID for the channel
-      const uploadsPlaylistId = await this.getUploadsPlaylistId(channelId);
+      const uploadsPlaylistId = await this.getUploadsPlaylistId(userId);
       
       // Get videos from the uploads playlist
-      const videos = await this.getVideosFromPlaylist(uploadsPlaylistId, lookbackDays, maxPagesToFetch);
+      const videos = await this.getVideosFromPlaylist(uploadsPlaylistId, lookbackDays, maxPages);
       
       // Convert to PostMetrics format and cache the result
       const posts = videos.map(video => this.mapToPostMetrics(video));
       this.setCache(cacheKey, posts);
       
-      return posts;
+      return {
+        data: posts,
+        pagination: {
+          total: posts.length,
+          hasMore: false, // YouTube API doesn't provide a reliable way to determine if there are more pages
+          page: 1,
+          pageSize: posts.length,
+          cursor: undefined
+        }
+      };
     } catch (error) {
       console.error('Error fetching user posts:', error);
       throw error;
@@ -141,9 +155,14 @@ export class YouTubeClient extends BasePlatformClient {
    * @param channelId The competitor's YouTube channel ID
    * @param lookbackDays Number of days to look back for posts (default: 30)
    */
-  async getCompetitorPosts(channelId: string, lookbackDays: number = this.DEFAULT_LOOKBACK_DAYS, maxPagesToFetch: number = 5): Promise<PostMetrics[]> {
-    // Reuse the same logic as getUserPosts
-    return this.getUserPosts(channelId, lookbackDays, maxPagesToFetch);
+  async getCompetitorPosts(
+    username: string, 
+    lookbackDays: number = this.DEFAULT_LOOKBACK_DAYS, 
+    maxPages: number = 5,
+    maxResultsPerPage: number = 20
+  ): Promise<PaginatedResponse<PostMetrics>> {
+    // Reuse the same logic as getUserPosts but with username parameter
+    return this.getUserPosts(username, lookbackDays, maxPages, maxResultsPerPage);
   }
   
   /**
