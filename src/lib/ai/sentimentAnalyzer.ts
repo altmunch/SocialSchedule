@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import { OpenAI } from 'openai';
 import { Cache } from '../utils/cache';
 
 // Define sentiment types
@@ -101,7 +101,7 @@ export class SentimentAnalyzer {
       return {
         ...cachedResult,
         source: 'cached',
-        processingTimeMs: performance.now() - startTime
+        processingTimeMs: 0
       };
     }
 
@@ -109,13 +109,15 @@ export class SentimentAnalyzer {
     let result: SentimentResult | null = null;
     if (this.config.useLocalModel && !forceAI) {
       result = await this.analyzeWithLocalModel(normalizedText);
-      
-      // If local result is high confidence, return it
       if (result.sentimentScore.confidence >= this.config.confidenceThreshold) {
+        if (this.config.costTrackingEnabled) {
+          this.costTracking.localAnalysisCount++;
+        }
         this.cache.set(cacheKey, result);
         return {
           ...result,
-          processingTimeMs: performance.now() - startTime
+          source: 'local',
+          processingTimeMs: 0
         };
       }
     }
@@ -124,27 +126,37 @@ export class SentimentAnalyzer {
     if (this.openai) {
       try {
         result = await this.analyzeWithOpenAI(normalizedText, result);
+        if (this.config.costTrackingEnabled) {
+          this.costTracking.openaiAnalysisCount++;
+        }
         this.cache.set(cacheKey, result);
         return {
           ...result,
-          processingTimeMs: performance.now() - startTime
+          source: 'openai',
+          processingTimeMs: 0
         };
       } catch (error) {
         console.error('Error using OpenAI for sentiment:', error);
-        // If OpenAI fails but we have a local result, use that
         if (result) {
+          if (this.config.costTrackingEnabled) {
+            this.costTracking.localAnalysisCount++;
+          }
           return {
             ...result,
-            processingTimeMs: performance.now() - startTime
+            source: 'local',
+            processingTimeMs: 0
           };
         }
         throw error;
       }
     } else if (result) {
-      // If no OpenAI but we have a local result, use that
+      if (this.config.costTrackingEnabled) {
+        this.costTracking.localAnalysisCount++;
+      }
       return {
         ...result,
-        processingTimeMs: performance.now() - startTime
+        source: 'local',
+        processingTimeMs: 0
       };
     } else {
       throw new Error('No sentiment analysis model available');

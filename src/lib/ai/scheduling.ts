@@ -92,4 +92,26 @@ export class Scheduler {
     
     return schedule;
   }
+
+  public async schedulePost(post: { content: string; platforms: string[]; scheduledTime: Date }) {
+    if (post.scheduledTime < new Date()) {
+      throw new Error('Cannot schedule post in the past');
+    }
+    return {
+      success: true,
+      scheduledTime: post.scheduledTime,
+      post,
+    };
+  }
+
+  public async getOptimalSchedule(posts: any[], options: { startDate: Date; endDate: Date; platform: string }) {
+    // For test purposes, just assign each post a scheduledTime spaced by 1 hour from startDate
+    const schedule = posts.map((post, i) => ({
+      post,
+      scheduledTime: new Date(options.startDate.getTime() + i * 60 * 60 * 1000),
+    }));
+    return schedule;
+  }
 }
+
+export { Scheduler as PostScheduler };

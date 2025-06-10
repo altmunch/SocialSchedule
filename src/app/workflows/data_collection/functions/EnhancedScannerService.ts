@@ -245,6 +245,10 @@ export class EnhancedScannerService {
       try {
         return await fn();
       } catch (error) {
+        // If the error is a circuit breaker open error, do not retry
+        if (error && (error as any).code === 'CIRCUIT_BREAKER_OPEN') {
+          throw error;
+        }
         lastError = error as Error;
         
         if (retries >= maxRetries) {
@@ -460,56 +464,39 @@ export class EnhancedScannerService {
    * @returns Array of post metrics
    */
   async getUserPosts(platform: Platform, userId: string, lookbackDays: number): Promise<PostMetrics[]> {
-    return this.monitoringSystem.monitor('getUserPosts', async () => {
-      const cacheKey = `posts:${platform}:${userId}:${lookbackDays}`;
-      
-      // Try to get from cache first
-      const cachedPosts = await this.cacheSystem.get<PostMetrics[]>('posts', cacheKey);
-      if (cachedPosts) {
-        this.logStructured('info', `Cache hit for user posts ${platform}:${userId}`, {
-          platform,
-          userId,
-          lookbackDays,
-          postCount: cachedPosts.length
-        });
-        return cachedPosts;
-      }
-      
-      // Check circuit breaker
-      const circuitBreakerKey = `${platform}_api`;
-      if (!this.canPerformOperation(circuitBreakerKey)) {
-        this.logStructured('warn', `Circuit breaker open for ${platform}, using empty posts`, {
-          platform,
-          userId
-        });
-        throw new Error(`Service unavailable: ${platform} API is currently unavailable`);
-      }
-      
-      // Fetch with retry
-      try {
-        const posts = await this.withRetry(async () => {
-          const client = this.platformClients.get(platform);
-          if (!client) {
-            throw new Error(`No client configured for platform: ${platform}`);
-          }
-          const result = await client.getUserPosts(userId, lookbackDays);
-          // If result is a PaginatedResponse, return result.data, else return result
-          return Array.isArray(result) ? result : result.data;
-        }, 3);
-        // Cache the results
-        await this.cacheSystem.set('posts', cacheKey, posts, {
-          tags: ['posts', `platform:${platform}`, `user:${userId}`],
-          ttl: this.cacheSystem.calculateAdaptiveTTL('posts', cacheKey, 60 * 60 * 1000) // 1 hour base TTL
-        });
-        // Record success in circuit breaker
-        this.recordSuccess(circuitBreakerKey);
-        return posts;
-      } catch (error) {
-        // Record failure in circuit breaker
-        this.recordFailure(circuitBreakerKey);
-        throw error;
-      }
-    });
+    const cacheKey = `posts:${platform}:${userId}:${lookbackDays}`;
+    // Check circuit breaker before entering retry logic
+    const circuitBreakerKey = `${platform}_api`;
+    if (!this.canPerformOperation(circuitBreakerKey)) {
+      this.logStructured('warn', `Circuit breaker open for ${platform}, using empty posts`, {
+        platform,
+        userId
+      });
+      const err = new Error(`Service unavailable: ${platform} API is currently unavailable`);
+      // @ts-ignore
+      err.code = 'CIRCUIT_BREAKER_OPEN';
+      throw err;
+    }
+    // Only enter retry logic if circuit is closed
+    try {
+      const posts = await this.withRetry(async () => {
+        const client = this.platformClients.get(platform);
+        if (!client) {
+          throw new Error(`No client configured for platform: ${platform}`);
+        }
+        const result = await client.getUserPosts(userId, lookbackDays);
+        return Array.isArray(result) ? result : result.data;
+      }, 3);
+      await this.cacheSystem.set('posts', cacheKey, posts, {
+        tags: ['posts', `platform:${platform}`, `user:${userId}`],
+        ttl: this.cacheSystem.calculateAdaptiveTTL('posts', cacheKey, 60 * 60 * 1000)
+      });
+      this.recordSuccess(circuitBreakerKey);
+      return posts;
+    } catch (error) {
+      this.recordFailure(circuitBreakerKey);
+      throw error;
+    }
   }
   
   /**

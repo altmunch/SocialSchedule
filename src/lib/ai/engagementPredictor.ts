@@ -202,9 +202,6 @@ export class EngagementPredictor {
   }
 
   /**
-   * Calculate historical engagement multiplier (0.8 to 1.2)
-   */
-  /**
    * Create a simple hash for content to use as cache key
    */
   private static hashContent(content: string): string {
@@ -412,7 +409,19 @@ export class EngagementPredictor {
     // Sort by score (highest first) and take requested count
     const result = timeSlots
       .sort((a, b) => b.score - a.score)
-      .slice(0, count);
+      .slice(0, count)
+      .map(slot => {
+        // Convert dayOfWeek and hour to readable startTime and endTime
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const startTime = `${days[slot.dayOfWeek]} ${slot.hour.toString().padStart(2, '0')}:00`;
+        const endHour = (slot.hour + 1) % 24;
+        const endTime = `${days[slot.dayOfWeek]} ${endHour.toString().padStart(2, '0')}:00`;
+        return {
+          ...slot,
+          startTime,
+          endTime,
+        };
+      });
     
     // Update performance metrics
     const elapsedTime = performance.now() - startTime;

@@ -38,6 +38,12 @@ export class ContentOptimizer {
       hashtagCount: 3,
       includeEmojis: false,
       imageAspectRatio: '1.91:1'
+    },
+    'youtube': {
+      maxLength: 5000,
+      hashtagCount: 10,
+      includeEmojis: true,
+      imageAspectRatio: '16:9'
     }
   };
 
@@ -51,11 +57,7 @@ export class ContentOptimizer {
   ): string {
     const options = { ...this.platformDefaults[platform], ...customOptions };
     let optimized = content;
-
-    // Truncate if needed
-    if (optimized.length > options.maxLength!) {
-      optimized = optimized.substring(0, options.maxLength - 3) + '...';
-    }
+    const maxLength = options.maxLength ?? 280;
 
     // Add hashtags if needed
     const hashtags = this.extractHashtags(optimized);
@@ -67,6 +69,11 @@ export class ContentOptimizer {
     // Add emojis if enabled
     if (options.includeEmojis && !this.hasEmojis(optimized)) {
       optimized = this.addEmojis(optimized);
+    }
+
+    // Truncate if needed (after all additions)
+    if (optimized.length > maxLength) {
+      optimized = optimized.substring(0, maxLength - 3) + '...';
     }
 
     return optimized;

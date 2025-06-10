@@ -4,14 +4,8 @@ export class PerformanceOptimizer {
 
   async processInBatches<T, R>(items: T[], fn: (item: T) => Promise<R>): Promise<R[]> {
     const results: R[] = [];
-    let i = 0;
-    while (i < items.length) {
-      const batch = items.slice(i, i + this.maxConcurrent);
-      const batchResults = await Promise.all(batch.map(fn));
-      results.push(...batchResults);
-      this.trackResourceUsage(Math.random() * 100); // Stub: simulate resource usage
-      this.adaptThrottling();
-      i += this.maxConcurrent;
+    for (let i = 0; i < items.length; i++) {
+      results.push(await fn(items[i]));
     }
     return results;
   }

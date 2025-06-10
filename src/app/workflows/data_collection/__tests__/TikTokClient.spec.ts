@@ -1,6 +1,6 @@
 import { TikTokClient } from '../lib/platforms/TikTokClient';
-import { AuthTokenManager } from '../lib/storage/repositories/AuthTokenManager';
-import { ApiError } from '../functions/errors';
+import { AuthTokenManagerService } from '../lib/auth-token-manager.service';
+import { ApiError } from '../lib/utils/errors';
 
 describe('TikTokClient', () => {
   let tiktokClient: TikTokClient;
@@ -9,12 +9,20 @@ describe('TikTokClient', () => {
   beforeEach(() => {
     // Create a mock AuthTokenManager
     mockAuthTokenManager = {
-      getToken: jest.fn(),
-      refreshToken: jest.fn(),
+      getValidCredentials: jest.fn(),
+      storeCredentials: jest.fn(),
+      clearCredentials: jest.fn(),
     };
 
-    // Initialize TikTokClient with the mock AuthTokenManager
-    tiktokClient = new TikTokClient(mockAuthTokenManager, 'test-user-id');
+    // Minimal valid config for TikTokClient
+    const mockConfig = {
+      baseUrl: 'https://mock.tiktok.api',
+      version: 'v2',
+      rateLimit: { requests: 100, perSeconds: 60 },
+    };
+
+    // Initialize TikTokClient with the mock config and AuthTokenManager
+    tiktokClient = new TikTokClient(mockConfig, mockAuthTokenManager, 'test-user-id');
   });
 
   describe('getUserInfo', () => {
@@ -30,7 +38,7 @@ describe('TikTokClient', () => {
       tiktokClient._callTikTokApi = jest.fn().mockResolvedValue(mockUserInfo);
 
       // Call the method
-      const result = await tiktokClient.getUserInfo();
+      const result = await tiktokClient.getUserInfo({ fields: ['open_id'] });
 
       // Verify the result
       expect(result).toEqual(mockUserInfo);
@@ -43,7 +51,7 @@ describe('TikTokClient', () => {
       tiktokClient._callTikTokApi = jest.fn().mockRejectedValue(error);
 
       // Verify the error is thrown
-      await expect(tiktokClient.getUserInfo()).rejects.toThrow(ApiError);
+      await expect(tiktokClient.getUserInfo({ fields: ['open_id'] })).rejects.toThrow(ApiError);
     });
   });
 });

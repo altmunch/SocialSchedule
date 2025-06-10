@@ -326,15 +326,18 @@ export class EnhancedTextAnalyzer {
         results.push(result);
         
       } catch (error) {
-        // If one item fails, we'll still try to process the others
         this.metrics.recordError(error);
-        
-        // Use local fallback
+        // Use local fallback, but mark as error
         const fallbackResult = await this.summarizeContentLocally(text);
         results.push({
           ...fallbackResult,
-          shortSummary: `[Error in batch processing] ${fallbackResult.shortSummary}`,
+          shortSummary: fallbackResult.shortSummary,
+          source: 'local',
         });
+      }
+      // If all results are errors, throw
+      if (results.length === 0 || results.every(r => r.source === 'local')) {
+        throw new Error('All models failed');
       }
     }
     
@@ -590,5 +593,114 @@ export class EnhancedTextAnalyzer {
   public async shutdown(): Promise<void> {
     await this.summarizationBatcher.flush();
     this.cache.evictExpired();
+  }
+
+  /**
+   * Analyze text complexity: word count, sentence count, average word length
+   */
+  public async analyzeComplexity(text: string) {
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const words = text.split(/\s+/).filter(Boolean);
+    const wordCount = words.length;
+    const sentenceCount = sentences.length;
+    const averageWordLength = wordCount > 0 ? words.reduce((sum, w) => sum + w.length, 0) / wordCount : 0;
+    return {
+      wordCount,
+      sentenceCount,
+      averageWordLength,
+    };
+  }
+
+  /**
+   * Detect language of the text (very basic, for demo)
+   */
+  public async detectLanguage(text: string) {
+    // Simple heuristic: check for common English/Spanish words
+    const englishWords = ['the', 'and', 'is', 'in', 'it', 'you', 'this'];
+    const spanishWords = ['el', 'la', 'es', 'en', 'un', 'una', 'este', 'esta'];
+    const lower = text.toLowerCase();
+    let en = 0, es = 0;
+    for (const w of englishWords) if (lower.includes(w)) en++;
+    for (const w of spanishWords) if (lower.includes(w)) es++;
+    if (en > es && en > 0) return { language: 'en', confidence: 0.95 };
+    if (es > en && es > 0) return { language: 'es', confidence: 0.85 };
+    return { language: 'unknown', confidence: 0.5 };
+  }
+
+  /**
+   * Extract key phrases from text (simple noun phrase extraction)
+   */
+  public async extractKeyPhrases(text: string) {
+    // Very basic: extract capitalized words and noun-like phrases
+    const phrases: { text: string; score: number }[] = [];
+    const words = text.match(/\b[A-Z][a-z]+\b/g) || [];
+    for (const w of words) {
+      phrases.push({ text: w, score: 0.8 });
+    }
+    // Add most frequent words longer than 4 chars
+    const freq: Record<string, number> = {};
+    for (const word of text.toLowerCase().split(/\s+/)) {
+      if (word.length > 4) freq[word] = (freq[word] || 0) + 1;
+    }
+    Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .forEach(([word, count]) => {
+        phrases.push({ text: word, score: 0.6 });
+      });
+    return { phrases };
+  }
+
+  /**
+   * Analyze readability using Flesch-Kincaid and other metrics
+   */
+  public async analyzeReadability(text: string) {
+    // Flesch-Kincaid: 206.835 - 1.015*(words/sentences) - 84.6*(syllables/words)
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const words = text.split(/\s+/).filter(Boolean);
+    const wordCount = words.length;
+    const sentenceCount = sentences.length;
+    const syllableCount = words.reduce((sum, w) => sum + this.countSyllables(w), 0);
+    const fleschKincaid = sentenceCount > 0 && wordCount > 0
+      ? 206.835 - 1.015 * (wordCount / sentenceCount) - 84.6 * (syllableCount / wordCount)
+      : 0;
+    // SMOG index: 1.0430 * sqrt(polysyllables * (30/sentences)) + 3.1291
+    const polysyllables = words.filter(w => this.countSyllables(w) >= 3).length;
+    const smogIndex = sentenceCount > 0
+      ? 1.043 * Math.sqrt(polysyllables * (30 / sentenceCount)) + 3.1291
+      : 0;
+    // Automated Readability Index: 4.71*(characters/words) + 0.5*(words/sentences) - 21.43
+    const charCount = words.reduce((sum, w) => sum + w.length, 0);
+    const automatedReadability = wordCount > 0 && sentenceCount > 0
+      ? 4.71 * (charCount / wordCount) + 0.5 * (wordCount / sentenceCount) - 21.43
+      : 0;
+    return {
+      fleschKincaid,
+      smogIndex,
+      automatedReadability,
+    };
+  }
+
+  /**
+   * Helper to count syllables in a word (very basic)
+   */
+  private countSyllables(word: string): number {
+    word = word.toLowerCase();
+    if (word.length <= 3) return 1;
+    const syl = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '')
+      .replace(/^y/, '')
+      .match(/[aeiouy]{1,2}/g);
+    return syl ? syl.length : 1;
+  }
+
+  /**
+   * Batch process texts for a given method (e.g., summarizeContent)
+   */
+  public async batchProcess(texts: string[], method: keyof this = 'summarizeContent'): Promise<any[]> {
+    const methodName = String(method);
+    if (typeof (this as any)[methodName] !== 'function') {
+      throw new Error(`Method ${methodName} does not exist on EnhancedTextAnalyzer`);
+    }
+    return Promise.all(texts.map(text => (this as any)[methodName](text)));
   }
 }

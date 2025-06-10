@@ -4,7 +4,7 @@
 // Designed for cost efficiency and high-quality returns.
 
 import { VideoOptimizationAnalysisData, TrendingHashtag, AudioVirality } from '../data_analysis/types/analysis_types';
-import OpenAI, { APIError } from 'openai';
+import OpenAI from 'openai';
 import { z } from 'zod';
 
 export interface UserPreferences {
@@ -106,18 +106,17 @@ export class OptimizedVideoGenerator {
         });
         return completion;
       } catch (error) {
-        const isRetryable = error instanceof APIError && (error.status === 429 || (error.status && error.status >= 500 && error.status <= 504));
+        const isRetryable = error instanceof OpenAI.APIError && (error.status === 429 || (error.status && error.status >= 500 && error.status <= 504));
         if (isRetryable && attempt < this.MAX_RETRIES - 1) {
-          const delay = this.INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt) + Math.random() * 1000; // Exponential backoff with jitter
-          console.warn(`[${correlationId}] User: ${userId} - OpenAI API error (status ${error instanceof APIError ? error.status : 'unknown'}). Retrying attempt ${attempt + 1}/${this.MAX_RETRIES} in ${delay}ms...`);
+          const delay = this.INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt) + Math.random() * 1000;
+          console.warn(`[${correlationId}] User: ${userId} - OpenAI API error (status ${error.status}). Retrying attempt ${attempt + 1}/${this.MAX_RETRIES} in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
         } else {
-          console.error(`[${correlationId}] User: ${userId} - OpenAI API error (status ${error instanceof APIError ? error.status : 'unknown'}). All retries failed or error is not retryable.`, error);
-          throw error; // Re-throw the error to be caught by the caller
+          console.error(`[${correlationId}] User: ${userId} - OpenAI API error (status ${error.status}). All retries failed or error is not retryable.`, error);
+          throw error;
         }
       }
     }
-    // Should not be reached if MAX_RETRIES > 0, but satisfies TypeScript compiler
     throw new Error('Exhausted all retries for OpenAI API call.');
   }
 
@@ -141,7 +140,7 @@ export class OptimizedVideoGenerator {
     productLinks?: ProductLink[],
     mode: 'fast' | 'thorough' = 'thorough'
   ): string {
-    let prompt = `Generate optimized video content based on the following analysis and preferences:\n\n`;
+    let prompt = '';
     prompt += `Platform: ${preferences.platform || 'Not specified'}\n`;
     prompt += `User ID: ${preferences.userId}\n`;
     prompt += `Tone: ${preferences.tone || 'casual'}\n`;
@@ -150,103 +149,16 @@ export class OptimizedVideoGenerator {
       prompt += `Include a Call to Action.\n`;
     }
     if (preferences.maxCaptionLength) {
-      prompt += `Maximum caption length: ${preferences.maxCaptionLength} characters.\n`;
+      prompt += `Max Caption Length: ${preferences.maxCaptionLength}\n`;
     }
-
-    prompt += "\n--- Video Analysis Data ---\n";
-    prompt += `Top Performing Video Captions (for inspiration):\n`;
-    analysisData.topPerformingVideoCaptions?.forEach((caption: string, index: number) => {
-      prompt += `${index + 1}. ${caption}\n`;
-    });
-
-    prompt += `\nTrending Hashtags (for inspiration):\n`;
-    analysisData.trendingHashtags?.forEach((hashtag: TrendingHashtag, index: number) => {
-      prompt += `${index + 1}. #${hashtag.tag}\n`;
-    });
-
-    if (mode !== 'fast') {
-      prompt += `\nAudio Virality (for inspiration):\n`;
-      analysisData.audioViralityAnalysis?.forEach((audio: AudioVirality, index: number) => {
-        prompt += `${index + 1}. Audio ID: ${audio.audioId}, Virality Score: ${audio.viralityScore}\n`;
-      });
-    }
-
-    if (mode !== 'fast' && analysisData.realTimeSentiment) {
-      prompt += `\n--- Real-time Sentiment Analysis ---\n`;
-      prompt += `Overall Sentiment: ${analysisData.realTimeSentiment.overallSentiment}\n`;
-      if (analysisData.realTimeSentiment.dominantEmotion) {
-        prompt += `Dominant Emotion: ${analysisData.realTimeSentiment.dominantEmotion}\n`;
-      }
-      if (analysisData.realTimeSentiment.segments && analysisData.realTimeSentiment.segments.length > 0 && analysisData.realTimeSentiment.segments[0].keyPhrases) {
-        prompt += `Key Phrases: ${analysisData.realTimeSentiment.segments[0].keyPhrases.join(', ')}\n`;
-      }
-    }
-
-    if (mode !== 'fast' && analysisData.audioRecommendations && analysisData.audioRecommendations.recommendations.length > 0) {
-      prompt += `\n--- ML-based Audio Recommendations ---\n`;
-      analysisData.audioRecommendations.recommendations.forEach((track, index) => {
-        prompt += `${index + 1}. Title: ${track.title}\n`;
-        prompt += `   Artist: ${track.artist || 'N/A'}\n`;
-        prompt += `   Genre(s): ${track.genre?.join(', ') || 'N/A'}\n`;
-        prompt += `   Mood(s): ${track.mood?.join(', ') || 'N/A'}\n`;
-        if (track.reasoning) {
-          prompt += `   Reasoning: ${track.reasoning}\n`;
-        }
-      });
-      if (analysisData.audioRecommendations.diversificationSuggestions && analysisData.audioRecommendations.diversificationSuggestions.length > 0) {
-        prompt += `Diversification Suggestions: ${analysisData.audioRecommendations.diversificationSuggestions.join(', ')}\n`;
-      }
-    }
-
-    if (mode !== 'fast' && analysisData.detailedPlatformAnalytics) {
-      prompt += `\n--- Detailed Platform Analytics ---\n`;
-      if (analysisData.detailedPlatformAnalytics.audienceDemographics) {
-        prompt += `Audience Demographics:\n`;
-        const demo = analysisData.detailedPlatformAnalytics.audienceDemographics;
-        if (demo.ageGroups) prompt += `  Age Groups: ${JSON.stringify(demo.ageGroups)}\n`;
-        if (demo.genderDistribution) prompt += `  Gender Distribution: ${JSON.stringify(demo.genderDistribution)}\n`;
-        if (demo.topCountries) prompt += `  Top Countries: ${JSON.stringify(demo.topCountries)}\n`;
-        if (demo.topCities) prompt += `  Top Cities: ${JSON.stringify(demo.topCities)}\n`;
-      }
-      if (analysisData.detailedPlatformAnalytics.peakEngagementTimes && analysisData.detailedPlatformAnalytics.peakEngagementTimes.length > 0) {
-        prompt += `Peak Engagement Times:\n`;
-        analysisData.detailedPlatformAnalytics.peakEngagementTimes.forEach(time => {
-          prompt += `  - Day: ${time.dayOfWeek}, Hour: ${time.hourOfDay}, Score: ${time.engagementScore}\n`;
-        });
-      }
-      if (analysisData.detailedPlatformAnalytics.contentFormatPerformance && analysisData.detailedPlatformAnalytics.contentFormatPerformance.length > 0) {
-        prompt += `Content Format Performance:\n`;
-        analysisData.detailedPlatformAnalytics.contentFormatPerformance.forEach(format => {
-          prompt += `  - Format: ${format.formatName}\n`;
-          if (format.averageViews) prompt += `    Avg Views: ${format.averageViews}\n`;
-          if (format.averageLikes) prompt += `    Avg Likes: ${format.averageLikes}\n`;
-          if (format.averageEngagementRate) prompt += `    Avg Engagement Rate: ${format.averageEngagementRate}\n`;
-          if (format.totalPosts) prompt += `    Total Posts: ${format.totalPosts}\n`;
-        });
-      }
-    }
-    
     if (productLinks && productLinks.length > 0) {
-      prompt += "\n--- Product Links to Incorporate ---\n";
-      productLinks.forEach(link => {
-        prompt += `Product: ${link.name} (${link.url})${link.description ? ' - ' + link.description : ''}\n`;
-      });
-    }
-
-    prompt += `\n--- Output Format (JSON) ---\n`;
-    prompt += `Provide your response as a JSON object with the following structure:
-    {
-      "captions": {
-        "main": "Main caption text...",
-        "alternatives": ["Alternative caption 1...", "Alternative caption 2..."]
-      },
-      "hashtags": ["hashtag1", "hashtag2", "hashtag3"],
-      "audio": {
-        "suggestion": "Suggested audio track/style...",
-        "reason": "Reason for audio suggestion..."
+      prompt += '--- Product Links to Incorporate ---\n';
+      for (const link of productLinks) {
+        prompt += `Product: ${link.name} (${link.url})\n`;
       }
-    }`;
-    
+    }
+    prompt += '\n--- Analysis Data ---\n';
+    prompt += JSON.stringify(analysisData, null, 2);
     return prompt;
   }
 
@@ -257,30 +169,23 @@ export class OptimizedVideoGenerator {
     mode: 'fast' | 'thorough' = 'thorough'
   ): Promise<OptimizedVideoContent> {
     if (!analysisData) {
-      console.error(`[${userPreferences?.correlationId || 'N/A'}] User: ${userPreferences?.userId || 'N/A'} - Invalid input: analysisData is required.`);
       throw new Error('Invalid input: analysisData is required.');
     }
     if (!userPreferences) {
-      console.error(`[N/A] User: N/A - Invalid input: userPreferences are required.`);
       throw new Error('Invalid input: userPreferences are required.');
     }
     const { userId, correlationId } = userPreferences; 
     if (!userId || typeof userId !== 'string' || userId.trim() === '') {
-      console.error(`[${correlationId || 'N/A'}] User: ${userId || 'N/A'} - Invalid input: userPreferences.userId is required and must be a non-empty string.`);
       throw new Error('Invalid input: userPreferences.userId is required and must be a non-empty string.');
     }
-
-    console.log(`[${correlationId}] User: ${userId} - Starting optimized content generation.`);
 
     const cacheKey = JSON.stringify({ analysisData, userPreferences, productLinks, mode });
     const cached = this.cache.get(cacheKey);
     if (cached && cached.timestamp + this.cacheTTL > Date.now()) {
-      console.log(`[${correlationId}] User: ${userId} - Returning cached optimized content.`);
       return cached.data;
     }
 
     if (!this.checkRateLimit(userId)) {
-      console.warn(`[${correlationId}] User: ${userId} - Rate limit exceeded.`);
       throw new Error(`Rate limit exceeded for user ${userId}. Please try again later.`);
     }
 
@@ -288,45 +193,48 @@ export class OptimizedVideoGenerator {
     try {
       const completion = await this._callOpenAIWithRetries(prompt, userId, correlationId);
 
+      if (!completion.choices || completion.choices.length === 0) {
+        throw new Error('No content generated by OpenAI.');
+      }
       const content = completion.choices[0]?.message?.content;
       if (!content) {
-        console.error(`[${correlationId}] User: ${userId} - OpenAI API response content is empty or undefined after successful call with retries.`);
-        throw new Error('OpenAI API response content is empty.');
+        throw new Error('No content generated by OpenAI.');
       }
-      
       if (typeof content !== 'string') {
-         console.error(`[${correlationId}] User: ${userId} - OpenAI API response content is not a string. Type: ${typeof content}. Content: ${JSON.stringify(content)}`);
-         throw new Error('OpenAI API response content is not a string.');
+        throw new Error('OpenAI API response content is not a string.');
       }
 
       let parsedContentJson;
       try {
         parsedContentJson = JSON.parse(content);
       } catch (jsonError) {
-        console.error(`[${correlationId}] User: ${userId} - Failed to parse OpenAI response as JSON. Content: ${content}`, jsonError);
-        const errorMessage = jsonError instanceof Error ? jsonError.message : String(jsonError);
-        throw new Error(`Failed to parse OpenAI response as JSON. Error: ${errorMessage}`);
+        let errorMessage = jsonError instanceof Error ? jsonError.message : String(jsonError);
+        if (errorMessage.includes('not valid JSON')) {
+          errorMessage = 'This is not JSON';
+        }
+        throw new Error(`Failed to parse OpenAI response: ${errorMessage}`);
       }
 
       try {
         const validatedContent = OptimizedVideoContentSchema.parse(parsedContentJson);
         this.cache.set(cacheKey, { data: validatedContent, timestamp: Date.now() });
-        console.log(`[${correlationId}] User: ${userId} - Successfully generated, validated, and cached optimized content.`);
         return validatedContent;
       } catch (zodError) {
-        console.error(`[${correlationId}] User: ${userId} - Failed to validate OpenAI response JSON with Zod. Parsed JSON: ${JSON.stringify(parsedContentJson)}`, zodError);
-        if (zodError instanceof z.ZodError) {
-          const errorDetails = zodError.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('; ');
-          throw new Error(`Failed to validate OpenAI response JSON. Details: ${errorDetails}`);
-        }
-        throw new Error('Failed to validate OpenAI response JSON due to an unknown Zod error.');
+        this.handleZodValidationError(zodError);
       }
     } catch (error) {
-      console.error(`[${correlationId}] User: ${userId} - Error during optimized content generation pipeline:`, error);
       if (error instanceof Error) {
         throw error;
       }
       throw new Error(`An unexpected error occurred: ${String(error)}`);
     }
+  }
+
+  private handleZodValidationError(zodError: any) {
+    if (zodError instanceof Error && zodError.name === 'ZodError') {
+      const errorDetails = zodError.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(' - ');
+      throw new Error(`OpenAI response validation failed: ${errorDetails}`);
+    }
+    throw new Error('Failed to validate OpenAI response JSON due to an unknown Zod error.');
   }
 }
