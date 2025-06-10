@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,22 @@ export default function BlitzComponent() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
 
+  // Polling for post status updates
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      setScheduledPosts(prevPosts => prevPosts.map(post => {
+        if (post.status === 'scheduled') {
+          // Simulate status update: after 5 seconds, mark as 'posted'
+          if (Date.now() - Number(post.id) > 5000) {
+            return { ...post, status: 'posted' };
+          }
+        }
+        return post;
+      }));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const platformIcons = {
     instagram: Instagram,
     twitter: Twitter,
@@ -57,8 +73,7 @@ export default function BlitzComponent() {
     setSuccessMessage(null);
     
     try {
-      // In a real implementation, this would connect to a scheduling service
-      // For demo purposes, we'll simulate a successful schedule after a delay
+      // Simulate scheduling via autopost workflow
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Create a new scheduled post
@@ -124,6 +139,19 @@ export default function BlitzComponent() {
           </div>
         </div>
         <div className="text-xs text-secondaryText mt-2">All pairings are optional already when user first sees the page.</div>
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold mb-2">Scheduled Posts</h3>
+          <ul className="space-y-2">
+            {scheduledPosts.map(post => (
+              <li key={post.id} className="flex items-center gap-4 p-2 border rounded-md">
+                <span className="font-medium">{post.content}</span>
+                <span className="text-xs text-secondaryText">{post.platform}</span>
+                <span className="text-xs text-secondaryText">{format(post.scheduledDate, 'MMM d, yyyy')} {post.scheduledTime}</span>
+                <span className={`text-xs font-bold ${post.status === 'posted' ? 'text-green-600' : post.status === 'failed' ? 'text-red-600' : 'text-yellow-600'}`}>{post.status}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );

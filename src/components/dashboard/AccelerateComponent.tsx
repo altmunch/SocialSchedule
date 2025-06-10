@@ -30,6 +30,9 @@ interface Video {
   thumbnailUrl?: string;
   status: string;
   columnId: string; // Keep track of which column the video belongs to
+  result?: any;
+  error?: string;
+  loading?: boolean;
 }
 
 interface Column {
@@ -80,7 +83,20 @@ function SortableVideoCard({ video }: SortableVideoCardProps) {
         <div className="w-full h-32 bg-muted rounded-md flex items-center justify-center mb-2">
           <PlayCircle className="w-12 h-12 text-muted-foreground/50" />
         </div>
-        <p className="text-xs text-muted-foreground mb-2">Status: {video.status}</p>
+        <p className="text-xs text-muted-foreground mb-2">Status: {video.status}{video.loading && ' (processing...)'}</p>
+        {video.error && <p className="text-xs text-red-500">Error: {video.error}</p>}
+        {video.result && (
+          <div className="mt-2 text-xs">
+            <div><b>Sentiment:</b> {video.result.sentiment?.sentiment} ({video.result.sentiment?.score})</div>
+            <div><b>Tone:</b> {video.result.tone?.tone}</div>
+            <div><b>Suggestions:</b>
+              <ul className="list-disc ml-4">
+                {video.result.suggestions?.captions?.map((c: string, i: number) => <li key={i}>{c}</li>)}
+              </ul>
+              <div className="mt-1">Hashtags: {video.result.suggestions?.hashtags?.join(' ')}</div>
+            </div>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="p-3 border-t border-border/50 flex justify-end space-x-2">
         <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
@@ -111,20 +127,57 @@ export default function AccelerateComponent() {
     fileInputRef.current?.click();
   };
 
-  const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       const newVideos: Video[] = Array.from(files).map((file, index) => ({
         id: `new-vid-${Date.now()}-${index}`,
         title: file.name,
-        status: 'To Do',
-        columnId: 'todo', // Add to the 'To Do / Uploaded' column by default
-        thumbnailUrl: '', // Placeholder for actual thumbnail
+        status: 'Processing',
+        columnId: 'processing',
+        thumbnailUrl: '',
+        loading: true,
       }));
-
       setVideos(prevVideos => [...newVideos, ...prevVideos]);
+      // For each video, trigger optimization
+      Array.from(files).forEach(async (file, idx) => {
+        const videoId = newVideos[idx].id;
+        try {
+          // Simulate extracting caption from filename for demo
+          const caption = file.name.replace(/\.[^/.]+$/, '');
+          const res = await fetch('/api/ai/optimize/content', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ caption }),
+          });
+          const data = await res.json();
+          setVideos(prev => prev.map(v =>
+            v.id === videoId
+              ? {
+                  ...v,
+                  status: 'Ready',
+                  columnId: 'ready',
+                  result: data,
+                  loading: false,
+                  error: data.error ? data.error : undefined,
+                }
+              : v
+          ));
+        } catch (err: any) {
+          setVideos(prev => prev.map(v =>
+            v.id === videoId
+              ? {
+                  ...v,
+                  status: 'Error',
+                  columnId: 'todo',
+                  loading: false,
+                  error: err.message || 'Failed to optimize',
+                }
+              : v
+          ));
+        }
+      });
     }
-    // Reset file input to allow selecting the same file again if needed
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }

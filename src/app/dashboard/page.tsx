@@ -6,11 +6,16 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Search, Zap, BarChart3, RefreshCw, ArrowRight } from 'lucide-react';
-import { LineChart } from '@/components/dashboard/charts';
+import { LineChart, BarChart } from '@/components/dashboard/charts';
+import { ReportsAnalysisService } from '@/app/workflows/reports/ReportsAnalysisService';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [greeting, setGreeting] = useState('Hello');
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -18,6 +23,37 @@ export default function DashboardPage() {
     else if (hour < 18) setGreeting('Good afternoon');
     else setGreeting('Good evening');
   }, []);
+
+  useEffect(() => {
+    async function fetchAnalytics() {
+      if (!user) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const supabase = createClientComponentClient();
+        const reportsService = new ReportsAnalysisService(supabase);
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const result = await reportsService.getReport({
+          userId: user.id,
+          platform: 'TikTok',
+          timeRange: { start: start.toISOString(), end: end.toISOString() },
+          correlationId: `dashboard-home-${user.id}`,
+        });
+        if (result.success) {
+          setAnalytics(result.data);
+        } else {
+          setError(result.error?.message || 'Failed to load analytics');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to load analytics');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAnalytics();
+  }, [user]);
 
   // Feature cards for the dashboard
   const features = [
@@ -90,13 +126,29 @@ export default function DashboardPage() {
             <div className="bg-panel rounded-lg p-6 shadow-md border border-border flex flex-col items-center">
               <span className="text-creative font-bold mb-2">Sales</span>
               <div className="w-full h-32">
-                <LineChart />
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">Loading...</div>
+                ) : error ? (
+                  <div className="text-red-500 text-sm">{error}</div>
+                ) : analytics && analytics.historicalViewGrowth ? (
+                  <BarChart />
+                ) : (
+                  <div className="text-secondaryText text-sm">No data</div>
+                )}
               </div>
             </div>
             <div className="bg-panel rounded-lg p-6 shadow-md border border-border flex flex-col items-center">
               <span className="text-highlight font-bold mb-2">Conversion</span>
               <div className="w-full h-32">
-                <LineChart />
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">Loading...</div>
+                ) : error ? (
+                  <div className="text-red-500 text-sm">{error}</div>
+                ) : analytics && analytics.pastPostsPerformance ? (
+                  <LineChart />
+                ) : (
+                  <div className="text-secondaryText text-sm">No data</div>
+                )}
               </div>
             </div>
           </div>
