@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { AuthTokenManagerService } from '../../../../workflows/data_collection/lib/auth-token-manager.service';
-import { Platform } from '../../../../workflows/data_collection/functions/types'; // Updated import path
+import { Platform } from '../../../../workflows/deliverables/types/deliverables_types';
 import { PlatformClientIdentifier } from '../../../../workflows/data_collection/lib/auth.types';
 
 export async function GET(request: NextRequest) {
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
   const authTokenManager = new AuthTokenManagerService();
   const platformId: PlatformClientIdentifier = {
-    platform: 'tiktok', // Using string literal since we know this is for TikTok
+    platform: Platform.TIKTOK,
     // userId is not known at this point; AuthTokenManagerService will use open_id from TikTok's response
   };
 

@@ -3,8 +3,6 @@ import InstagramClient from './InstagramClient';
 import TikTokClient from './TikTokClient';
 import { ApiConfig, ApiCredentials, Platform } from '../types';
 
-export type PlatformType = 'instagram' | 'tiktok' | 'youtube';
-
 /**
  * Factory class for creating platform-specific API clients
  */
@@ -51,7 +49,7 @@ class PlatformFactory {
    * @param platform The platform type to validate
    * @returns boolean indicating if the platform is supported
    */
-  static isPlatformSupported(platform: string): platform is PlatformType {
+  static isPlatformSupported(platform: string): platform is Platform {
     return ['instagram', 'tiktok', 'youtube'].includes(platform);
   }
 }

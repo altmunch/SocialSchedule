@@ -1,4 +1,5 @@
 ﻿import { PostMetrics } from '@/app/workflows/data_collection/functions/types';
+import { Platform } from '../../deliverables/types/deliverables_types';
 
 // Placeholder for a simple in-memory feature store
 export const featureStore: Record<string, any[]> = {
@@ -13,7 +14,7 @@ export function feedbackLoop(): void {
   const sampleUserInteraction = { userId: 'user1', action: 'like', postId: 'post123', timestamp: Date.now() };
   const sampleContentPerformance: PostMetrics = {
     id: 'post123',
-    platform: 'tiktok',
+    platform: Platform.TIKTOK,
     views: 1000,
     likes: 100,
     comments: 10,
@@ -22,7 +23,7 @@ export function feedbackLoop(): void {
     timestamp: new Date(),
     url: 'https://tiktok.com/post123',
   };
-  const samplePlatformMetric = { platform: 'tiktok', activeUsers: 1000000, timestamp: Date.now() };
+  const samplePlatformMetric = { platform: Platform.TIKTOK, activeUsers: 1000000, timestamp: Date.now() };
 
   // Feature extraction (placeholder)
   const features = {
@@ -45,7 +46,7 @@ export function ingestSampleBatchData(): void {
   for (let i = 0; i < 20; i++) {
     const userId = `user${i % 5}`;
     const postId = `post${i}`;
-    const platform = i % 2 === 0 ? 'tiktok' : 'instagram';
+    const platform = i % 2 === 0 ? Platform.TIKTOK : Platform.INSTAGRAM;
     const views = 1000 + i * 50;
     const likes = 100 + i * 10;
     const comments = 10 + i;

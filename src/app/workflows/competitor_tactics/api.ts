@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import { TacticExtractor } from './TacticExtractor';
-import { TaxonomyMapper } from './TaxonomyMapper';
-import { TacticMap } from './TacticMap';
+import { TacticExtractor } from './functions/TacticExtractor';
+import { TaxonomyMapper } from './functions/TaxonomyMapper';
+import { TacticMap } from './functions/TacticMap';
 
 /**
  * POST /extract-tactics

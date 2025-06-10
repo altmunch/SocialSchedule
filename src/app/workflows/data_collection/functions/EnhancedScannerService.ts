@@ -9,6 +9,7 @@ import { OptimizedPostAnalyzer } from './analysis/PostAnalyzer';
 import { CacheSystem } from './cache/CacheSystem';
 import { MonitoringSystem } from './monitoring/MonitoringSystem';
 import EventEmitter from 'events';
+import { Platform as DeliverablePlatform } from '../../deliverables/types/deliverables_types';
 
 // Circuit breaker states
 export enum CircuitBreakerState {

@@ -6,6 +6,7 @@ import { YouTubeClient } from './platforms/YouTubeClient';
 import { OptimizedPostAnalyzer as PostAnalyzer } from './analysis/PostAnalyzer';
 import { Cache } from './utils/Cache';
 import { EventEmitter } from 'events';
+import { Platform as DeliverablePlatform } from '../../deliverables/types/deliverables_types';
 
 /**
  * @interface CircuitBreakerState

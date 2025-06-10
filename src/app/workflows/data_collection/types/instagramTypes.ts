@@ -1,3 +1,5 @@
+import { Platform } from '../../deliverables/types/deliverables_types';
+
 /**
  * Represents the structure of a raw Instagram post stored in the database.
  * NOTE: The 'caption' field is always treated as the video/post description (not subtitle).

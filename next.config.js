@@ -1,4 +1,5 @@
 const path = require('path');
+const withBundleAnalyzer = require('@next/bundle-analyzer')({ enabled: process.env.ANALYZE === 'true' });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -32,4 +33,18 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+const withBundleAnalyzerConfig = withBundleAnalyzer(nextConfig);
+
+const optimizedNextConfig = {
+  ...withBundleAnalyzerConfig,
+  swcMinify: true,
+  images: {
+    formats: ['image/avif', 'image/webp'],
+  },
+  experimental: {
+    ...withBundleAnalyzerConfig.experimental,
+    optimizePackageImports: ['huggingface'],
+  },
+};
+
+module.exports = optimizedNextConfig;

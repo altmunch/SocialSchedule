@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { TikTokApiUserNode, TikTokApiVideoNode } from '@/app/data_collection/types/tiktokTypes';
+import { TikTokApiUserNode, TikTokApiVideoNode } from '../../types/tiktokTypes';
 
 // IMPORTANT: Replace with the actual base URL of the TikTok API you are using.
 const TIKTOK_API_BASE_URL = 'https://open.tiktokapis.com'; // Example: TikTok for Developers API

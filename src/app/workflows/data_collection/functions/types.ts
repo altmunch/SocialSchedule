@@ -1,13 +1,9 @@
 // difficult: This file defines the core types and validation for the SCAN phase
 import { z } from 'zod';
+import { Platform } from '../../deliverables/types/deliverables_types';
 
-export const PlatformSchema = z.union([
-  z.literal('tiktok'),
-  z.literal('instagram'),
-  z.literal('youtube')
-]);
-
-export type Platform = z.infer<typeof PlatformSchema>;
+export const PlatformSchema = z.nativeEnum(Platform);
+export type Platform = Platform;
 
 // Common error types
 export type ApiError = {

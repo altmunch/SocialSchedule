@@ -1,3 +1,5 @@
+import { Platform } from '../../deliverables/types/deliverables_types';
+
 /**
  * Represents the structure of a raw TikTok video stored in the database.
  * NOTE: The 'description' field is always treated as the video description (not subtitle).

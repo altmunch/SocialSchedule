@@ -8,6 +8,8 @@ import { CacheSystem } from '../cache/CacheSystem';
 import { MonitoringSystem } from '../monitoring/MonitoringSystem';
 import { Platform, ScanOptions, ScanStatus } from '../types';
 import { EventEmitter } from 'events';
+import { Platform as DeliverablePlatform } from '../../deliverables/types/deliverables_types';
+import { Platform } from '../../deliverables/types/deliverables_types';
 
 // Mock dependencies
 jest.mock('../platforms/TikTokClient');
@@ -24,11 +26,11 @@ describe('EnhancedScannerService', () => {
   // Sample test data
   const userId = 'user123';
   const testPlatforms: { platform: Platform; accessToken: string }[] = [
-    { platform: 'instagram', accessToken: 'test-instagram-token' },
-    { platform: 'tiktok', accessToken: 'test-tiktok-token' }
+    { platform: Platform.INSTAGRAM, accessToken: 'test-instagram-token' },
+    { platform: Platform.TIKTOK, accessToken: 'test-tiktok-token' }
   ];
   const testScanOptions: ScanOptions = {
-    platforms: ['instagram', 'tiktok'],
+    platforms: [Platform.INSTAGRAM, Platform.TIKTOK],
     lookbackDays: 30,
     includeOwnPosts: true,
     competitors: ['competitor1'],
@@ -80,9 +82,9 @@ describe('EnhancedScannerService', () => {
       
       // Assert
       const platformClients = scannerService['platformClients'] as Map<Platform, any>;
-      expect(platformClients.get('instagram')).toBeDefined();
-      expect(platformClients.get('tiktok')).toBeDefined();
-      expect(platformClients.get('youtube')).toBeUndefined();
+      expect(platformClients.get(Platform.INSTAGRAM)).toBeDefined();
+      expect(platformClients.get(Platform.TIKTOK)).toBeDefined();
+      expect(platformClients.get(Platform.YOUTUBE)).toBeUndefined();
     });
     
     test('should handle initialization with no platforms', async () => {
@@ -91,9 +93,9 @@ describe('EnhancedScannerService', () => {
       
       // Assert
       const platformClients = scannerService['platformClients'] as Map<Platform, any>;
-      expect(platformClients.get('instagram')).toBeUndefined();
-      expect(platformClients.get('tiktok')).toBeUndefined();
-      expect(platformClients.get('youtube')).toBeUndefined();
+      expect(platformClients.get(Platform.INSTAGRAM)).toBeUndefined();
+      expect(platformClients.get(Platform.TIKTOK)).toBeUndefined();
+      expect(platformClients.get(Platform.YOUTUBE)).toBeUndefined();
     });
   });
 
@@ -164,37 +166,37 @@ describe('EnhancedScannerService', () => {
       
       // Mock platform client to fail
       const platformClients = scannerService['platformClients'] as Map<Platform, any>;
-      const instagramClient = platformClients.get('instagram');
+      const instagramClient = platformClients.get(Platform.INSTAGRAM);
       (instagramClient.getUserPosts as jest.Mock).mockRejectedValueOnce(new Error('API error'));
       
       // Act & Assert - First call should trip circuit breaker
-      await expect(scannerService.getUserPosts('instagram', userId, 30)).rejects.toThrow();
+      await expect(scannerService.getUserPosts(Platform.INSTAGRAM, userId, 30)).rejects.toThrow();
       // After failure, do not mock getUserPosts to return a PaginatedResponse; keep it throwing
       // Circuit breaker should now be open
       const circuitBreakers = scannerService['circuitBreakers'] as Map<string, any>;
       const circuitBreaker = circuitBreakers.get('instagram_api');
       expect(circuitBreaker).toBeDefined();
       // Second call should fail fast due to open circuit
-      await expect(scannerService.getUserPosts('instagram', userId, 30)).rejects.toThrow(/Service unavailable: instagram API is currently unavailable/);
+      await expect(scannerService.getUserPosts(Platform.INSTAGRAM, userId, 30)).rejects.toThrow(/Service unavailable: instagram API is currently unavailable/);
     }, 20000);
     
     test('should use cache when available', async () => {
       // Arrange
       await scannerService.initializePlatforms(testPlatforms);
-      const mockPosts = [{ id: 'post1', platform: 'tiktok', likes: 100 }];
-      const cacheKey = `posts:tiktok:${userId}:30`;
+      const mockPosts = [{ id: 'post1', platform: Platform.TIKTOK, likes: 100 }];
+      const cacheKey = `posts:${Platform.TIKTOK}:${userId}:30`;
       (mockCacheSystem.get as jest.Mock).mockImplementation((segment: string, key: string) => {
         if (segment === 'posts' && key === cacheKey) return Promise.resolve(mockPosts);
         return Promise.resolve(undefined);
       });
       // Act
-      const result = await scannerService.getUserPosts('tiktok', userId, 30);
+      const result = await scannerService.getUserPosts(Platform.TIKTOK, userId, 30);
       // Assert
       expect(result).toEqual(mockPosts);
       expect(mockCacheSystem.get).toHaveBeenCalledWith('posts', cacheKey);
       // Platform client should not be called on cache hit
       const platformClients = scannerService['platformClients'] as Map<Platform, any>;
-      const tiktokClient = platformClients.get('tiktok');
+      const tiktokClient = platformClients.get(Platform.TIKTOK);
       expect(tiktokClient.getUserPosts).not.toHaveBeenCalled();
     });
     
@@ -203,11 +205,11 @@ describe('EnhancedScannerService', () => {
       await scannerService.initializePlatforms(testPlatforms);
       
       // Act
-      await scannerService.invalidateUserCache('instagram', userId);
+      await scannerService.invalidateUserCache(Platform.INSTAGRAM, userId);
       
       // Assert
       expect(mockCacheSystem.invalidateByTag).toHaveBeenCalledWith('posts', `user:${userId}`);
-      expect(mockCacheSystem.invalidateByTag).toHaveBeenCalledWith('posts', `platform:instagram`);
+      expect(mockCacheSystem.invalidateByTag).toHaveBeenCalledWith('posts', `platform:${Platform.INSTAGRAM}`);
     });
   });
 
@@ -252,12 +254,12 @@ describe('EnhancedScannerService', () => {
       
       // Mock empty post responses
       const platformClients = scannerService['platformClients'] as Map<Platform, any>;
-      const instagramClient = platformClients.get('instagram');
+      const instagramClient = platformClients.get(Platform.INSTAGRAM);
       (instagramClient.getUserPosts as jest.Mock).mockResolvedValue([]);
       
       // Act - Create a scan with performScan
       const scanId = await scannerService.startScan(userId, { 
-        platforms: ['instagram'],
+        platforms: [Platform.INSTAGRAM],
         lookbackDays: 7,
         includeOwnPosts: true
       });

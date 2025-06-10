@@ -2,8 +2,7 @@ import { TikTokClient } from '../../data_collection/functions/platforms/TikTokCl
 import { InstagramClient } from '../../data_collection/functions/platforms/InstagramClient';
 import { YouTubeClient } from '../../data_collection/functions/platforms/YouTubeClient';
 import type { PostMetrics, PaginatedResponse } from '../../data_collection/functions/types';
-
-export type Platform = 'tiktok' | 'instagram' | 'youtube';
+import { Platform } from '../../data_collection/lib/platforms/types';
 
 interface CompetitorApiConfig {
   tiktokToken: string;

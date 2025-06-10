@@ -3,6 +3,7 @@
 
 import { Platform, PlatformClient, PlatformPostMetrics, PlatformUserActivity } from './platforms/types';
 import { PlatformClientFactory } from './platforms/platform-factory';
+import { AuthStrategy } from './auth.types';
 
 export interface PlatformAuth {
   platform: Platform;
@@ -34,7 +35,11 @@ export class DataCollectionService {
     try {
       for (const { platform, credentials } of platformAuths) {
         try {
-          const client = PlatformClientFactory.createClient(platform, credentials);
+          const client = await PlatformClientFactory.createClient(platform, { ...credentials, strategy: AuthStrategy.OAUTH2 }, {
+            baseUrl: '',
+            version: '',
+            rateLimit: { requests: 100, perSeconds: 60 },
+          });
           this.platformClients.set(platform, client);
           console.log(`Initialized ${platform} client successfully`);
         } catch (error) {

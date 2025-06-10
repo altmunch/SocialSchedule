@@ -1,24 +1,15 @@
 // TextSummaryEngine.ts
-let HuggingFaceCtor: any;
-try {
-  // Try default import
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  HuggingFaceCtor = require('huggingface').default;
-} catch {
-  // Fallback to namespace import
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  HuggingFaceCtor = require('huggingface');
-}
+import { HfInference } from '@huggingface/inference';
 
 /**
  * Summarizes text using an open-source model (BART or T5) via Hugging Face Inference API.
  */
 export class TextSummaryEngine {
-  private hf: any;
+  private hf: HfInference;
   private model: string;
 
   constructor(apiKey: string, model: 'facebook/bart-large-cnn' | 't5-base' = 'facebook/bart-large-cnn') {
-    this.hf = new HuggingFaceCtor(apiKey);
+    this.hf = new HfInference(apiKey);
     this.model = model;
   }
 
@@ -34,6 +25,10 @@ export class TextSummaryEngine {
       inputs: text,
       parameters: { min_length: minLength, max_length: maxLength },
     });
-    return result[0]?.summary_text || '';
+    // @huggingface/inference returns { summary_text: string }
+    if (Array.isArray(result)) {
+      return result[0]?.summary_text || '';
+    }
+    return (result as any)?.summary_text || '';
   }
 } 

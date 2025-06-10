@@ -9,7 +9,7 @@ import {
   RawTikTokUser,
   CreateRawTikTokUserDto,
   UpdateRawTikTokUserDto,
-} from '../../../types/tiktokTypes';
+} from '../../types/tiktokTypes';
 import { isValidTikTokApiVideoNode, isValidTikTokApiUserNode } from './validators/tiktokValidators';
 import { limitTikTokApiCall } from './rateLimiter';
 
@@ -23,7 +23,7 @@ function transformApiVideoToCreateDto(videoNode: TikTokApiVideoNode, systemUserI
     video_url: videoNode.video.play_addr?.url_list?.[0] || null,
     cover_image_url: videoNode.video.cover?.url_list?.[0] || null,
     // share_url: videoNode.share_url, // Depends on API providing this
-    timestamp: new Date(videoNode.create_time * 1000).toISOString(), // Assuming create_time is Unix timestamp
+    timestamp: typeof videoNode.create_time === 'number' ? new Date(videoNode.create_time * 1000).toISOString() : '', // Safe conversion
     likes_count: videoNode.stats.digg_count || 0,
     comments_count: videoNode.stats.comment_count || 0,
     shares_count: videoNode.stats.share_count || 0,
@@ -41,7 +41,7 @@ function transformApiVideoToUpdateDto(videoNode: TikTokApiVideoNode): UpdateRawT
     description: videoNode.desc || null,
     video_url: videoNode.video.play_addr?.url_list?.[0] || null,
     cover_image_url: videoNode.video.cover?.url_list?.[0] || null,
-    timestamp: new Date(videoNode.create_time * 1000).toISOString(),
+    timestamp: typeof videoNode.create_time === 'number' ? new Date(videoNode.create_time * 1000).toISOString() : '',
     likes_count: videoNode.stats.digg_count || 0,
     comments_count: videoNode.stats.comment_count || 0,
     shares_count: videoNode.stats.share_count || 0,

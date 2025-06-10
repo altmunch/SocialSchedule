@@ -1,5 +1,7 @@
 'use client';
 
+export const revalidate = 3600;
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import Link from 'next/link';

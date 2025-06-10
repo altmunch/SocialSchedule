@@ -1,4 +1,4 @@
-type Platform = 'tiktok' | 'instagram' | 'youtube';
+import { Platform } from '../../workflows/deliverables/types/deliverables_types';
 
 interface Credential {
   platform: Platform;
