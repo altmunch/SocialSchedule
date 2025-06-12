@@ -60,9 +60,9 @@ export default function IdeatorPage() {
               placeholder="Describe your product or service in detail... Include features, benefits, target audience, and what makes it unique. The more details you provide, the better content ideas we can generate for you."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={8}
+              rows={12}
               disabled={loading}
-              className="w-full min-h-[200px] text-base leading-relaxed p-6 rounded-xl border-2 border-border focus:border-primary resize-none"
+              className="w-full min-h-[300px] text-base leading-relaxed p-6 rounded-xl border-2 border-border focus:border-primary resize-none"
             />
           </div>
           <div className="flex items-center gap-4 pt-4">

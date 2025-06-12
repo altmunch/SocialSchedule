@@ -135,19 +135,25 @@ export default function Sidebar() {
         </div>
 
         {/* How to Sell group collapsible */}
-        <div className="mt-6">
+        <div className="mt-6 px-2">
           <button
             onClick={() => setSellOpen(!sellOpen)}
-            className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-2 py-1"
+            className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 rounded-lg px-3 py-2 transition-colors"
           >
-            How to Sell
-            <span className={cn("transition-transform", sellOpen ? "rotate-90" : "")}>▶</span>
+            <span className="flex items-center">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-primary mr-2"></span>
+              How to Sell
+            </span>
+            <span className={cn("transition-transform text-muted-foreground", sellOpen ? "rotate-90" : "")}>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </span>
           </button>
           {sellOpen && (
             <ul className="mt-2 pl-2 space-y-1">
               {howToSellNav.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                const incomplete = incompletePaths.includes(item.href);
+                // Only show red dots if user has actual edits in progress (this would be managed by state)
+                const hasEditsInProgress = false; // This would come from your app state
                 return (
                   <li key={item.name} className="relative">
                     <Link
@@ -159,8 +165,8 @@ export default function Sidebar() {
                     >
                       <item.icon className={cn("mr-3 h-5 w-5 transition-transform duration-150", isActive ? "text-primary" : "text-secondaryText group-hover:text-primary group-hover:scale-110")} />
                       {item.name}
-                      {incomplete && (
-                        <span className="ml-auto mr-1 h-2 w-2 rounded-full bg-coral" aria-label="Onboarding step incomplete" />
+                      {hasEditsInProgress && (
+                        <span className="ml-auto mr-1 h-2 w-2 rounded-full bg-coral" aria-label="Edits in progress" />
                       )}
                     </Link>
                   </li>

@@ -13,6 +13,7 @@ type Plan = {
   id: string;
   name: string;
   price: number;
+  yearlyPrice?: number;
   interval: 'monthly' | 'yearly';
   description: string;
   features: string[];
@@ -21,55 +22,65 @@ type Plan = {
 
 export default function SubscriptionComponent() {
   const { user } = useAuth();
-  const [activePlan, setActivePlan] = useState<string>('free'); // In a real app, fetch from user profile
+  const [activePlan, setActivePlan] = useState<string>('pro'); // In a real app, fetch from user profile
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Mock subscription plans
+  // Using the same pricing structure as the landing page
   const plans: Plan[] = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: 0,
-      interval: 'monthly',
-      description: 'For individuals just getting started',
-      features: [
-        'Basic content scheduling',
-        'Limited analytics',
-        '5 scheduled posts per month',
-        'Single user'
-      ]
-    },
     {
       id: 'pro',
       name: 'Pro',
-      price: billingCycle === 'monthly' ? 19 : 190,
+      price: 70,
+      yearlyPrice: 600,
       interval: billingCycle,
-      description: 'For growing creators and small teams',
+      description: 'Entry-level for premium, niche service',
       features: [
-        'Advanced content scheduling',
-        'Full analytics dashboard',
-        'Unlimited scheduled posts',
-        'Up to 3 team members',
-        'AI content optimization',
-        'Priority support'
+        'Content Optimizing Engine ("Accelerate")',
+        'Precise Automated Posting ("Blitz")',
+        'Viral Cycle of Improvements ("Cycle")',
+        'Comprehensive Field Research ("Scan")',
+        'Retention-Boosting Hashtag Generator',
+        'Manage up to 3 social accounts',
+        'Basic content analytics dashboard',
+        'Template Generator Bonus ($399 value)'
+      ]
+    },
+    {
+      id: 'team',
+      name: 'Team',
+      price: 100,
+      yearlyPrice: 900,
+      interval: billingCycle,
+      description: 'For teams or heavy users, added features',
+      features: [
+        'Everything in Pro, plus:',
+        'Team collaboration features',
+        'Custom Brand Voice AI',
+        'Priority posting during peak hours',
+        'Advanced content performance metrics',
+        'Manage up to 10 social accounts',
+        'Content calendar with team workflows',
+        'Hook Creator Bonus ($500 value)'
       ],
       isPopular: true
     },
     {
-      id: 'business',
-      name: 'Business',
-      price: billingCycle === 'monthly' ? 49 : 490,
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: 160,
+      yearlyPrice: 1500,
       interval: billingCycle,
-      description: 'For professional teams and agencies',
+      description: 'For custom integrations or high-volume needs',
       features: [
-        'All Pro features',
-        'Advanced AI automation',
-        'Custom reporting',
-        'Unlimited team members',
-        'API access',
+        'Everything in Team, plus:',
+        'Direct e-commerce platform integration',
         'Dedicated account manager',
-        'White label options'
+        'Advanced analytics and reporting',
+        'Unlimited social accounts',
+        'Custom API integrations',
+        'White-glove onboarding',
+        'Custom AI model training for your brand'
       ]
     }
   ];
@@ -81,15 +92,16 @@ export default function SubscriptionComponent() {
     setTimeout(() => setSuccessMessage(null), 5000);
   };
 
-  const formatPrice = (price: number, interval: 'monthly' | 'yearly') => {
-    return `$${price}${interval === 'monthly' ? '/month' : '/year'}`;
+  const formatPrice = (plan: Plan) => {
+    const price = billingCycle === 'yearly' ? plan.yearlyPrice || plan.price : plan.price;
+    return `$${price}${billingCycle === 'monthly' ? '/month' : '/year'}`;
   };
 
   // Mock invoice data
   const invoices = [
-    { id: 'INV-001', date: '2025-05-01', amount: '$19.00', status: 'Paid' },
-    { id: 'INV-002', date: '2025-04-01', amount: '$19.00', status: 'Paid' },
-    { id: 'INV-003', date: '2025-03-01', amount: '$19.00', status: 'Paid' }
+    { id: 'INV-001', date: '2025-05-01', amount: '$70.00', status: 'Paid' },
+    { id: 'INV-002', date: '2025-04-01', amount: '$70.00', status: 'Paid' },
+    { id: 'INV-003', date: '2025-03-01', amount: '$70.00', status: 'Paid' }
   ];
 
   return (
@@ -163,11 +175,11 @@ export default function SubscriptionComponent() {
                   <CardDescription>{plan.description}</CardDescription>
                   <div className="mt-2">
                     <span className="text-3xl font-bold">
-                      {plan.price === 0 ? 'Free' : formatPrice(plan.price, plan.interval)}
+                      {formatPrice(plan)}
                     </span>
-                    {plan.price > 0 && billingCycle === 'yearly' && (
+                    {billingCycle === 'yearly' && plan.yearlyPrice && (
                       <span className="text-sm text-green-600 ml-2">
-                        20% off
+                        Save 20%
                       </span>
                     )}
                   </div>
@@ -237,7 +249,7 @@ export default function SubscriptionComponent() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Current Billing Cycle</p>
-                  <p className="text-sm text-gray-500">You are currently billed monthly</p>
+                  <p className="text-sm text-gray-500">You are currently billed {billingCycle}</p>
                 </div>
                 <Button variant="outline">Change</Button>
               </div>

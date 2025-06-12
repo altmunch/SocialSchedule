@@ -3,22 +3,22 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, XCircle, Users, ShoppingCart } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Users, ShoppingCart, Music2, Instagram, Youtube, Twitter, Linkedin, Store, Package, Globe } from "lucide-react";
 
 const socialPlatforms = [
-  { name: "TikTok", id: "tiktok" },
-  { name: "Instagram", id: "instagram" },
-  { name: "YouTube", id: "youtube" },
-  { name: "Twitter", id: "twitter" },
-  { name: "LinkedIn", id: "linkedin" },
+  { name: "TikTok", id: "tiktok", icon: Music2 },
+  { name: "Instagram", id: "instagram", icon: Instagram },
+  { name: "YouTube", id: "youtube", icon: Youtube },
+  { name: "Twitter", id: "twitter", icon: Twitter },
+  { name: "LinkedIn", id: "linkedin", icon: Linkedin },
 ];
 
 const commercePlatforms = [
-  { name: "Shopify", id: "shopify" },
-  { name: "Amazon", id: "amazon" },
-  { name: "WooCommerce", id: "woocommerce" },
-  { name: "Etsy", id: "etsy" },
-  { name: "eBay", id: "ebay" },
+  { name: "Shopify", id: "shopify", icon: Store },
+  { name: "Amazon", id: "amazon", icon: Package },
+  { name: "WooCommerce", id: "woocommerce", icon: Globe },
+  { name: "Etsy", id: "etsy", icon: Store },
+  { name: "eBay", id: "ebay", icon: Package },
 ];
 
 export default function ConnectPage() {
@@ -63,28 +63,34 @@ export default function ConnectPage() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {platforms.map((platform) => (
-          <div key={platform.id} className="flex items-center justify-between p-3 border rounded-lg">
-            <span className="font-medium">{platform.name}</span>
-            <div className="flex items-center gap-2">
-              {connections[platform.id] ? (
-                <>
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  <Button variant="outline" size="sm" onClick={() => handleDisconnect(platform.id)} disabled={loading === platform.id}>
-                    {loading === platform.id ? <Loader2 className="animate-spin h-4 w-4" /> : "Disconnect"}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-5 w-5 text-gray-400" />
-                  <Button variant="outline" size="sm" onClick={() => handleConnect(platform.id)} disabled={loading === platform.id}>
-                    {loading === platform.id ? <Loader2 className="animate-spin h-4 w-4" /> : "Connect"}
-                  </Button>
-                </>
-              )}
+        {platforms.map((platform) => {
+          const PlatformIcon = platform.icon;
+          return (
+            <div key={platform.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <PlatformIcon className="h-5 w-5 text-muted-foreground" />
+                <span className="font-medium">{platform.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {connections[platform.id] ? (
+                  <>
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    <Button variant="outline" size="sm" onClick={() => handleDisconnect(platform.id)} disabled={loading === platform.id}>
+                      {loading === platform.id ? <Loader2 className="animate-spin h-4 w-4" /> : "Disconnect"}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-5 w-5 text-gray-400" />
+                    <Button variant="outline" size="sm" onClick={() => handleConnect(platform.id)} disabled={loading === platform.id}>
+                      {loading === platform.id ? <Loader2 className="animate-spin h-4 w-4" /> : "Connect"}
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );

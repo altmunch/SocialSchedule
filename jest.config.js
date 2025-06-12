@@ -9,6 +9,9 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
+  modulePaths: [
+    '<rootDir>/src/lib/ai',
+  ],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       useESM: true,
