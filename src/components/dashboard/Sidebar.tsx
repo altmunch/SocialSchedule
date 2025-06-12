@@ -14,7 +14,8 @@ import {
   Lightbulb as LightbulbIcon,
   Crown as CrownIcon,
   Link as LinkIcon,
-  RefreshCw as RefreshCwIcon
+  RefreshCw as RefreshCwIcon,
+  ChevronRight
 } from 'lucide-react';
 
 const mainNav = [
@@ -47,24 +48,27 @@ export default function Sidebar() {
   const incompletePaths = ['/dashboard/ideator', '/dashboard/competitor-tactics'];
 
   return (
-    <div className="w-64 h-screen bg-panel text-text border-r border-border flex flex-col">
-      <div className="p-4 border-b border-border flex items-center justify-center">
-        <Link href="/dashboard" className="flex items-center space-x-2">
-          <div className="relative h-8 w-8 rounded-full overflow-hidden">
+    <div className="w-64 h-screen bg-card/80 backdrop-blur-md border-r border-border/50 flex flex-col">
+      <div className="p-4 border-b border-border/50 flex items-center justify-center">
+        <Link href="/dashboard" className="flex items-center space-x-3 group">
+          <div className="relative h-9 w-9 rounded-lg overflow-hidden bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
             <Image
               src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png"
               alt="ClipsCommerce Logo"
-              fill
-              style={{ objectFit: 'cover', filter: 'invert(1)' }}
+              width={24}
+              height={24}
+              className="object-contain p-1 invert"
               priority
             />
           </div>
-          <span className="text-xl font-bold text-text">ClipsCommerce</span>
+          <span className="text-xl font-bold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+            ClipsCommerce
+          </span>
         </Link>
       </div>
       <nav className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Primary */}
-        <ul>
+        <ul className="space-y-1 p-2">
           {mainNav.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
@@ -72,11 +76,20 @@ export default function Sidebar() {
                 <Link 
                   href={item.href}
                   className={cn(
-                    "group flex items-center py-1.5 px-2 rounded-md text-sm font-medium transition-colors",
-                    isActive ? "bg-hover text-primary" : "text-secondaryText hover:bg-hover hover:text-primary"
+                    "group flex items-center py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200",
+                    isActive 
+                      ? "bg-brand-primary/10 text-brand-primary font-semibold" 
+                      : "text-muted-foreground hover:bg-secondary/20 hover:text-foreground"
                   )}
                 >
-                  <item.icon className={cn("mr-3 h-5 w-5 transition-transform duration-150", isActive ? "text-primary" : "text-secondaryText group-hover:text-primary group-hover:scale-110")} />
+                  <item.icon 
+                    className={cn(
+                      "mr-3 h-5 w-5 transition-transform duration-200", 
+                      isActive 
+                        ? "text-brand-primary" 
+                        : "text-muted-foreground group-hover:text-foreground group-hover:scale-105"
+                    )} 
+                  />
                   {item.name}
                 </Link>
               </li>
@@ -85,13 +98,18 @@ export default function Sidebar() {
         </ul>
 
         {/* Sell Faster group collapsible */}
-        <div className="mt-6">
+        <div className="mt-6 px-2">
           <button
             onClick={() => setSellFasterOpen(!sellFasterOpen)}
-            className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-2 py-1"
+            className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 rounded-lg px-3 py-2 transition-colors"
           >
-            Sell Faster
-            <span className={cn("transition-transform", sellFasterOpen ? "rotate-90" : "")}>▶</span>
+            <span className="flex items-center">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-primary mr-2"></span>
+              Sell Faster
+            </span>
+            <span className={cn("transition-transform text-muted-foreground", sellFasterOpen ? "rotate-90" : "")}>
+              <ChevronRight className="h-3.5 w-3.5" />
+            </span>
           </button>
           {sellFasterOpen && (
             <ul className="mt-2 pl-2 space-y-1">

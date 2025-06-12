@@ -23,7 +23,7 @@ export default function Header({ breadcrumb }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="bg-card border-b border-border sticky top-0 z-10 text-foreground">
+    <header className="bg-card/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-10 text-foreground">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Mobile menu button */}
@@ -33,6 +33,7 @@ export default function Header({ breadcrumb }: HeaderProps) {
               size="icon" 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Toggle mobile menu"
+              className="hover:bg-secondary/20 text-foreground"
             >
               <Menu className="h-6 w-6" />
             </Button>
@@ -40,17 +41,23 @@ export default function Header({ breadcrumb }: HeaderProps) {
 
           {/* Breadcrumb area */}
           <div className="hidden md:flex md:flex-shrink-0 items-center">
-            {breadcrumb}
+            <div className="flex items-center space-x-2 text-sm">
+              {breadcrumb}
+            </div>
           </div>
 
           {/* Right section */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
-                  <Bell className="h-5 w-5 text-muted-foreground group-hover:text-foreground" />
-                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-primary"></span>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="relative text-muted-foreground hover:text-foreground hover:bg-secondary/20"
+                >
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-brand-primary animate-pulse"></span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64">
@@ -65,13 +72,21 @@ export default function Header({ breadcrumb }: HeaderProps) {
             {/* User menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                    <User className="h-4 w-4 text-primary" />
+                <Button 
+                  variant="ghost" 
+                  className="flex items-center space-x-2 hover:bg-secondary/20"
+                >
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center text-foreground">
+                    <User className="h-4 w-4" />
                   </div>
-                  <span className="ml-2 hidden md:block text-sm font-medium text-foreground">
-                    {user?.email?.split('@')[0] || 'User'}
-                  </span>
+                  <div className="hidden md:flex flex-col items-start">
+                    <span className="text-sm font-medium text-foreground">
+                      {user?.email?.split('@')[0] || 'User'}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {user?.email}
+                    </span>
+                  </div>
                   <ChevronDown className="ml-1 h-4 w-4 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>

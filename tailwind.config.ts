@@ -116,6 +116,19 @@ const config: Config = {
   },
   plugins: [
     require("tailwindcss-animate"),
+    function({ addComponents }: { addComponents: (components: Record<string, any>) => void }) {
+      addComponents({
+        '.bg-brand-gradient': {
+          background: 'linear-gradient(135deg, #00e5a0 0%, #b794f6 100%)',
+        },
+        '.text-brand-gradient': {
+          background: 'linear-gradient(135deg, #00e5a0 0%, #b794f6 100%)',
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+        },
+      });
+    },
     require('@tailwindcss/typography'),
     require('@tailwindcss/forms'),
   ],

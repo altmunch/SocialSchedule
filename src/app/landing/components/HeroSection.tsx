@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
+import Link from 'next/link';
 import { motion, stagger, useAnimate } from 'framer-motion';
 import Image from 'next/image';
 import { ArrowRight, Check, Star } from 'lucide-react';
@@ -43,7 +43,7 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <div className="text-[#5afcc0] text-sm uppercase tracking-normal mb-6 font-medium">
-              The only AI tool that sells through clips for you
+              THE ONLY AI TOOL THAT DOES SHORT-FORM MARKETING FOR YOU
             </div>
             <div className="relative pb-6 mb-4">
               <div className="whitespace-nowrap text-5xl sm:text-6xl font-medium text-white leading-tight tracking-tight">
@@ -67,17 +67,18 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <div className="absolute -inset-4 border-l border-t border-white/10 rounded-tl-lg" />
-            <motion.button
-              onClick={onGetStarted}
-              className="bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#8D5AFF]/30 transform transition-all"
-              whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -5px rgba(141, 90, 255, 0.5)' }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="flex items-center justify-center">
-                Start Selling Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </span>
-            </motion.button>
+            <Link href="/landing/pricing" passHref>
+              <motion.button
+                className="bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#8D5AFF]/30 transform transition-all"
+                whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -5px rgba(141, 90, 255, 0.5)' }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <span className="flex items-center justify-center">
+                  Start Selling Now
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </span>
+              </motion.button>
+            </Link>
             <motion.button
               onClick={onDemo}
               className="border border-storm-light/25 bg-storm-light/5 hover:bg-storm-light/15 text-[#E5E7EB] hover:text-white px-10 py-5 rounded-lg font-bold text-lg transition-all duration-300 backdrop-blur-sm"

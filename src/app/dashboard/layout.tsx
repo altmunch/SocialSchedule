@@ -54,12 +54,14 @@ export default function DashboardLayout({
 
   return (
     <SettingsProvider>
-      <div className="flex h-screen bg-background text-foreground">
+      <div className="flex h-screen bg-gradient-to-br from-background to-charcoal-100 text-foreground">
         <Sidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header breadcrumb={breadcrumb} />
-          <main className="flex-1 overflow-y-auto p-6">
-            {children}
+          <main className="flex-1 overflow-y-auto p-6 bg-card/30 backdrop-blur-sm">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
           </main>
         </div>
       </div>
