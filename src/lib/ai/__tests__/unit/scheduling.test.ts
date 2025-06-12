@@ -1,5 +1,5 @@
 import { PostScheduler } from '../../scheduling';
-import { createTestConfig } from '../testUtils';
+import { createTestConfig } from '@/lib/ai/testUtils/index';
 
 describe('PostScheduler', () => {
   let scheduler: PostScheduler;

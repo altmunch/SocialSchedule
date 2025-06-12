@@ -11,7 +11,7 @@ module.exports = {
   },
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
-      useESM: false,
+      useESM: true,
       tsconfig: {
         jsx: 'react-jsx',
         esModuleInterop: true,
@@ -21,7 +21,7 @@ module.exports = {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    '<rootDir>/node_modules/(?!framer-motion|lucide-react|@radix-ui|jose|@supabase/auth-helpers-nextjs|@supabase/auth-helpers-shared)',
+    '<rootDir>/node_modules/(?!@react-native|react-native|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|framer-motion|lucide-react|@radix-ui|jose|@supabase/auth-helpers-nextjs|@supabase/auth-helpers-shared)',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: [
@@ -35,11 +35,6 @@ module.exports = {
     '!src/**/__tests__/**',
     '!src/**/node_modules/**',
   ],
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
-  },
   testTimeout: 30000,
   maxWorkers: 1,
 };

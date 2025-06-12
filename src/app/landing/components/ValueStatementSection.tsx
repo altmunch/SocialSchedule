@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useAnimation, useInView, AnimationControls } from "framer-motion";
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import Link from "next/link";
 
 interface ParticleProps {
@@ -17,33 +17,40 @@ interface FloatingParticlesProps {
 }
 
 const Particle = ({ id, controls, baseDuration, baseXOffset }: ParticleProps) => {
-  const size = Math.random() * 6 + 2;
-  const duration = baseDuration * (0.7 + Math.random() * 0.6);
-  const delay = Math.random() * 2;
-  const left = Math.random() * 100;
-  const startY = 100 + Math.random() * 20;
-  const opacity = Math.random() * 0.3 + 0.1;
-  const color = Math.random() > 0.5 ? "#5afcc0" : "#ffffff";
-  const xOffset = baseXOffset * (0.3 + Math.random() * 0.4);
-  
-  const particleStyle: React.CSSProperties = {
-    width: `${size}px`,
-    height: `${size}px`,
-    backgroundColor: color,
-    left: `${left}%`,
-    top: `${startY}%`,
+  const [particleProperties] = useState(() => ({
+    size: Math.random() * 6 + 2,
+    duration: baseDuration * (0.7 + Math.random() * 0.6),
+    delay: Math.random() * 2,
+    left: Math.random() * 100,
+    startY: 100 + Math.random() * 20,
+    opacity: Math.random() * 0.3 + 0.1,
+    color: Math.random() > 0.5 ? "#5afcc0" : "#ffffff",
+    xOffset: baseXOffset * (0.3 + Math.random() * 0.4),
+  }));
+
+  const particleStyle: React.CSSProperties = useMemo(() => ({
+    width: `${particleProperties.size}px`,
+    height: `${particleProperties.size}px`,
+    backgroundColor: particleProperties.color,
+    left: `${particleProperties.left}%`,
+    top: `${particleProperties.startY}%`,
     zIndex: 0,
     position: 'absolute',
     borderRadius: '50%',
     willChange: 'transform, opacity',
     pointerEvents: 'none',
-  };
+  }), [particleProperties]);
   
   return (
     <motion.div
       style={particleStyle}
       animate={controls}
-      custom={{ duration, delay, xOffset, opacity }}
+      custom={{
+        duration: particleProperties.duration,
+        delay: particleProperties.delay,
+        xOffset: particleProperties.xOffset,
+        opacity: particleProperties.opacity
+      }}
       variants={{
         hidden: {
           y: 0,
@@ -92,17 +99,17 @@ const FloatingParticles = ({ count = 15, isInView }: FloatingParticlesProps) => 
       
       // Continuous animation
       const animateParticles = () => {
-        controls.start({
+        controls.start((i) => ({
           y: -150,
           opacity: [0, 0.2, 0],
           transition: {
-            duration: baseDuration * (0.7 + Math.random() * 0.6),
+            duration: baseDuration * (0.7 + Math.random() * 0.6), // Still uses random for continuous animation
             ease: [0.16, 1, 0.3, 1],
             repeat: Infinity,
             repeatType: 'loop',
             repeatDelay: 0.5
           },
-        });
+        }));
       };
       
       const timer = setTimeout(animateParticles, 1500);

@@ -1,7 +1,7 @@
 import { EnhancedTextAnalyzer } from '../../enhancedTextAnalyzer';
 import { jest } from '@jest/globals';
 import { EnhancedCache, CacheOptions, CacheStats } from '../../../utils/caching';
-import { createTestConfig, createMockOpenAI } from '../testUtils';
+import { createTestConfig, createMockOpenAI } from '../testUtils/index';
 
 describe('EnhancedTextAnalyzer - Extended Tests', () => {
   let analyzer: EnhancedTextAnalyzer;

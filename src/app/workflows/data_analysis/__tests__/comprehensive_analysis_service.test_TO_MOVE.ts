@@ -19,8 +19,8 @@ import {
 } from '../types/analysis_types';
 
 // Mock dependent services at the top level
-jest.mock('./competitor_analysis_service');
-jest.mock('./historical_analysis_service');
+jest.mock('../functions/competitor_analysis_service');
+jest.mock('../functions/historical_analysis_service');
 
 const mockSupabaseClient = {} as SupabaseClient; // Minimal mock for Supabase
 
