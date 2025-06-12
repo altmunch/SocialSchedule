@@ -7,6 +7,7 @@ import { Database } from "@/types/supabase";
 type ActionResult = {
   error?: string;
   success?: boolean;
+  message?: string;
   data?: any;
 };
 
@@ -26,23 +27,46 @@ export const signUpAction = async (prevState: any, formData: FormData): Promise<
   const supabase = createClient();
   
   try {
-    const { data, error } = await supabase.auth.signUp({
+    // First, sign up the user with Supabase Auth
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
+          email,
         },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
       },
     });
 
-    if (error) {
-      return { error: error.message };
+    if (signUpError) {
+      return { error: signUpError.message };
     }
 
-    return { success: true, data };
+    // If we have a user, ensure their profile is created
+    if (authData.user) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: authData.user.id,
+          full_name: fullName,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (profileError) {
+        console.error('Error creating user profile:', profileError);
+        // Don't fail the signup if profile creation fails, just log it
+      }
+    }
+
+    return { 
+      success: true, 
+      message: 'Check your email for the confirmation link.',
+      data: authData 
+    };
   } catch (error: any) {
+    console.error('Signup error:', error);
     return { error: error.message || "An error occurred during sign up" };
   }
 };

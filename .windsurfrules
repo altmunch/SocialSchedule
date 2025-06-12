@@ -67,10 +67,10 @@ example:
 │  └─────────────────┘     └───────────────────────┘          │
 └─────────────────────────────────────────────────────────────┘
 
-after every completed edit, update the tracker.md file for the project
-Always implement step by step checking for errors before moving on to the next step
-check the content of the file entirely before editing
-refactor when the edit is more than 250 loc
-Ensure that the implementation is modular and maintainable
-List what needs to be checked manually at the end of each response
-Always proceed with the next steps of implementation without needing permission
+- Always plan in plan.md file precisely and comprehensively, noting down salient items
+- Always implement step by step checking for errors before moving on to the next step
+- check the content of the file entirely before editing
+- refactor when the edit is more than 250 loc
+- Ensure that the implementation is modular and maintainable
+- List what needs to be checked manually at the end of each response
+- Always proceed with the next steps of implementation without needing permission
