@@ -68,6 +68,7 @@ export async function middleware(request: NextRequest) {
       return response;
     }
     
+    // For other public paths, allow access without authentication
     return NextResponse.next();
   }
 

@@ -3,6 +3,7 @@ import { OpenAI } from 'openai';
 import { Cache } from '../../../utils/cache';
 import { SentimentAnalyzer, SentimentAnalyzerConfig, SentimentResult } from '../../sentimentAnalyzer';
 import { ApiCostEstimator, TrackingResult } from '../../ApiCostEstimator'; // Keep TrackingResult as it's used in mock
+import { createTestConfig } from '../testUtils';
 
 jest.mock('../../../utils/cache');
 jest.mock('../../ApiCostEstimator');

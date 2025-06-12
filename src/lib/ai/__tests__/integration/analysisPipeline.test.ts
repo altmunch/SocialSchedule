@@ -1,3 +1,4 @@
+import 'openai/shims/node';
 import { EnhancedTextAnalyzer } from '../../enhancedTextAnalyzer';
 import { SentimentAnalyzer } from '../../sentimentAnalyzer';
 import { ApiCostEstimator } from '../../ApiCostEstimator';

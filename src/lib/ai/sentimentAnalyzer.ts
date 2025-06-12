@@ -74,6 +74,7 @@ export class SentimentAnalyzer {
     if (this.config.openaiApiKey) {
       this.openai = new OpenAI({
         apiKey: this.config.openaiApiKey,
+        dangerouslyAllowBrowser: true, // Required for browser-like environments like Jest JSDOM
       });
     }
   }

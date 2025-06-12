@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 interface FormState {
   error: string | null;
@@ -35,10 +36,31 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with true to prevent flash of login
   const [error, setError] = useState<string | null>(null);
   const message = searchParams.get('message');
   const type = searchParams.get('type') as 'success' | 'error' | 'info' | 'warning' | null;
+
+  // Check for existing session on component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          router.push('/dashboard');
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+  }, [router]);
 
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);

@@ -21,12 +21,13 @@ module.exports = {
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(framer-motion|lucide-react|@radix-ui)/)',
+    '<rootDir>/node_modules/(?!framer-motion|lucide-react|@radix-ui|jose|@supabase/auth-helpers-nextjs|@supabase/auth-helpers-shared)',
   ],
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.(ts|tsx|js)',
     '<rootDir>/src/**/*.(test|spec).(ts|tsx|js)',
+    '!**/src/lib/ai/testUtils/index.ts',
   ],
   collectCoverageFrom: [
     'src/**/*.(ts|tsx)',
@@ -36,7 +37,7 @@ module.exports = {
   ],
   globals: {
     'ts-jest': {
-      useESM: false,
+      useESM: true,
     },
   },
   testTimeout: 30000,

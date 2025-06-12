@@ -180,12 +180,12 @@ const navItems: NavItem[] = [
             >
               Sign In
             </Link>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20"
+            <Link
+              href="/auth/sign-in?redirect=/dashboard"
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 inline-block"
             >
               Get Started
-            </button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -254,21 +254,19 @@ const navItems: NavItem[] = [
             ))}
             <div className="pt-4 pb-2 px-3 space-y-2">
               <Link
-                href="/sign-in"
+                href="/auth/sign-in"
                 className="block w-full px-4 py-2 text-center text-sm font-medium text-gray-200 hover:text-white"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Sign In
               </Link>
-              <button
-                onClick={() => {
-                  router.push('/dashboard');
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300"
+              <Link
+                href="/auth/sign-in?redirect=/dashboard"
+                className="block w-full text-center bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 Get Started
-              </button>
+              </Link>
             </div>
           </div>
         </div>

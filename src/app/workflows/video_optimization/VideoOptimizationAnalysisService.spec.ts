@@ -1,3 +1,4 @@
+import 'openai/shims/node';
 import { VideoOptimizationAnalysisService } from './VideoOptimizationAnalysisService';
 import { ContentInsightsEngine } from '../data_analysis/engines/ContentInsightsEngine';
 import { ViralityEngine } from '../data_analysis/engines/ViralityEngine';
