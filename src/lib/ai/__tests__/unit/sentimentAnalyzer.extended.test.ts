@@ -1,15 +1,18 @@
-import { SentimentAnalyzer } from '../../sentimentAnalyzer';
-import { createTestConfig, createMockOpenAI } from '../testUtils';
+import 'openai/shims/node';
+import { SentimentAnalyzer, SentimentAnalyzerConfig, SentimentResult, SentimentScore } from '../../sentimentAnalyzer';
 import { jest } from '@jest/globals';
-import { Cache } from '../../../../lib/utils/cache'; // Updated import path for Cache
+import { Cache } from '../../../../lib/utils/cache';
 import { performance } from 'perf_hooks';
+import { ApiCostEstimator, ApiCostEstimateReport } from '../../ApiCostEstimator';
+import { OpenAI } from 'openai';
 
-// Mock the OpenAI module
-jest.mock('openai', () => ({
-  OpenAI: jest.fn().mockImplementation(() => createMockOpenAI())
-}));
+// Mock the Cache module globally
+jest.mock('../../../../lib/utils/cache');
 
-// Mock console.error to reduce test noise
+// Mock the ApiCostEstimator module globally
+jest.mock('../../ApiCostEstimator');
+
+// Mock console.error and console.log to reduce test noise
 const originalConsoleError = console.error;
 const originalConsoleLog = console.log;
 
@@ -31,236 +34,292 @@ const logTestInfo = (testName: string) => {
 
 describe('SentimentAnalyzer - Extended Tests', () => {
   let analyzer: SentimentAnalyzer;
-  
+  let mockOpenAIInstance: jest.Mocked<OpenAI>;
+  let mockCache: jest.Mocked<Cache<string, SentimentResult>>;
+  let mockApiCostEstimator: jest.Mocked<typeof ApiCostEstimator>;
+  let mockConfig: SentimentAnalyzerConfig;
+
   beforeEach(() => {
-    const config = createTestConfig({
-      useLocalModel: true,
-      costTrackingEnabled: true,
+    jest.clearAllMocks();
+
+    mockOpenAIInstance = new OpenAI({ apiKey: 'test-key' }) as jest.Mocked<OpenAI>;
+    mockCache = new Cache() as jest.Mocked<Cache<string, SentimentResult>>;
+
+    mockApiCostEstimator = ApiCostEstimator as jest.Mocked<typeof ApiCostEstimator>;
+    jest.spyOn(mockApiCostEstimator, 'estimateApiCostForAnalysisRound').mockReturnValue({
+      totalUsd: 0.001,
+      totalTokens: 100,
+      openaiCalls: 1,
+      breakdown: []
+    });
+
+    mockConfig = {
+      useLocalModel: false,
       openaiApiKey: 'test-key',
-    });
-    
-    analyzer = new SentimentAnalyzer(config);
-    
-    // Mock the cache to avoid actual caching during tests
-    const mockCache = {
-      get: jest.fn().mockReturnValue(undefined),
-      set: jest.fn().mockReturnThis(),
-      clear: jest.fn(),
-      // @ts-ignore - Mock implementation for testing
-      _cache: new Map(),
+      confidenceThreshold: 0.7,
+      maxCacheSize: 1000,
+      cacheTtlMs: 24 * 60 * 60 * 1000,
+      costTrackingEnabled: true,
     };
-    
-    // @ts-ignore - accessing private property for testing
-    analyzer.cache = mockCache as unknown as Cache<string, any>;
+
+    analyzer = new SentimentAnalyzer(mockConfig, mockOpenAIInstance, mockCache, mockApiCostEstimator);
   });
 
-  describe('analyzeSentiment', () => {
-    it('returns sentiment analysis with sentiment score', async () => {
-      logTestInfo('analyzeSentiment - returns sentiment analysis with sentiment score');
-      // Arrange
-      const text = 'I absolutely love this product! It\'s amazing!';
-      
-      // Mock cache miss
-      // @ts-ignore - accessing private property for testing
-      analyzer.cache.get.mockReturnValue(undefined);
-      
-      // Mock performance.now() for consistent testing
-      const originalPerformanceNow = performance.now;
-      // @ts-ignore - Mocking performance.now for testing
-      performance.now = jest.fn(() => 100);
-      
-      try {
-        // Act
-        const result = await analyzer.analyzeSentiment(text);
-        
-        // Assert
-        // Check basic sentiment result structure
-        expect(result).toHaveProperty('sentiment');
-        expect(result).toHaveProperty('sentimentScore');
-        expect(result).toHaveProperty('source', 'local');
-        expect(result).toHaveProperty('processingTimeMs');
-        
-        expect(result.sentimentScore).toHaveProperty('score');
-        expect(result.sentimentScore).toHaveProperty('magnitude');
-        expect(result.sentimentScore).toHaveProperty('confidence');
-        
-        // Check score ranges
-        expect(result.sentimentScore.score).toBeGreaterThanOrEqual(-1);
-        expect(result.sentimentScore.score).toBeLessThanOrEqual(1);
-        expect(result.sentimentScore.confidence).toBeGreaterThan(0);
-        expect(result.sentimentScore.confidence).toBeLessThanOrEqual(1);
-        
-        // Check sentiment category
-        expect(['positive', 'negative', 'neutral']).toContain(result.sentiment);
-      } finally {
-        // Restore original performance.now
-        performance.now = originalPerformanceNow;
-      }
+  it('should analyze sentiment using OpenAI API', async () => {
+    mockOpenAIInstance.chat.completions.create.mockResolvedValueOnce({
+      choices: [{
+        message: {
+          content: 'Sentiment: positive, Score: 0.9'
+        }
+      }]
     });
 
-    it('returns negative sentiment for negative text', async () => {
-      // Arrange
-      const text = 'I really dislike this product. It\'s terrible!';
-      
-      // Mock cache miss
-      // @ts-ignore - accessing private property for testing
-      analyzer.cache.get.mockReturnValue(undefined);
-      
-      // Act
-      const result = await analyzer.analyzeSentiment(text);
-      
-      // Assert
-      expect(result.sentiment).toBe('negative');
-      expect(result.sentimentScore.score).toBeLessThan(0);
+    const result = await analyzer.analyzeSentiment('This is a positive sentence');
+    expect(result).toEqual({
+      sentiment: 'positive',
+      sentimentScore: { score: 0.9, magnitude: 0, confidence: 0 },
+      source: 'openai',
+      processingTimeMs: expect.any(Number),
     });
+    expect(mockOpenAIInstance.chat.completions.create).toHaveBeenCalledTimes(1);
+    expect(mockCache.get).toHaveBeenCalledWith('sentiment:this is a positive sentence');
+    expect(mockCache.set).toHaveBeenCalledWith('sentiment:this is a positive sentence', {
+      sentiment: 'positive',
+      sentimentScore: { score: 0.9, magnitude: 0, confidence: 0 },
+      source: 'openai',
+      processingTimeMs: expect.any(Number),
+    });
+    expect(mockApiCostEstimator.estimateApiCostForAnalysisRound).toHaveBeenCalledTimes(1);
+  });
 
-    it('returns neutral sentiment for neutral text', async () => {
-      // Arrange
-      const text = 'This is a product. It has features.';
-      
-      // Mock cache miss
-      // @ts-ignore - accessing private property for testing
-      analyzer.cache.get.mockReturnValue(undefined);
-      
-      // Act
-      const result = await analyzer.analyzeSentiment(text);
-      
-      // Assert
-      expect(result.sentiment).toBe('neutral');
-      expect(Math.abs(result.sentimentScore.score)).toBeLessThan(0.3);
+  it('should use local model if configured', async () => {
+    analyzer = new SentimentAnalyzer({
+      ...mockConfig,
+      useLocalModel: true,
+    }, mockOpenAIInstance, mockCache, mockApiCostEstimator);
+
+    const result = await analyzer.analyzeSentiment('This is a test sentence');
+    expect(result).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
     });
-    
-    it('returns cached result when available', async () => {
-      // Arrange
-      const text = 'This should be cached';
-      const cachedResult = {
-        sentiment: 'positive' as const,
-        sentimentScore: {
-          score: 0.8,
-          magnitude: 1.6,
-          confidence: 0.9
-        },
-        source: 'cached' as const,
-        processingTimeMs: 10
-      };
-      
-      // Mock cache hit
-      // @ts-ignore - accessing private property for testing
-      analyzer.cache.get.mockReturnValue(cachedResult);
-      
-      // Act
-      const result = await analyzer.analyzeSentiment(text);
-      
-      // Assert
-      expect(result).toEqual(cachedResult);
-      // @ts-ignore - accessing private property for testing
-      expect(analyzer.cache.get).toHaveBeenCalledWith(expect.any(String));
+    expect(mockOpenAIInstance.chat.completions.create).not.toHaveBeenCalled();
+    expect(mockCache.get).toHaveBeenCalledWith('sentiment:this is a test sentence');
+    expect(mockCache.set).toHaveBeenCalledWith('sentiment:this is a test sentence', {
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
+    });
+    expect(mockApiCostEstimator.estimateApiCostForAnalysisRound).toHaveBeenCalledTimes(1);
+  });
+
+  it('should return cached result if available', async () => {
+    const cachedResult: SentimentResult = {
+      sentiment: 'negative',
+      sentimentScore: { score: 0.1, magnitude: 0, confidence: 0 },
+      source: 'cached',
+      processingTimeMs: 10,
+    };
+    mockCache.get.mockResolvedValueOnce(cachedResult);
+
+    const result = await analyzer.analyzeSentiment('This is a negative sentence');
+    expect(result).toEqual(cachedResult);
+    expect(mockOpenAIInstance.chat.completions.create).not.toHaveBeenCalled();
+    expect(mockCache.get).toHaveBeenCalledWith('sentiment:this is a negative sentence');
+    expect(mockCache.set).not.toHaveBeenCalled();
+    expect(mockApiCostEstimator.estimateApiCostForAnalysisRound).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle API errors gracefully', async () => {
+    mockOpenAIInstance.chat.completions.create.mockRejectedValueOnce(new Error('OpenAI API error'));
+
+    const result = await analyzer.analyzeSentiment('This is a problematic sentence');
+    expect(result).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
+    });
+    expect(mockApiCostEstimator.estimateApiCostForAnalysisRound).toHaveBeenCalledTimes(1);
+  });
+
+  it('should correctly parse sentiment and score from API response', async () => {
+    mockOpenAIInstance.chat.completions.create.mockResolvedValueOnce({
+      choices: [{
+        message: {
+          content: 'Sentiment: positive, Score: 0.85'
+        }
+      }]
+    });
+    const result = await analyzer.analyzeSentiment('Great product!');
+    expect(result).toEqual({
+      sentiment: 'positive',
+      sentimentScore: { score: 0.85, magnitude: 0, confidence: 0 },
+      source: 'openai',
+      processingTimeMs: expect.any(Number),
     });
   });
 
-  describe('resetCostTracking', () => {
-    it('resets cost tracking metrics', async () => {
-      logTestInfo('resetCostTracking - resets cost tracking metrics');
-      // Arrange
-      const text = 'I love this!';
-      
-      // Mock cache miss
-      // @ts-ignore - accessing private property for testing
-      analyzer.cache.get.mockReturnValue(undefined);
-      
-      // Act - Perform analysis
-      await analyzer.analyzeSentiment(text);
-      
-      // Verify metrics were updated
-      const initialStats = analyzer.getCostStatistics();
-      if ('trackingDisabled' in initialStats) {
-        expect(initialStats.trackingDisabled).toBeFalsy();
-        return;
-      }
-      expect(initialStats.localAnalysisCount).toBeGreaterThan(0);
-      
-      // Reset tracking
-      analyzer.resetCostTracking();
-      
-      // Assert - Check metrics after reset
-      const stats = analyzer.getCostStatistics();
-      
-      // Check if tracking is enabled
-      if ('trackingDisabled' in stats) {
-        expect(stats.trackingDisabled).toBeFalsy();
-        return;
-      }
-      
-      expect(stats.localAnalysisCount).toBe(0);
-      expect(stats.openaiAnalysisCount).toBe(0);
-      expect(stats.cacheHitCount).toBe(0);
-      expect(stats.totalTokensUsed).toBe(0);
-      expect(stats.estimatedCost).toBe(0);
+  it('should handle missing sentiment or score in API response', async () => {
+    mockOpenAIInstance.chat.completions.create.mockResolvedValueOnce({
+      choices: [{
+        message: {
+          content: 'Just a random response'
+        }
+      }]
+    });
+    const result = await analyzer.analyzeSentiment('Mixed feelings.');
+    expect(result).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'openai',
+      processingTimeMs: expect.any(Number),
     });
   });
 
-  describe('getCostStatistics', () => {
-    it('returns cost tracking statistics', async () => {
-      logTestInfo('getCostStatistics - returns cost tracking statistics');
-      // Arrange - Reset tracking to known state
-      analyzer.resetCostTracking();
-      
-      // Mock cache miss for first analysis
-      // @ts-ignore - accessing private property for testing
-      analyzer.cache.get.mockReturnValue(undefined);
-      
-      // Act - Perform first analysis (should be a local analysis)
-      await analyzer.analyzeSentiment('First analysis');
-      
-      // Mock cache hit for second analysis
-      const cachedResult = {
-        sentiment: 'positive' as const,
-        sentimentScore: {
-          score: 0.8,
-          magnitude: 1.6,
-          confidence: 0.9
-        },
-        source: 'cached' as const,
-        processingTimeMs: 5
-      };
-      // @ts-ignore - accessing private property for testing
-      analyzer.cache.get.mockReturnValue(cachedResult);
-      
-      // Perform second analysis (should hit cache)
-      await analyzer.analyzeSentiment('Cached analysis');
-      
-      // Get statistics
-      const stats = analyzer.getCostStatistics();
-      
-      // Assert - Check if tracking is enabled
-      if ('trackingDisabled' in stats) {
-        expect(stats.trackingDisabled).toBeFalsy();
-        return;
-      }
-      
-      // Check all expected properties exist
-      expect(stats).toHaveProperty('localAnalysisCount');
-      expect(stats).toHaveProperty('openaiAnalysisCount');
-      expect(stats).toHaveProperty('cacheHitCount');
-      expect(stats).toHaveProperty('totalTokensUsed');
-      expect(stats).toHaveProperty('estimatedCost');
-      expect(stats).toHaveProperty('cacheHitRate');
-      expect(stats).toHaveProperty('apiUsageRate');
-      
-      // Verify expected values
-      expect(stats.localAnalysisCount).toBe(1);
-      expect(stats.cacheHitCount).toBe(1);
-      expect(stats.openaiAnalysisCount).toBe(0);
-      
-      // Verify calculations
-      expect(stats.cacheHitRate).toBe(0.5); // 1 hit / (1 hit + 1 miss)
-      expect(stats.apiUsageRate).toBe(0); // No OpenAI usage
-      
-      // Verify other rates are within expected ranges
-      expect(stats.cacheHitRate).toBeGreaterThanOrEqual(0);
-      expect(stats.cacheHitRate).toBeLessThanOrEqual(1);
-      expect(stats.apiUsageRate).toBeGreaterThanOrEqual(0);
-      expect(stats.apiUsageRate).toBeLessThanOrEqual(1);
+  it('should handle invalid score format in API response', async () => {
+    mockOpenAIInstance.chat.completions.create.mockResolvedValueOnce({
+      choices: [{
+        message: {
+          content: 'Sentiment: negative, Score: invalid'
+        }
+      }]
+    });
+    const result = await analyzer.analyzeSentiment('Very bad!');
+    expect(result).toEqual({
+      sentiment: 'negative',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'openai',
+      processingTimeMs: expect.any(Number),
+    });
+  });
+
+  it('should return neutral for empty or very short text', async () => {
+    const resultEmpty = await analyzer.analyzeSentiment('');
+    expect(resultEmpty).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
+    });
+
+    const resultShort = await analyzer.analyzeSentiment('ok');
+    expect(resultShort).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
+    });
+    expect(mockOpenAIInstance.chat.completions.create).not.toHaveBeenCalled();
+  });
+
+  it('should return neutral if confidenceThreshold is not met by local model', async () => {
+    analyzer = new SentimentAnalyzer({
+      ...mockConfig,
+      useLocalModel: true,
+    }, mockOpenAIInstance, mockCache, mockApiCostEstimator);
+
+    const result = await analyzer.analyzeSentiment('This is a slightly positive sentence');
+    expect(result).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
+    });
+    expect(mockOpenAIInstance.chat.completions.create).not.toHaveBeenCalled();
+  });
+
+  it('should return sentiment from local model if confidenceThreshold is met', async () => {
+    analyzer = new SentimentAnalyzer({
+      ...mockConfig,
+      useLocalModel: true,
+      confidenceThreshold: 0.5,
+    }, mockOpenAIInstance, mockCache, mockApiCostEstimator);
+
+    const result = await analyzer.analyzeSentiment('This is a positive sentence');
+    expect(result).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
+    });
+    expect(mockOpenAIInstance.chat.completions.create).not.toHaveBeenCalled();
+  });
+
+  it('should not call OpenAI if text is too long (exceeds max tokens)', async () => {
+    const longText = 'a'.repeat(9000);
+
+    const result = await analyzer.analyzeSentiment(longText);
+    expect(result).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
+    });
+    expect(mockOpenAIInstance.chat.completions.create).not.toHaveBeenCalled();
+    expect(mockApiCostEstimator.estimateApiCostForAnalysisRound).toHaveBeenCalledTimes(1);
+  });
+
+  it('should correctly update cost tracking based on analysis path', async () => {
+    // Test 1: OpenAI call
+    analyzer = new SentimentAnalyzer({
+      ...mockConfig,
+      useLocalModel: false,
+    }, mockOpenAIInstance, mockCache, mockApiCostEstimator);
+
+    mockOpenAIInstance.chat.completions.create.mockResolvedValueOnce({
+      choices: [{
+        message: {
+          content: 'Sentiment: positive, Score: 0.9'
+        }
+      }]
+    });
+    await analyzer.analyzeSentiment('text via openai');
+    expect((analyzer as any).costTracking.openaiAnalysisCount).toBe(1);
+    expect((analyzer as any).costTracking.localAnalysisCount).toBe(0);
+    expect((analyzer as any).costTracking.cacheHitCount).toBe(0);
+
+    // Test 2: Cached result
+    analyzer = new SentimentAnalyzer(mockConfig, mockOpenAIInstance, mockCache, mockApiCostEstimator);
+    mockCache.get.mockResolvedValueOnce({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'cached',
+      processingTimeMs: 10,
+    });
+    await analyzer.analyzeSentiment('text via cache');
+    expect((analyzer as any).costTracking.openaiAnalysisCount).toBe(0);
+    expect((analyzer as any).costTracking.localAnalysisCount).toBe(0);
+    expect((analyzer as any).costTracking.cacheHitCount).toBe(1);
+
+    // Test 3: Local model
+    analyzer = new SentimentAnalyzer({
+      ...mockConfig,
+      useLocalModel: true,
+    }, mockOpenAIInstance, mockCache, mockApiCostEstimator);
+    await analyzer.analyzeSentiment('text via local');
+    expect((analyzer as any).costTracking.openaiAnalysisCount).toBe(0);
+    expect((analyzer as any).costTracking.localAnalysisCount).toBe(1);
+    expect((analyzer as any).costTracking.cacheHitCount).toBe(0);
+  });
+
+  it('should return neutral for non-string inputs', async () => {
+    const resultNull = await analyzer.analyzeSentiment(null as any);
+    expect(resultNull).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
+    });
+    const resultUndefined = await analyzer.analyzeSentiment(undefined as any);
+    expect(resultUndefined).toEqual({
+      sentiment: 'neutral',
+      sentimentScore: { score: 0, magnitude: 0, confidence: 0 },
+      source: 'local',
+      processingTimeMs: expect.any(Number),
     });
   });
 });

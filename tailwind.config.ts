@@ -21,17 +21,39 @@ const config: Config = {
     extend: {
       colors: {
         // ClipsCommerce Theme Colors
-        background: 'hsl(210 15% 8%)',    // Premium Black Backdrop
+        background: 'hsl(0 0% 10%)', // Charcoal background #1a1a1a
         foreground: 'hsl(0 0% 95%)',      // Light text for readability
 
-        primary: {
-          DEFAULT: 'hsl(162 100% 50%)', // Vibrant Green
-          foreground: 'hsl(162 100% 10%)', // Dark contrast text for green buttons/elements
+        // Brand palette
+        charcoal: {
+          DEFAULT: '#1a1a1a',
+          50: '#2d2d2d',
+          100: '#1a1a1a',
+        },
+        mint: {
+          DEFAULT: '#00e5a0',
+          foreground: '#002b1e',
+        },
+        lavender: {
+          DEFAULT: '#b794f6',
+          foreground: '#3f2b6f',
+        },
+        coral: {
+          DEFAULT: '#ff6b6b',
+          foreground: '#3f0b0b',
+        },
+        info: {
+          DEFAULT: '#4fd1c7',
+          foreground: '#083d3b',
         },
 
+        primary: {
+          DEFAULT: '#00e5a0',
+          foreground: '#002b1e',
+        },
         secondary: {
-          DEFAULT: 'hsl(270 100% 50%)', // Vibrant Purple
-          foreground: 'hsl(0 0% 98%)',   // Light contrast text for purple buttons/elements
+          DEFAULT: '#b794f6',
+          foreground: '#1a1a1a',
         },
         
         accent: {

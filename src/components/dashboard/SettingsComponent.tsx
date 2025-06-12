@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
+import { useSettings } from '@/providers/SettingsProvider';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -12,14 +13,7 @@ import { Loader2, CheckCircle2, Bell, Globe, Palette, Lock } from 'lucide-react'
 
 export default function SettingsComponent() {
   const { user } = useAuth();
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [weeklyDigest, setWeeklyDigest] = useState(false);
-  const [contentAnalytics, setContentAnalytics] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [timezone, setTimezone] = useState('UTC');
-  const [language, setLanguage] = useState('en');
-  const [scheduleFormat, setScheduleFormat] = useState('12h');
+  const settings = useSettings();
   const [isUpdating, setIsUpdating] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +24,9 @@ export default function SettingsComponent() {
     setSuccessMessage(null);
 
     try {
-      // In a real implementation, this would save the settings to Supabase
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await settings.saveSettings();
       setSuccessMessage('Settings saved successfully');
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setError(err.message || 'An error occurred while saving your settings');
     } finally {
@@ -41,10 +35,10 @@ export default function SettingsComponent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-background text-foreground p-4 md:p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
-        <p className="text-gray-500">Customize your dashboard experience</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight gradient-text">Settings</h1>
+        <p className="text-muted-foreground mt-1">Customize your dashboard experience</p>
       </div>
 
       <Tabs defaultValue="notifications">
@@ -95,8 +89,8 @@ export default function SettingsComponent() {
                   <p className="text-sm text-gray-500">Receive updates via email</p>
                 </div>
                 <Switch
-                  checked={emailNotifications}
-                  onCheckedChange={setEmailNotifications}
+                  checked={settings.emailNotifications}
+                  onCheckedChange={(checked) => settings.updateSettings({ emailNotifications: checked })}
                 />
               </div>
               
@@ -106,8 +100,8 @@ export default function SettingsComponent() {
                   <p className="text-sm text-gray-500">Receive alerts on your device</p>
                 </div>
                 <Switch
-                  checked={pushNotifications}
-                  onCheckedChange={setPushNotifications}
+                  checked={settings.pushNotifications}
+                  onCheckedChange={(checked) => settings.updateSettings({ pushNotifications: checked })}
                 />
               </div>
               
@@ -117,8 +111,8 @@ export default function SettingsComponent() {
                   <p className="text-sm text-gray-500">Get a summary of your performance</p>
                 </div>
                 <Switch
-                  checked={weeklyDigest}
-                  onCheckedChange={setWeeklyDigest}
+                  checked={settings.weeklyDigest}
+                  onCheckedChange={(checked) => settings.updateSettings({ weeklyDigest: checked })}
                 />
               </div>
               
@@ -128,8 +122,8 @@ export default function SettingsComponent() {
                   <p className="text-sm text-gray-500">Receive insights on your content performance</p>
                 </div>
                 <Switch
-                  checked={contentAnalytics}
-                  onCheckedChange={setContentAnalytics}
+                  checked={settings.contentAnalytics}
+                  onCheckedChange={(checked) => settings.updateSettings({ contentAnalytics: checked })}
                 />
               </div>
             </CardContent>
@@ -166,8 +160,8 @@ export default function SettingsComponent() {
                   <p className="text-sm text-gray-500">Use dark theme throughout the app</p>
                 </div>
                 <Switch
-                  checked={darkMode}
-                  onCheckedChange={setDarkMode}
+                  checked={settings.darkMode}
+                  onCheckedChange={(checked) => settings.updateSettings({ darkMode: checked })}
                 />
               </div>
               
@@ -175,7 +169,7 @@ export default function SettingsComponent() {
                 <label htmlFor="theme" className="text-sm font-medium">
                   Color Theme
                 </label>
-                <Select value="blue" onValueChange={() => {}}>
+                <Select value={settings.colorTheme} onValueChange={(value) => settings.updateSettings({ colorTheme: value })}>
                   <SelectTrigger id="theme">
                     <SelectValue placeholder="Select a theme" />
                   </SelectTrigger>
@@ -219,7 +213,7 @@ export default function SettingsComponent() {
                 <label htmlFor="timezone" className="text-sm font-medium">
                   Timezone
                 </label>
-                <Select value={timezone} onValueChange={setTimezone}>
+                <Select value={settings.timezone} onValueChange={(value) => settings.updateSettings({ timezone: value })}>
                   <SelectTrigger id="timezone">
                     <SelectValue placeholder="Select timezone" />
                   </SelectTrigger>
@@ -236,7 +230,7 @@ export default function SettingsComponent() {
                 <label htmlFor="language" className="text-sm font-medium">
                   Language
                 </label>
-                <Select value={language} onValueChange={setLanguage}>
+                <Select value={settings.language} onValueChange={(value) => settings.updateSettings({ language: value })}>
                   <SelectTrigger id="language">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
@@ -253,7 +247,7 @@ export default function SettingsComponent() {
                 <label htmlFor="scheduleFormat" className="text-sm font-medium">
                   Time Format
                 </label>
-                <Select value={scheduleFormat} onValueChange={setScheduleFormat}>
+                <Select value={settings.scheduleFormat} onValueChange={(value) => settings.updateSettings({ scheduleFormat: value })}>
                   <SelectTrigger id="scheduleFormat">
                     <SelectValue placeholder="Select time format" />
                   </SelectTrigger>
@@ -296,7 +290,10 @@ export default function SettingsComponent() {
                   <p className="font-medium">Usage Analytics</p>
                   <p className="text-sm text-gray-500">Allow us to collect anonymous usage data</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={settings.usageAnalytics}
+                  onCheckedChange={(checked) => settings.updateSettings({ usageAnalytics: checked })}
+                />
               </div>
               
               <div className="flex items-center justify-between">
@@ -304,7 +301,10 @@ export default function SettingsComponent() {
                   <p className="font-medium">Marketing Communications</p>
                   <p className="text-sm text-gray-500">Receive product updates and offers</p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={settings.marketingCommunications}
+                  onCheckedChange={(checked) => settings.updateSettings({ marketingCommunications: checked })}
+                />
               </div>
               
               <div className="pt-4">

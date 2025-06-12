@@ -73,26 +73,26 @@ export default function ProfileComponent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-background text-foreground p-4 md:p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
-        <p className="text-gray-500">Manage your account settings and preferences</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight gradient-text">Profile</h1>
+        <p className="text-muted-foreground mt-1">Manage your account settings and preferences</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
         <div className="md:w-1/3">
-          <Card>
+          <Card className="bg-card border-border shadow-sm">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center">
-                <Avatar className="h-24 w-24">
+                <Avatar className="h-24 w-24 ring-2 ring-primary/20">
                   <AvatarImage src="" alt={fullName} />
-                  <AvatarFallback className="text-lg">{getInitials(fullName)}</AvatarFallback>
+                  <AvatarFallback className="text-lg bg-gradient-to-br from-mint to-lavender text-background">{getInitials(fullName)}</AvatarFallback>
                 </Avatar>
-                <h2 className="mt-4 text-xl font-semibold">{fullName}</h2>
-                <p className="text-sm text-gray-500">@{username}</p>
-                <p className="mt-2 text-sm text-center">{bio}</p>
+                <h2 className="mt-4 text-xl font-semibold text-creative">{fullName}</h2>
+                <p className="text-sm text-muted-foreground">@{username}</p>
+                <p className="mt-2 text-sm text-center text-muted-foreground">{bio}</p>
                 <div className="mt-4 flex space-x-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10">
                     Change Avatar
                   </Button>
                 </div>

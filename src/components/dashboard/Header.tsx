@@ -14,7 +14,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Bell, ChevronDown, Menu, User } from 'lucide-react';
 
-export default function Header() {
+interface HeaderProps {
+  breadcrumb?: React.ReactNode;
+}
+
+export default function Header({ breadcrumb }: HeaderProps) {
   const { user, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -34,9 +38,9 @@ export default function Header() {
             </Button>
           </div>
 
-          {/* Desktop: Space for breadcrumbs or page title if needed later */}
-          <div className="hidden md:flex md:flex-shrink-0">
-            {/* Intentionally left blank for now, main branding is in sidebar */}
+          {/* Breadcrumb area */}
+          <div className="hidden md:flex md:flex-shrink-0 items-center">
+            {breadcrumb}
           </div>
 
           {/* Right section */}

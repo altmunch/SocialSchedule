@@ -1,26 +1,43 @@
 import * as React from "react";
-import * as ProgressPrimitive from "@radix-ui/react-progress";
-
 import { cn } from "../../lib/utils";
 
-const Progress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
->(({ className, value, ...props }, ref) => (
-  <ProgressPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
-      className,
-    )}
-    {...props}
-  >
-    <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all bg-white"
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    />
-  </ProgressPrimitive.Root>
-));
-Progress.displayName = ProgressPrimitive.Root.displayName;
+export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
+  /** value from 0–100 */
+  value?: number;
+  /** height in tailwind class e.g. h-2 (defaults to h-2) */
+  barHeightClass?: string;
+  /** optional background color class */
+  trackClassName?: string;
+  /** optional fill color class */
+  fillClassName?: string;
+}
 
-export { Progress };
+/**
+ * Linear progress bar that follows ClipsCommerce design system.
+ * Usage: <Progress value={40} />
+ */
+export function Progress({
+  value = 0,
+  className,
+  barHeightClass = "h-2",
+  trackClassName = "bg-muted",
+  fillClassName = "bg-primary",
+  ...props
+}: ProgressProps) {
+  const clamped = Math.max(0, Math.min(100, value));
+  return (
+    <div
+      role="progressbar"
+      aria-valuenow={clamped}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className={cn("w-full overflow-hidden rounded-full", barHeightClass, trackClassName, className)}
+      {...props}
+    >
+      <div
+        style={{ width: `${clamped}%` }}
+        className={cn("h-full transition-all duration-500 ease-in-out", fillClassName)}
+      />
+    </div>
+  );
+}

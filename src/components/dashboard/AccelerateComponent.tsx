@@ -23,6 +23,8 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Progress } from '@/components/ui/progress';
+import { CircularScore } from '@/components/ui/circular-score';
 
 interface Video {
   id: string;
@@ -86,14 +88,11 @@ function SortableVideoCard({ video }: SortableVideoCardProps) {
         <p className="text-xs text-muted-foreground mb-2">Status: {video.status}{video.loading && ' (processing...)'}</p>
         {video.error && <p className="text-xs text-red-500">Error: {video.error}</p>}
         {video.result && (
-          <div className="mt-2 text-xs">
-            <div><b>Sentiment:</b> {video.result.sentiment?.sentiment} ({video.result.sentiment?.score})</div>
-            <div><b>Tone:</b> {video.result.tone?.tone}</div>
-            <div><b>Suggestions:</b>
-              <ul className="list-disc ml-4">
-                {video.result.suggestions?.captions?.map((c: string, i: number) => <li key={i}>{c}</li>)}
-              </ul>
-              <div className="mt-1">Hashtags: {video.result.suggestions?.hashtags?.join(' ')}</div>
+          <div className="mt-2 text-xs flex items-start gap-4">
+            <CircularScore value={Math.round((video.result.sentiment?.score || 0) * 100)} size={56} />
+            <div className="space-y-1">
+              <div><b>Sentiment:</b> {video.result.sentiment?.sentiment}</div>
+              <div><b>Tone:</b> {video.result.tone?.tone}</div>
             </div>
           </div>
         )}
@@ -286,23 +285,17 @@ export default function AccelerateComponent() {
         <div className="w-full max-w-xl mx-auto mt-8">
           <h2 className="text-lg font-bold mb-4 text-creative">Progress</h2>
           <div className="space-y-4">
-            <div>
+            <div className="space-y-1">
               <span className="text-secondaryText">Audio</span>
-              <div className="w-full h-3 bg-hover rounded-full mt-1">
-                <div className="h-3 bg-primary rounded-full" style={{ width: '40%' }}></div>
-              </div>
+              <Progress value={40} />
             </div>
-            <div>
+            <div className="space-y-1">
               <span className="text-secondaryText">Description</span>
-              <div className="w-full h-3 bg-hover rounded-full mt-1">
-                <div className="h-3 bg-primary rounded-full" style={{ width: '60%' }}></div>
-              </div>
+              <Progress value={60} />
             </div>
-            <div>
+            <div className="space-y-1">
               <span className="text-secondaryText">Hashtags</span>
-              <div className="w-full h-3 bg-hover rounded-full mt-1">
-                <div className="h-3 bg-primary rounded-full" style={{ width: '30%' }}></div>
-              </div>
+              <Progress value={30} />
             </div>
           </div>
         </div>

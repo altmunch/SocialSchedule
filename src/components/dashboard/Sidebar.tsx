@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { 
@@ -10,23 +11,40 @@ import {
   CalendarDays as CalendarDaysIcon,
   LineChart as LineChartIcon,
   Settings as SettingsIcon,
-  User as UserIcon, // Keep for potential future use in settings/profile
-  CreditCard as CreditCardIcon // Keep for potential future use
+  Lightbulb as LightbulbIcon,
+  Crown as CrownIcon,
+  Link as LinkIcon,
+  RefreshCw as RefreshCwIcon
 } from 'lucide-react';
 
-const navItems = [
+const mainNav = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+];
+
+const sellFasterNav = [
   { name: 'Accelerate', href: '/dashboard/accelerate', icon: ZapIcon },
   { name: 'Blitz', href: '/dashboard/blitz', icon: CalendarDaysIcon },
-  { name: 'Cycle', href: '/dashboard/cycle', icon: LineChartIcon },
+  { name: 'Cycle', href: '/dashboard/cycle', icon: RefreshCwIcon },
+];
+
+const howToSellNav = [
+  { name: 'Ideator', href: '/dashboard/ideator', icon: LightbulbIcon },
+  { name: 'Competitor tactics', href: '/dashboard/competitor-tactics', icon: LineChartIcon },
+];
+
+const accountNav = [
+  { name: 'Connect', href: '/dashboard/connect', icon: LinkIcon },
+  { name: 'Subscription', href: '/dashboard/subscription', icon: CrownIcon },
   { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon },
-  // Example for future grouped items or less prominent links:
-  // { name: 'Profile', href: '/dashboard/profile', icon: UserIcon, group: 'Account' },
-  // { name: 'Subscription', href: '/dashboard/subscription', icon: CreditCardIcon, group: 'Account' },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [sellFasterOpen, setSellFasterOpen] = useState<boolean>(true);
+  const [sellOpen, setSellOpen] = useState<boolean>(true);
+
+  // Example onboarding progress array (would come from API)
+  const incompletePaths = ['/dashboard/ideator', '/dashboard/competitor-tactics'];
 
   return (
     <div className="w-64 h-screen bg-panel text-text border-r border-border flex flex-col">
@@ -45,42 +63,129 @@ export default function Sidebar() {
         </Link>
       </div>
       <nav className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Primary */}
         <ul>
-          <li>
-            <Link 
-              href="/dashboard"
-              className={cn(
-                "flex items-center p-2 rounded-md text-sm font-medium transition-colors mb-2",
-                pathname === '/dashboard' ? "bg-hover text-primary" : "text-secondaryText hover:bg-hover hover:text-primary"
-              )}
-            >
-              <HomeIcon className={cn("mr-3 h-5 w-5", pathname === '/dashboard' ? "text-primary" : "text-secondaryText group-hover:text-primary")} />
-              Home
-            </Link>
-          </li>
-          {navItems.map((item) => {
+          {mainNav.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <li key={item.name}>
                 <Link 
                   href={item.href}
                   className={cn(
-                    "flex items-center p-2 rounded-md text-sm font-medium transition-colors",
+                    "group flex items-center py-1.5 px-2 rounded-md text-sm font-medium transition-colors",
                     isActive ? "bg-hover text-primary" : "text-secondaryText hover:bg-hover hover:text-primary"
                   )}
                 >
-                  <item.icon className={cn("mr-3 h-5 w-5", isActive ? "text-primary" : "text-secondaryText group-hover:text-primary")} />
+                  <item.icon className={cn("mr-3 h-5 w-5 transition-transform duration-150", isActive ? "text-primary" : "text-secondaryText group-hover:text-primary group-hover:scale-110")} />
                   {item.name}
                 </Link>
               </li>
             );
           })}
         </ul>
-      </nav>
-      <div className="p-4 mt-auto border-t border-border">
-        <div className="text-xs text-secondaryText text-center">
-          &copy; {new Date().getFullYear()} ClipsCommerce
+
+        {/* Sell Faster group collapsible */}
+        <div className="mt-6">
+          <button
+            onClick={() => setSellFasterOpen(!sellFasterOpen)}
+            className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-2 py-1"
+          >
+            Sell Faster
+            <span className={cn("transition-transform", sellFasterOpen ? "rotate-90" : "")}>▶</span>
+          </button>
+          {sellFasterOpen && (
+            <ul className="mt-2 pl-2 space-y-1">
+              {sellFasterNav.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "group flex items-center py-1.5 px-2 rounded-md text-sm font-medium transition-colors",
+                        isActive ? "bg-hover text-primary" : "text-secondaryText hover:bg-hover hover:text-primary"
+                      )}
+                    >
+                      <item.icon className={cn("mr-3 h-5 w-5 transition-transform duration-150", isActive ? "text-primary" : "text-secondaryText group-hover:text-primary group-hover:scale-110")} />
+                      {item.name}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
+
+        {/* How to Sell group collapsible */}
+        <div className="mt-6">
+          <button
+            onClick={() => setSellOpen(!sellOpen)}
+            className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-2 py-1"
+          >
+            How to Sell
+            <span className={cn("transition-transform", sellOpen ? "rotate-90" : "")}>▶</span>
+          </button>
+          {sellOpen && (
+            <ul className="mt-2 pl-2 space-y-1">
+              {howToSellNav.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                const incomplete = incompletePaths.includes(item.href);
+                return (
+                  <li key={item.name} className="relative">
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "group flex items-center py-1.5 px-2 rounded-md text-sm font-medium transition-colors",
+                        isActive ? "bg-hover text-primary" : "text-secondaryText hover:bg-hover hover:text-primary"
+                      )}
+                    >
+                      <item.icon className={cn("mr-3 h-5 w-5 transition-transform duration-150", isActive ? "text-primary" : "text-secondaryText group-hover:text-primary group-hover:scale-110")} />
+                      {item.name}
+                      {incomplete && (
+                        <span className="ml-auto mr-1 h-2 w-2 rounded-full bg-coral" aria-label="Onboarding step incomplete" />
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+
+        {/* Account nav - separated with space */}
+        <div className="mt-8 pt-4 border-t border-border">
+          <ul className="space-y-1">
+            {accountNav.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <li key={item.name}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "group flex items-center py-1.5 px-2 rounded-md text-sm font-medium transition-colors",
+                      isActive ? "bg-hover text-primary" : "text-secondaryText hover:bg-hover hover:text-primary"
+                    )}
+                  >
+                    <item.icon className={cn("mr-3 h-5 w-5 transition-transform duration-150", isActive ? "text-primary" : "text-secondaryText group-hover:text-primary group-hover:scale-110")} />
+                    {item.name}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </nav>
+      {/* Quick stats footer */}
+      <div className="p-3 mt-auto border-t border-border text-xs text-secondaryText">
+        <div className="flex items-center justify-between mb-0.5">
+          <span>Scheduled Posts</span>
+          <span className="font-semibold text-foreground">3</span>
+        </div>
+        <div className="flex items-center justify-between mb-0.5">
+          <span>Videos Processing</span>
+          <span className="font-semibold text-foreground">1</span>
+        </div>
+        <div className="text-center mt-2">&copy; {new Date().getFullYear()} ClipsCommerce</div>
       </div>
     </div>
   );

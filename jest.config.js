@@ -1,48 +1,44 @@
 // Jest configuration for TypeScript with ES modules support
 
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+/** @type {import('jest').Config} */
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
-  
-  // Test file patterns
-  roots: ['<rootDir>/src'],
-  testMatch: ['**/*.spec.ts', '**/*.test.ts'], // Keep this fix
-  
-  // Ignore patterns
-  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/.next/'],
-  
-  // Module handling
-  moduleFileExtensions: ['ts', 'js', 'json', 'node'],
-  
-  // Transform settings
-  transform: {
-    '^.+\.[tj]s$': ['ts-jest', { tsconfig: 'tsconfig.jest.json' }], // Reverted to simpler ts-jest config
-  },
-  
-  // Module name mapper
+  testEnvironment: 'jsdom',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
-  
-  // Test timeout
-  testTimeout: 10000,
-  
-  // Verbose output
-  verbose: true,
-  
-  // Force exit
-  forceExit: true,
-  
-  // Clear mocks between tests
-  clearMocks: true,
-  
-  // Reset modules between tests
-  resetModules: true,
-  
-  // Show individual test results
-  // testResultsProcessor: 'jest-sonar-reporter', // Keep this commented
-  
-  // Collect coverage
-  collectCoverage: false
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      useESM: false,
+      tsconfig: {
+        jsx: 'react-jsx',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+      },
+    }],
+    '^.+\\.(js|jsx)$': 'babel-jest',
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(framer-motion|lucide-react|@radix-ui)/)',
+  ],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  testMatch: [
+    '<rootDir>/src/**/__tests__/**/*.(ts|tsx|js)',
+    '<rootDir>/src/**/*.(test|spec).(ts|tsx|js)',
+  ],
+  collectCoverageFrom: [
+    'src/**/*.(ts|tsx)',
+    '!src/**/*.d.ts',
+    '!src/**/__tests__/**',
+    '!src/**/node_modules/**',
+  ],
+  globals: {
+    'ts-jest': {
+      useESM: false,
+    },
+  },
+  testTimeout: 30000,
+  maxWorkers: 1,
 };

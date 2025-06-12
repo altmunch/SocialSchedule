@@ -50,9 +50,9 @@ const navItems: NavItem[] = [
       key: 'features',
       hasDropdown: true,
       dropdown: [
-        { label: 'Content Creation', href: '/#content-creation' },
-        { label: 'AI Optimization', href: '/#ai-optimization' },
-        { label: 'Analytics', href: '/#analytics' },
+        { label: 'Content Optimization', href: '/#features' },
+        { label: 'AI Analytics', href: '/#how-it-works' },
+        { label: 'Performance Tracking', href: '/#testimonials' },
       ]
     },
     { 
@@ -60,19 +60,19 @@ const navItems: NavItem[] = [
       key: 'solutions',
       hasDropdown: true,
       dropdown: [
-        { label: 'E-commerce', href: '/solutions' },
-        { label: 'Short-form Content Marketing', href: '/solutions' },
+        { label: 'E-commerce', href: '/landing/solutions' },
+        { label: 'Content Marketing', href: '/landing/solutions' },
       ]
     },
-    { label: 'Pricing', href: '/pricing', hasDropdown: false },
-    { label: 'Terms of Service', href: '/terms-of-service', hasDropdown: false },
+    { label: 'Pricing', href: '/landing/pricing', hasDropdown: false },
+    { label: 'Terms of Service', href: '/landing/terms-of-service', hasDropdown: false },
     { 
       label: 'Resources', 
       key: 'resources',
       hasDropdown: true,
       dropdown: [
-        { label: 'Blog', href: '/blog' },
-        { label: 'Guides', href: '/resources/guides' },
+        { label: 'Blog', href: '/landing/resources' },
+        { label: 'Guides', href: '/landing/resources' },
         { label: 'API Docs', href: '/api-docs' },
       ]
     },
@@ -175,7 +175,7 @@ const navItems: NavItem[] = [
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <Link 
-              href="/signin"
+              href="/sign-in"
               className="text-sm text-gray-200 hover:text-white transition-colors duration-300"
             >
               Sign In
@@ -254,7 +254,7 @@ const navItems: NavItem[] = [
             ))}
             <div className="pt-4 pb-2 px-3 space-y-2">
               <Link
-                href="/signin"
+                href="/sign-in"
                 className="block w-full px-4 py-2 text-center text-sm font-medium text-gray-200 hover:text-white"
                 onClick={() => setMobileMenuOpen(false)}
               >

@@ -1,7 +1,7 @@
 'use client';
 
-import SubscriptionComponent from '@/components/dashboard/SubscriptionComponent';
+import PricingPage from '@/app/landing/pricing/page';
 
 export default function SubscriptionPage() {
-  return <SubscriptionComponent />;
+  return <PricingPage />;
 }

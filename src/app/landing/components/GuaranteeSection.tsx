@@ -87,7 +87,7 @@ export default function GuaranteeSection({ onGetStarted }: GuaranteeSectionProps
               transition={{ duration: 0.5, delay: 0.6 }}
             >
               <motion.button
-                onClick={onGetStarted}
+                onClick={() => window.location.href = '/dashboard'}
                 className="relative bg-gradient-to-r from-blitz-blue to-blitz-purple hover:from-blitz-blue/90 hover:to-blitz-purple/90 text-lightning-DEFAULT px-10 py-4 rounded-xl font-semibold text-lg shadow-xl shadow-blitz-blue/20 transition-all duration-300 overflow-hidden group"
                 whileHover={{ 
                   scale: 1.03, 

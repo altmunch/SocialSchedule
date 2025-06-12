@@ -82,10 +82,10 @@ export default function ScanComponent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-background text-foreground p-4 md:p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Scan</h1>
-        <p className="text-gray-500">Analyze trends and opportunities in your niche</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight gradient-text">Scan</h1>
+        <p className="text-muted-foreground mt-1">Analyze trends and opportunities in your niche</p>
       </div>
 
       <Card>

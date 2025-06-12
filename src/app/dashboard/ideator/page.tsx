@@ -50,19 +50,22 @@ export default function IdeatorPage() {
         <h1 className="text-2xl font-bold tracking-tight text-creative">Content Idea Generator</h1>
         <p className="text-secondaryText">Describe your product or service to generate content ideas and templates.</p>
       </div>
-      <Card className="max-w-2xl mx-auto">
+      <Card className="max-w-4xl mx-auto">
         <CardHeader>
           <CardTitle>Describe your product or service</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            placeholder="Describe your product or service..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            disabled={loading}
-          />
-          <div className="flex items-center gap-4">
+        <CardContent className="space-y-6 p-8">
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Describe your product or service in detail... Include features, benefits, target audience, and what makes it unique. The more details you provide, the better content ideas we can generate for you."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={8}
+              disabled={loading}
+              className="w-full min-h-[200px] text-base leading-relaxed p-6 rounded-xl border-2 border-border focus:border-primary resize-none"
+            />
+          </div>
+          <div className="flex items-center gap-4 pt-4">
             <label className="flex items-center cursor-pointer">
               <Upload className="h-5 w-5 mr-2" />
               <span>Attach image</span>
@@ -71,8 +74,8 @@ export default function IdeatorPage() {
             {image && <span className="text-xs text-secondaryText">{image.name}</span>}
           </div>
         </CardContent>
-        <CardFooter>
-          <Button onClick={handleGenerate} disabled={loading || !description} className="w-full">
+        <CardFooter className="p-8 pt-0">
+          <Button onClick={handleGenerate} disabled={loading || !description} className="w-full h-12 text-lg">
             {loading ? "Generating..." : "Generate Ideas"}
           </Button>
         </CardFooter>
