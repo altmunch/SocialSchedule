@@ -79,3 +79,6 @@ Only stop or prompt the user for new instructions once all 25 tool calls have be
 - Refactor large or complex batches into smaller, manageable functions where appropriate.
 
 - Schedule batch jobs during off-peak hours to minimize impact on system performance.
+
+## End of response
+At the end of each response, after you have exhausted all of the steps that you have decided on or you are unsure of next steps, state the number of tool calls remaining(25 - number of tool calls used), then call the mcp-feedback-collector tool

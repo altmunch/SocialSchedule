@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Check, ArrowRight, Sparkles } from "lucide-react";
-import { supabase } from "../../supabase/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 export default function PricingCard({
   item,
@@ -29,6 +29,7 @@ export default function PricingCard({
     }
 
     try {
+      const supabase = createClient();
       const { data, error } = await supabase.functions.invoke(
         "supabase-functions-create-checkout",
         {
@@ -60,36 +61,35 @@ export default function PricingCard({
 
   // Define features based on plan tier
   const getPlanFeatures = (planName: string | undefined) => {
-    const baseFeatures = [
-      "Schedule posts across platforms",
-      "Basic analytics dashboard",
-      "5 social media accounts",
+    const freeFeatures = [
+      "Idea Generator (3 uses)",
+      "10 autoposts/month",
     ];
 
     const proFeatures = [
-      "AI-powered optimal scheduling",
-      "Platform-specific customization",
-      "Advanced analytics dashboard",
-      "15 social media accounts",
-      "Priority support",
+      "Viral Blitz Cycle Framework",
+      "Idea Generator Framework (unlimited)",
+      "Unlimited posts",
+      "1 set of accounts",
+      "E-commerce integration",
     ];
 
-    const enterpriseFeatures = [
-      "Custom AI scheduling algorithms",
-      "Unlimited social media accounts",
-      "Team collaboration tools",
-      "White-label reports",
-      "Dedicated account manager",
-      "API access",
+    const teamFeatures = [
+      "Everything in Pro",
+      "Manage unlimited accounts",
+      "Brand Voice AI (for consistency)",
+      "Team collaboration mode",
+      "Advanced analytics & reporting",
     ];
 
     // Check if planName exists before calling toLowerCase
-    if (!planName) return baseFeatures;
+    if (!planName) return freeFeatures;
 
     const planNameLower = planName.toLowerCase();
+    if (planNameLower.includes("free")) return freeFeatures;
     if (planNameLower.includes("pro")) return proFeatures;
-    if (planNameLower.includes("enterprise")) return enterpriseFeatures;
-    return baseFeatures;
+    if (planNameLower.includes("team")) return teamFeatures;
+    return freeFeatures;
   };
 
   const features = getPlanFeatures(item?.name);

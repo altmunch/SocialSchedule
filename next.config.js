@@ -37,7 +37,6 @@ const withBundleAnalyzerConfig = withBundleAnalyzer(nextConfig);
 
 const optimizedNextConfig = {
   ...withBundleAnalyzerConfig,
-  swcMinify: true,
   images: {
     formats: ['image/avif', 'image/webp'],
   },

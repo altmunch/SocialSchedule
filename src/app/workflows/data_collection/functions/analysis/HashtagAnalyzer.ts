@@ -1,5 +1,6 @@
 // Specialized Hashtag Performance Analysis Module
-import { PostMetrics, Platform } from '../types';
+import { PostMetrics } from '../types';
+import { Platform } from '@/app/workflows/deliverables/types/deliverables_types';
 import { Cache } from '@/lib/utils/cache';
 
 /**
@@ -89,7 +90,7 @@ export class HashtagAnalyzer {
     });
     
     // Initialize platform index for each supported platform
-    const platforms: Platform[] = ['tiktok', 'instagram', 'youtube'];
+    const platforms: Platform[] = [Platform.TIKTOK, Platform.INSTAGRAM, Platform.YOUTUBE];
     for (const platform of platforms) {
       this.platformHashtagIndex.set(platform, new Map());
     }
@@ -117,7 +118,7 @@ export class HashtagAnalyzer {
       // Clear indices if replacing all posts
       this.hashtagIndex.clear();
       this.coOccurrenceMatrix.clear();
-      const platformsList: Platform[] = ['tiktok', 'instagram', 'youtube'];
+      const platformsList: Platform[] = [Platform.TIKTOK, Platform.INSTAGRAM, Platform.YOUTUBE];
       for (const platform of platformsList) {
         this.platformHashtagIndex.set(platform, new Map());
       }
@@ -163,7 +164,7 @@ export class HashtagAnalyzer {
     const timestamp = new Date(post.timestamp);
     
     // Normalize hashtags (lowercase)
-    const normalizedHashtags = post.hashtags.map(tag => tag.toLowerCase());
+    const normalizedHashtags = post.hashtags.map((tag: string) => tag.toLowerCase());
     
     // Update hashtag index
     for (const hashtag of normalizedHashtags) {
@@ -347,7 +348,7 @@ export class HashtagAnalyzer {
       performanceByPlatform[platform] = {
         posts: metrics.posts,
         engagement: metrics.engagement,
-        engagementRate: metrics.posts > 0 ? metrics.engagement / metrics.posts : 0
+        engagementRate: metrics.posts > 0 ? (metrics.engagement / metrics.posts) * 100 : 0
       };
     }
     
@@ -469,7 +470,7 @@ export class HashtagAnalyzer {
       totalPosts,
       totalEngagement,
       avgEngagement: totalPosts > 0 ? totalEngagement / totalPosts : 0,
-      engagementRate: totalPosts > 0 ? totalEngagement / totalPosts : 0,
+      engagementRate: totalPosts > 0 ? (totalEngagement / totalPosts) * 100 : 0,
       reachEstimate: totalReach,
       impressionsEstimate: totalImpressions,
       growthRate,

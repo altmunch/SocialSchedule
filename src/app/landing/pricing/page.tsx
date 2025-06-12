@@ -87,59 +87,49 @@ export default function PricingPage() {
   // Predefined pricing tiers with specified pricing structure
   const pricingTiers: PricingTier[] = [
     {
-      id: 'pro',
-      name: 'Pro',
-      price: 70, // Monthly price
-      yearlyPrice: 600, // Annual price
-      description: 'Entry-level for premium, niche service',
+      id: 'free',
+      name: 'Free Plan',
+      price: 0,
+      yearlyPrice: 0,
+      description: 'Get started with basic features',
       features: [
-        'Content Optimizing Engine ("Accelerate")',
-        'Precise Automated Posting ("Blitz")',
-        'Viral Cycle of Improvements ("Cycle")',
-        'Comprehensive Field Research ("Scan")',
-        'Retention-Boosting Hashtag Generator',
-        'Manage up to 3 social accounts',
-        'Basic content analytics dashboard',
-        'Template Generator Bonus ($399 value)'
+        'Idea Generator (3 uses)',
+        '10 autoposts/month'
       ],
       ctaText: 'Get Started'
     },
     {
-      id: 'team',
-      name: 'Team',
-      price: 100, // Monthly price
-      yearlyPrice: 900, // Annual price
-      description: 'For teams or heavy users, added features',
+      id: 'pro',
+      name: 'Pro Plan',
+      price: 70, // Monthly price
+      yearlyPrice: 840, // Annual price ($70 * 12)
+      description: '$70/month',
       features: [
-        'Everything in Pro, plus:',
-        'Team collaboration features',
-        'Custom Brand Voice AI',
-        'Priority posting during peak hours',
-        'Advanced content performance metrics',
-        'Manage up to 10 social accounts',
-        'Content calendar with team workflows',
-        'Hook Creator Bonus ($500 value)'
+        'Viral Blitz Cycle Framework',
+        'Idea Generator Framework (unlimited)',
+        'Unlimited posts',
+        '1 set of accounts',
+        'E-commerce integration'
       ],
-      isPopular: true,
-      ctaText: 'Choose Team'
+      ctaText: 'Get Started',
+      stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRO_LINK
     },
     {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: 160, // Monthly price
-      yearlyPrice: 1500, // Annual price
-      description: 'For custom integrations or high-volume needs',
+      id: 'team',
+      name: 'Team Plan',
+      price: 500, // Monthly price
+      yearlyPrice: 6000, // Annual price ($500 * 12)
+      description: '$500/month',
       features: [
-        'Everything in Team, plus:',
-        'Direct e-commerce platform integration',
-        'Dedicated account manager',
-        'Advanced analytics and reporting',
-        'Unlimited social accounts',
-        'Custom API integrations',
-        'White-glove onboarding',
-        'Custom AI model training for your brand'
+        'Everything in Pro',
+        'Manage unlimited accounts',
+        'Brand Voice AI (for consistency)',
+        'Team collaboration mode',
+        'Advanced analytics & reporting'
       ],
-      ctaText: 'Contact Us'
+      isPopular: true,
+      ctaText: 'Choose Team',
+      stripePriceId: process.env.NEXT_PUBLIC_STRIPE_TEAM_LINK
     }
   ];
 
@@ -224,7 +214,7 @@ export default function PricingPage() {
 
   // Recommended plan based on inputs
   const getRecommendedPlan = () => {
-    if (followers > 10000 || posts > 30) return 'business';
+    if (followers > 10000 || posts > 30) return 'team';
     if (followers > 1000 || posts > 10) return 'pro';
     return 'free';
   };
@@ -302,7 +292,7 @@ export default function PricingPage() {
             // Handle Team tier pricing display
             const priceDisplay = () => {
               if (tier.id === 'team' && billingCycle === 'yearly') {
-                return '$900';
+                return '$6000';
               }
               return `$${billingCycle === 'yearly' ? tier.yearlyPrice : tier.price}`;
             };
@@ -369,7 +359,16 @@ export default function PricingPage() {
                     <motion.button
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
-                      className={`w-full py-3 rounded-xl font-medium transition-all ${tier.isPopular
+                      onClick={() => {
+                        if (tier.id === 'free') {
+                          window.location.href = '/dashboard';
+                        } else if (tier.stripePriceId) {
+                          window.open(tier.stripePriceId, '_blank');
+                        } else {
+                          window.location.href = '/dashboard';
+                        }
+                      }}
+                      className={`w-full py-3 rounded-xl font-medium transition-all cursor-pointer ${tier.isPopular
                         ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] text-white hover:shadow-lg hover:shadow-[#8D5AFF]/20'
                         : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'}`}
                     >

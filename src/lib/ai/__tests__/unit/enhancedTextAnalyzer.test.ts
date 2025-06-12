@@ -1,5 +1,5 @@
 import { EnhancedTextAnalyzer } from '../../enhancedTextAnalyzer';
-import { createTestConfig, createMockOpenAI } from '../testUtils';
+import { createTestConfig, createMockOpenAI } from '@/lib/ai/testUtils/index';
 import { jest } from '@jest/globals';
 import { EnhancedCache, CacheOptions, CacheStats } from '../../../utils/caching';
 

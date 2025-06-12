@@ -7,7 +7,7 @@ const scannerService = new ScannerService();
 
 // Initialize platform clients (in a real app, this would be done with proper auth)
 scannerService.initializePlatforms([
-  { platform: 'tiktok', accessToken: process.env.TIKTOK_ACCESS_TOKEN || '' },
+  { platform: 'TIKTOK' as any, accessToken: process.env.TIKTOK_ACCESS_TOKEN || '' },
   // Add other platforms as needed
 ]);
 
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     }
 
     const scanOptions: ScanOptions = {
-      platforms: options?.platforms || ['tiktok'],
+      platforms: options?.platforms || ['TIKTOK' as any],
       competitors: options?.competitors || [],
       lookbackDays: options?.lookbackDays || 30,
       includeOwnPosts: options?.includeOwnPosts ?? true,

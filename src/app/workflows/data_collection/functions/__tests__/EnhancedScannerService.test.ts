@@ -58,20 +58,28 @@ describe('EnhancedScannerService', () => {
       emit: jest.fn(),
       recordMetric: jest.fn(),
       trackPerformance: jest.fn(),
-      on: jest.fn()
+      on: jest.fn(),
+      getMetricsCollector: jest.fn().mockReturnValue({
+        recordMetric: jest.fn(),
+      }),
+      monitor: jest.fn().mockImplementation(async (operationName, fn) => {
+        // Simulate monitoring by just executing the function
+        return fn();
+      }),
     };
     mockSupabaseClient = {} as SupabaseClient; // Minimal mock
     // Create service instance with mocks
     scannerService = new EnhancedScannerService(mockCacheSystem, mockMonitoringSystem);
-    // Add a no-op destroy method if not present
-    if (typeof scannerService.destroy !== 'function') {
-      scannerService.destroy = async () => {};
-    }
+    // Add a no-op destroy method if not present for mocking
+    jest.spyOn(scannerService, 'destroy').mockImplementation(async () => {});
   });
 
   afterEach(async () => {
     // Clean up
-    await scannerService.destroy();
+    if (scannerService && typeof scannerService.destroy === 'function') {
+      await scannerService.destroy();
+    }
+    jest.restoreAllMocks();
   });
 
   describe('Platform initialization', () => {

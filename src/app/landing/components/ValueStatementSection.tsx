@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useAnimation, useInView, AnimationControls } from "framer-motion";
+import { motion, useAnimation, useInView } from "framer-motion";
+import { AnimationControls } from "framer-motion/dom";
 import { useEffect, useRef, useMemo, useState } from "react";
 import Link from "next/link";
 

@@ -55,7 +55,7 @@ export class HistoricalPerformanceEngine {
       console.error(`[HistoricalPerformanceEngine] Error fetching historical videos for user ${request.userId}:`, videosError);
       return {
         success: false,
-        error: { message: videosError.message || `An unknown error occurred while fetching videos for platform ${request.platform}`, details: videosError },
+        error: { message: videosError.message || JSON.stringify(videosError) || `An unknown error occurred while fetching videos for platform ${request.platform}`, details: videosError },
         metadata: {
           generatedAt: new Date(),
           source: 'HistoricalPerformanceEngine',

@@ -27,11 +27,11 @@ export class EnhancedScannerExample {
     // Initialize platform tokens - in production, fetch these from a secure source
     this.platforms = [
       { 
-        platform: 'instagram',
+        platform: 'INSTAGRAM' as any,
         accessToken: process.env.INSTAGRAM_ACCESS_TOKEN || 'demo_token'
       },
       { 
-        platform: 'tiktok',
+        platform: 'TIKTOK' as any,
         accessToken: process.env.TIKTOK_ACCESS_TOKEN || 'demo_token'
       }
     ];
@@ -222,7 +222,7 @@ async function runExample() {
     
     // Run a scan
     const scanResult = await example.runScan({
-      platforms: ['instagram', 'tiktok'],
+      platforms: ['INSTAGRAM' as any, 'TIKTOK' as any],
       lookbackDays: 30,
       includeOwnPosts: true,
       competitors: ['competitor1', 'competitor2'],
@@ -237,11 +237,11 @@ async function runExample() {
     );
     
     // Get user posts from a specific platform
-    const posts = await example.getUserPosts('instagram');
+    const posts = await example.getUserPosts('INSTAGRAM' as any);
     console.log(`Retrieved ${posts.length} posts from Instagram`);
     
     // Invalidate cache
-    await example.invalidateCache('instagram');
+    await example.invalidateCache('INSTAGRAM' as any);
     
   } catch (error) {
     console.error('Example failed:', error);

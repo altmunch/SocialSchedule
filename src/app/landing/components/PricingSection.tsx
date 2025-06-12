@@ -18,59 +18,58 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
 
   const plans = [
     {
-      name: 'Pro',
-      subtitle: 'Entry-level for premium, niche service',
-      annualPrice: 600,
-      monthlyPrice: calculateMonthly(600),
+      name: 'Free Plan',
+      subtitle: 'Get started with basic features',
+      annualPrice: 0,
+      monthlyPrice: 0,
       features: [
-        'AI optimizes content for conversions',
-        'Schedule posts for maximum sales',
-        'Content Optimizing Engine ("Accelerate")',
-        'Precise Automated Posting ("Blitz")',
-        'Viral Cycle of Improvements ("Cycle")',
-        'Comprehensive Field Research ("Scan")',
-        'Manage up to 3 social accounts',
-        'Hook & Template Generator Bonus',
+        'Idea Generator (3 uses)',
+        '10 autoposts/month',
       ],
       highlighted: false,
+      isFree: true,
     },
     {
-      name: 'Team',
-      subtitle: 'For teams or heavy users, added features',
-      annualPrice: 900,
-      annualPriceRange: '900–1,200',
-      monthlyPrice: calculateMonthly(900),
-      monthlyPriceRange: '95–125',
+      name: 'Pro Plan',
+      subtitle: '$70/month',
+      annualPrice: 840, // $70 * 12
+      monthlyPrice: 70,
       features: [
-        'Everything in Pro, plus:',
-        'Advanced AI content customization',
-        'Team collaboration features',
-        'Priority posting during peak hours',
-        'Custom Brand Voice AI',
-        'Manage up to 10 social accounts',
-        'Content performance analytics dashboard',
-        'Priority customer support',
+        'Viral Blitz Cycle Framework',
+        'Idea Generator Framework (unlimited)',
+        'Unlimited posts',
+        '1 set of accounts',
+        'E-commerce integration',
+      ],
+      highlighted: false,
+      stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_PRO_LINK',
+    },
+    {
+      name: 'Team Plan',
+      subtitle: '$500/month',
+      annualPrice: 6000, // $500 * 12
+      monthlyPrice: 500,
+      features: [
+        'Everything in Pro',
+        'Manage unlimited accounts',
+        'Brand Voice AI (for consistency)',
+        'Team collaboration mode',
+        'Advanced analytics & reporting',
       ],
       highlighted: true,
-    },
-    {
-      name: 'Enterprise',
-      subtitle: 'For custom integrations or high-volume needs',
-      annualPrice: 1500,
-      monthlyPrice: calculateMonthly(1500),
-      features: [
-        'Everything in Team, plus:',
-        'Custom API integrations',
-        'Dedicated account manager',
-        'Advanced analytics and reporting',
-        'Direct e-commerce platform integration',
-        'Unlimited social accounts',
-        'White-glove onboarding',
-        'Custom AI model training',
-      ],
-      highlighted: false,
+      stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_TEAM_LINK',
     }
   ];
+
+  const getButtonLink = (plan: any) => {
+    if (plan.isFree) {
+      return "/dashboard";
+    }
+    if (plan.stripeLinkEnv) {
+      return process.env[plan.stripeLinkEnv] || "/dashboard";
+    }
+    return "/dashboard";
+  };
 
   return (
     <section className="py-16 md:py-24 bg-gradient-to-b from-storm-darker to-storm-darkest" id="pricing">
@@ -159,27 +158,29 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                   
                   <div className="flex items-baseline mb-6">
                     <span className="text-4xl font-bold text-white">
-                      ${isAnnual 
-                        ? (plan.annualPriceRange || plan.annualPrice) 
-                        : (plan.monthlyPriceRange || plan.monthlyPrice)}
+                      {plan.isFree ? 'Free' : `$${isAnnual ? plan.annualPrice : plan.monthlyPrice}`}
                     </span>
-                    <span className="text-white/60 ml-2">
-                      {isAnnual ? '/year' : '/month'}
-                    </span>
+                    {!plan.isFree && (
+                      <span className="text-white/60 ml-2">
+                        {isAnnual ? '/year' : '/month'}
+                      </span>
+                    )}
                   </div>
                   
-                  {/* Bonus section */}
-                  <div className="bg-[#5afcc0]/10 rounded-lg p-4 mb-6 border border-[#5afcc0]/20">
-                    <div className="flex items-start">
-                      <Sparkles className="h-5 w-5 text-[#5afcc0] mr-2 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-[#5afcc0] font-medium">Limited Time Bonuses</p>
-                        <p className="text-sm text-white/70">Template Generator & Hook Creator included ($899 value)</p>
+                  {/* Bonus section - only show for paid plans */}
+                  {!plan.isFree && (
+                    <div className="bg-[#5afcc0]/10 rounded-lg p-4 mb-6 border border-[#5afcc0]/20">
+                      <div className="flex items-start">
+                        <Sparkles className="h-5 w-5 text-[#5afcc0] mr-2 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-[#5afcc0] font-medium">Limited Time Bonuses</p>
+                          <p className="text-sm text-white/70">Template Generator & Hook Creator included ($899 value)</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
-                  <a href="/dashboard">
+                  <a href={getButtonLink(plan)}>
                     <button
                       className={`w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 ${plan.highlighted 
                         ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 

@@ -51,17 +51,17 @@ export default function Sidebar() {
     <div className="w-64 h-screen bg-card/80 backdrop-blur-md border-r border-border/50 flex flex-col">
       <div className="p-4 border-b border-border/50 flex items-center justify-center">
         <Link href="/dashboard" className="flex items-center space-x-3 group">
-          <div className="relative h-9 w-9 rounded-lg overflow-hidden bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
+          <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
             <Image
               src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png"
               alt="ClipsCommerce Logo"
-              width={24}
-              height={24}
+              width={32}
+              height={32}
               className="object-contain p-1 invert"
               priority
             />
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+          <span className="text-xl font-bold text-white">
             ClipsCommerce
           </span>
         </Link>

@@ -18,81 +18,90 @@ type Plan = {
   description: string;
   features: string[];
   isPopular?: boolean;
+  isFree?: boolean;
+  stripeLinkEnv?: string;
 };
 
 export default function SubscriptionComponent() {
   const { user } = useAuth();
-  const [activePlan, setActivePlan] = useState<string>('pro'); // In a real app, fetch from user profile
+  const [activePlan, setActivePlan] = useState<string>('free'); // Default to free plan
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Using the same pricing structure as the landing page
+  // Updated pricing structure to match the new schema
   const plans: Plan[] = [
     {
-      id: 'pro',
-      name: 'Pro',
-      price: 70,
-      yearlyPrice: 600,
+      id: 'free',
+      name: 'Free Plan',
+      price: 0,
+      yearlyPrice: 0,
       interval: billingCycle,
-      description: 'Entry-level for premium, niche service',
+      description: 'Get started with basic features',
       features: [
-        'Content Optimizing Engine ("Accelerate")',
-        'Precise Automated Posting ("Blitz")',
-        'Viral Cycle of Improvements ("Cycle")',
-        'Comprehensive Field Research ("Scan")',
-        'Retention-Boosting Hashtag Generator',
-        'Manage up to 3 social accounts',
-        'Basic content analytics dashboard',
-        'Template Generator Bonus ($399 value)'
-      ]
+        'Idea Generator (3 uses)',
+        '10 autoposts/month'
+      ],
+      isFree: true
+    },
+    {
+      id: 'pro',
+      name: 'Pro Plan',
+      price: 70,
+      yearlyPrice: 840, // $70 * 12
+      interval: billingCycle,
+      description: '$70/month',
+      features: [
+        'Viral Blitz Cycle Framework',
+        'Idea Generator Framework (unlimited)',
+        'Unlimited posts',
+        '1 set of accounts',
+        'E-commerce integration'
+      ],
+      stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_PRO_LINK'
     },
     {
       id: 'team',
-      name: 'Team',
-      price: 100,
-      yearlyPrice: 900,
+      name: 'Team Plan',
+      price: 500,
+      yearlyPrice: 6000, // $500 * 12
       interval: billingCycle,
-      description: 'For teams or heavy users, added features',
+      description: '$500/month',
       features: [
-        'Everything in Pro, plus:',
-        'Team collaboration features',
-        'Custom Brand Voice AI',
-        'Priority posting during peak hours',
-        'Advanced content performance metrics',
-        'Manage up to 10 social accounts',
-        'Content calendar with team workflows',
-        'Hook Creator Bonus ($500 value)'
+        'Everything in Pro',
+        'Manage unlimited accounts',
+        'Brand Voice AI (for consistency)',
+        'Team collaboration mode',
+        'Advanced analytics & reporting'
       ],
-      isPopular: true
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: 160,
-      yearlyPrice: 1500,
-      interval: billingCycle,
-      description: 'For custom integrations or high-volume needs',
-      features: [
-        'Everything in Team, plus:',
-        'Direct e-commerce platform integration',
-        'Dedicated account manager',
-        'Advanced analytics and reporting',
-        'Unlimited social accounts',
-        'Custom API integrations',
-        'White-glove onboarding',
-        'Custom AI model training for your brand'
-      ]
+      isPopular: true,
+      stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_TEAM_LINK'
     }
   ];
 
   const handleSelectPlan = (planId: string) => {
-    // In a real app, this would open a checkout process or change plan
-    setActivePlan(planId);
-    setSuccessMessage('Your subscription plan has been updated successfully.');
-    setTimeout(() => setSuccessMessage(null), 5000);
+    const plan = plans.find(p => p.id === planId);
+    
+    if (plan?.isFree) {
+      // For free plan, just update the active plan
+      setActivePlan(planId);
+      setSuccessMessage('Your subscription plan has been updated successfully.');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } else if (plan?.stripeLinkEnv) {
+      // For paid plans, redirect to Stripe checkout
+      const stripeLink = process.env[plan.stripeLinkEnv];
+      if (stripeLink) {
+        window.open(stripeLink, '_blank');
+      } else {
+        // Fallback if env variable not set
+        setActivePlan(planId);
+        setSuccessMessage('Your subscription plan has been updated successfully.');
+        setTimeout(() => setSuccessMessage(null), 5000);
+      }
+    }
   };
 
   const formatPrice = (plan: Plan) => {
+    if (plan.isFree) return 'Free';
     const price = billingCycle === 'yearly' ? plan.yearlyPrice || plan.price : plan.price;
     return `$${price}${billingCycle === 'monthly' ? '/month' : '/year'}`;
   };
@@ -177,7 +186,7 @@ export default function SubscriptionComponent() {
                     <span className="text-3xl font-bold">
                       {formatPrice(plan)}
                     </span>
-                    {billingCycle === 'yearly' && plan.yearlyPrice && (
+                    {billingCycle === 'yearly' && plan.yearlyPrice && !plan.isFree && (
                       <span className="text-sm text-green-600 ml-2">
                         Save 20%
                       </span>

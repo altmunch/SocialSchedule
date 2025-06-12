@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import OpenAI, { APIError } from 'openai';
 import { OptimizedVideoGenerator, UserPreferences, ProductLink, OptimizedVideoContent } from './OptimizedVideoGenerator';
 import { VideoOptimizationAnalysisData, TrendingHashtag, AudioVirality, SentimentAnalysisResult, AudioRecommendationResult, DetailedPlatformMetrics, Platform } from '../data_analysis/types/analysis_types';
 
@@ -217,7 +217,7 @@ describe('OptimizedVideoGenerator', () => {
     });
 
     it('should successfully generate content after a few transient API errors (e.g., 500)', async () => {
-      const retryableError = new OpenAI.APIError(500, undefined, 'Internal Server Error', undefined);
+      const retryableError = new APIError(500, undefined, 'Internal Server Error', undefined);
       mockOpenAICreate
         .mockRejectedValueOnce(retryableError) // First attempt fails
         .mockRejectedValueOnce(retryableError) // Second attempt fails
@@ -229,7 +229,7 @@ describe('OptimizedVideoGenerator', () => {
     });
 
     it('should throw an error after exhausting retries on persistent transient API errors', async () => {
-      const persistentRetryableError = new OpenAI.APIError(503, undefined, 'Service Unavailable', undefined);
+      const persistentRetryableError = new APIError(503, undefined, 'Service Unavailable', undefined);
       mockOpenAICreate.mockRejectedValue(persistentRetryableError); // All attempts fail
 
       await expect(generator.generateOptimizedContent(mockAnalysisData, mockUserPreferences))
@@ -238,7 +238,7 @@ describe('OptimizedVideoGenerator', () => {
     });
 
     it('should throw an error immediately for non-retryable API errors (e.g., 401)', async () => {
-      const nonRetryableError = new OpenAI.APIError(401, undefined, 'Unauthorized', undefined);
+      const nonRetryableError = new APIError(401, undefined, 'Unauthorized', undefined);
       mockOpenAICreate.mockRejectedValueOnce(nonRetryableError); // Single attempt fails
 
       await expect(generator.generateOptimizedContent(mockAnalysisData, mockUserPreferences))

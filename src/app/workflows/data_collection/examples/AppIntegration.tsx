@@ -192,7 +192,7 @@ export function SocialScanner({ userId }: { userId: string }) {
   } = useScanState(scannerService, userId);
   
   // Form state
-  const [platforms, setPlatforms] = useState<Platform[]>(['instagram']);
+  const [platforms, setPlatforms] = useState<Platform[]>(['INSTAGRAM' as any]);
   const [lookbackDays, setLookbackDays] = useState(30);
   const [includeOwnPosts, setIncludeOwnPosts] = useState(true);
   const [timezone, setTimezone] = useState('America/New_York');
