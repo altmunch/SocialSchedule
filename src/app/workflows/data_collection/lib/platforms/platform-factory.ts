@@ -1,7 +1,7 @@
 import { Platform } from '../../../deliverables/types/deliverables_types';
 import { PlatformClient, ApiConfig as PlatformSpecificApiConfig } from './types'; // Renamed ApiConfig
 import { TikTokClient } from './tiktok-client';
-import { InstagramClient } from './instagram-client';
+import { InstagramClient } from './consolidated/InstagramClient';
 import { YouTubeClient } from './youtube-client';
 import { AuthTokenManagerService } from '../auth-token-manager.service';
 import { IAuthTokenManager, PlatformCredentials } from '../auth.types';
@@ -34,7 +34,7 @@ export class PlatformClientFactory {
       case Platform.TIKTOK:
         return new TikTokClient(platformSpecificConfig, authTokenManager, userId);
       case Platform.INSTAGRAM:
-        return new InstagramClient(platformSpecificConfig, authTokenManager, userId);
+        return new InstagramClient(authTokenManager, userId, platformSpecificConfig);
       case Platform.YOUTUBE:
         return new YouTubeClient(
           platformSpecificConfig as PlatformSpecificApiConfig,

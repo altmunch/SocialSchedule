@@ -101,6 +101,14 @@ export default function DashboardPage() {
         <h1 className="text-3xl md:text-4xl font-extrabold gradient-text">
           {greeting}, {user?.email?.split('@')[0] || 'Creator'}
         </h1>
+        {/* Temporary button for team dashboard access */}
+        {user && (
+          <Link href="/team_dashboard">
+            <Button className="bg-blue-500 hover:bg-blue-600 text-white">
+              Go to Team Dashboard
+            </Button>
+          </Link>
+        )}
       </div>
       
       {/* Workflow Cards Section */}

@@ -32,15 +32,12 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    overflow-x: hidden; /* Prevent horizontal scrollbar */
-    scrollbar-gutter: stable; /* Prevent layout shift when scrollbar appears */
+    overflow-x: hidden;
   }
 
   /* Smooth scroll behavior */
   html {
     scroll-behavior: smooth;
-    overflow-x: hidden; /* Prevent horizontal scrollbar on html */
-    scrollbar-gutter: stable; /* Prevent layout shift when scrollbar appears */
   }
   
   /* Selection styling */

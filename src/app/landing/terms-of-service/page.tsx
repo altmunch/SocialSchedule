@@ -1,5 +1,5 @@
 import React from 'react';
-import NavigationBar from '@/app/landing/components/NavigationBar';
+import NavigationBar from '@/app/landing/components/NavigationBarWrapper';
 
 export default function TermsOfServicePage() {
   return (

@@ -2,7 +2,7 @@
 // Be mindful of quota costs for each API call
 
 import { BasePlatformClient, HeaderValue } from './base-platform';
-import { ApiConfig, ApiResponse, PlatformComment, PlatformPostMetrics, PlatformUserActivity } from './types';
+import { ApiConfig, ApiResponse, PlatformComment, PlatformPostMetrics, PlatformUserActivity, PlatformPost } from './types';
 import { YouTubeCommentThreadListResponseSchema, YouTubeCommentThread, YouTubeChannelListResponseSchema, YouTubeChannelListResponse, YouTubeVideoListResponseSchema, YouTubeVideoListResponse, YouTubeVideo } from './youtube.types';
 import { Platform } from '../../../deliverables/types/deliverables_types';
 import { IAuthTokenManager } from '../auth.types';
@@ -200,6 +200,24 @@ export class YouTubeClient extends BasePlatformClient {
 
       return response;
     });
+  }
+
+  async getUserVideos(options?: {
+    userId?: string;
+    cursor?: string;
+    limit?: number;
+  }): Promise<ApiResponse<{ posts: PlatformPost[]; nextPageCursor?: string; hasMore?: boolean }>> {
+    // Stub implementation for interface compatibility
+    this.log('warn', '[YouTubeClient] getUserVideos called but not fully implemented');
+    
+    return {
+      data: {
+        posts: [],
+        nextPageCursor: undefined,
+        hasMore: false,
+      },
+      rateLimit: this.rateLimit || undefined,
+    };
   }
 
   async getVideoComments(

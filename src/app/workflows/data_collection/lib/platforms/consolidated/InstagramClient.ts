@@ -61,7 +61,9 @@ export class InstagramClient extends BasePlatformClient {
       // Add auth token to all requests
       if (config.params?.access_token === undefined) {
         const authHeaders = await this.getAuthHeaders();
-        config.headers = { ...config.headers, ...authHeaders };
+        Object.entries(authHeaders).forEach(([key, value]) => {
+          config.headers.set(key, value);
+        });
       }
       return config;
     });

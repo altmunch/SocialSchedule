@@ -26,17 +26,19 @@ import {
 import { useTeamMode } from '@/providers/TeamModeProvider';
 
 interface BulkOperationsPanelProps {
-  isVisible: boolean;
+  selectedCount: number;
+  onBulkAction: (action: string) => Promise<void>;
   onClose: () => void;
+  isLoading: boolean;
 }
 
-export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelProps) {
+export function BulkOperationsPanel({ selectedCount, onBulkAction, onClose, isLoading }: BulkOperationsPanelProps) {
   const { selectedClients, clients, clearSelection } = useTeamMode();
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [selectedOperation, setSelectedOperation] = useState<string>('');
   
-  if (!isVisible || selectedClients.length === 0) {
+  if (selectedCount === 0) {
     return null;
   }
 
@@ -125,7 +127,7 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
             <div className="flex items-center space-x-2">
               <CheckSquare className="h-5 w-5 text-primary" />
               <span className="font-medium">
-                {selectedClients.length} client{selectedClients.length !== 1 ? 's' : ''} selected
+                {selectedCount} client{selectedCount !== 1 ? 's' : ''} selected
               </span>
             </div>
             

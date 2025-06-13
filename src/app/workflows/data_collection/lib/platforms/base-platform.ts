@@ -87,7 +87,7 @@ export abstract class BasePlatformClient extends EventEmitter {
 
     if (!credentials) {
       this.log('error', `No valid credentials found for platform: ${this.platform}, user: ${this.userId || 'default'}`, { platform: this.platform, userId: this.userId });
-      throw new PlatformError(`Authentication failed: No valid credentials for ${this.platform}.`);
+      throw new PlatformError(this.platform, 'AUTHENTICATION_FAILED', `Authentication failed: No valid credentials for ${this.platform}.`);
     }
 
     if (credentials.strategy === AuthStrategy.OAUTH2) {

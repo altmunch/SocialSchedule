@@ -2,35 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Menu, X, ChevronDown, Star } from 'lucide-react';
 
-function NavigationBar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const router = useRouter();
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const dropdownRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
-
-  // Handle clicking outside to close dropdowns
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (openDropdown && dropdownRefs.current[openDropdown] && 
-          !dropdownRefs.current[openDropdown]?.contains(event.target as Node)) {
-        setOpenDropdown(null);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [openDropdown]);
-  
-  const toggleDropdown = (dropdown: string) => {
-    setOpenDropdown(openDropdown === dropdown ? null : dropdown);
-  };
-
-  // Navigation items
-  // Define interface for navigation items
+// Define interface for navigation items
 interface DropdownItem {
   label: string;
   href: string;
@@ -44,39 +19,147 @@ interface NavItem {
   dropdown?: DropdownItem[];
 }
 
+// Static navigation items - moved outside component to prevent re-creation
 const navItems: NavItem[] = [
-    { 
-      label: 'Features', 
-      key: 'features',
-      hasDropdown: true,
-      dropdown: [
-        { label: 'Content Optimization', href: '/#features' },
-        { label: 'AI Analytics', href: '/#how-it-works' },
-        { label: 'Performance Tracking', href: '/#testimonials' },
-      ]
-    },
-    { 
-      label: 'Solutions', 
-      key: 'solutions',
-      hasDropdown: true,
-      dropdown: [
-        { label: 'E-commerce', href: '/landing/solutions' },
-        { label: 'Content Marketing', href: '/landing/solutions' },
-      ]
-    },
-    { label: 'Pricing', href: '/landing/pricing', hasDropdown: false },
-    { label: 'Terms of Service', href: '/landing/terms-of-service', hasDropdown: false },
-    { 
-      label: 'Resources', 
-      key: 'resources',
-      hasDropdown: true,
-      dropdown: [
-        { label: 'Blog', href: '/landing/resources' },
-        { label: 'Guides', href: '/landing/resources' },
-        { label: 'API Docs', href: '/api-docs' },
-      ]
-    },
-  ];
+  { 
+    label: 'Features', 
+    key: 'features',
+    hasDropdown: true,
+    dropdown: [
+      { label: 'Content Optimization', href: '/#features' },
+      { label: 'AI Analytics', href: '/#how-it-works' },
+      { label: 'Performance Tracking', href: '/#testimonials' },
+    ]
+  },
+  { 
+    label: 'Solutions', 
+    key: 'solutions',
+    hasDropdown: true,
+    dropdown: [
+      { label: 'E-commerce', href: '/landing/solutions' },
+      { label: 'Content Marketing', href: '/landing/solutions' },
+    ]
+  },
+  { label: 'Team', href: '/landing/team', hasDropdown: false },
+  { label: 'Pricing', href: '/landing/pricing', hasDropdown: false },
+  { label: 'Terms of Service', href: '/landing/terms-of-service', hasDropdown: false },
+  { 
+    label: 'Resources', 
+    key: 'resources',
+    hasDropdown: true,
+    dropdown: [
+      { label: 'Blog', href: '/landing/resources' },
+      { label: 'Guides', href: '/landing/resources' },
+      { label: 'API Docs', href: '/api-docs' },
+    ]
+  },
+];
+
+function NavigationBarClient() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const dropdownRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+
+  // Prevent hydration mismatch by checking if component is mounted
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Handle clicking outside to close dropdowns
+  useEffect(() => {
+    if (!mounted) return;
+    
+    function handleClickOutside(event: MouseEvent) {
+      if (openDropdown && dropdownRefs.current[openDropdown] && 
+          !dropdownRefs.current[openDropdown]?.contains(event.target as Node)) {
+        setOpenDropdown(null);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openDropdown, mounted]);
+  
+  const toggleDropdown = (dropdown: string) => {
+    if (!mounted) return;
+    setOpenDropdown(openDropdown === dropdown ? null : dropdown);
+  };
+
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-50 flex flex-col bg-black/80 backdrop-blur-md border-b border-white/5">
+        {/* Announcement banner */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 py-2.5 px-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-sm font-medium text-white">
+            <span className="flex items-center">
+              <Star className="h-4 w-4 mr-1.5 text-yellow-300 fill-yellow-300" />
+              AI-powered e-commerce content creation and optimization platform
+            </span>
+            <Link 
+              href="/dashboard" 
+              className="font-bold underline hover:text-white/90 transition-colors"
+            >
+              Get Started Free
+            </Link>
+          </div>
+        </div>
+        
+        {/* Main navigation skeleton */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="flex-shrink-0 flex items-center">
+              <Link href="/" className="flex items-center">
+                <div className="flex items-center space-x-2">
+                  <div className="relative h-10 w-10 rounded-full overflow-hidden">
+                    <Image 
+                      src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png" 
+                      alt="ChatGPT" 
+                      fill
+                      style={{
+                        objectFit: 'cover',
+                        filter: 'invert(1)'
+                      }}
+                      priority
+                    />
+                  </div>
+                  <span className="text-white text-2xl font-bold">ClipsCommerce</span>
+                </div>
+              </Link>
+            </div>
+
+            {/* Navigation skeleton */}
+            <nav className="hidden md:flex items-center space-x-8 h-6">
+              {/* Placeholder to maintain layout during hydration */}
+            </nav>
+
+            {/* CTA Buttons */}
+            <div className="hidden md:flex items-center space-x-4">
+              <Link 
+                href="/sign-in"
+                className="text-sm text-gray-200 hover:text-white transition-colors duration-300"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/dashboard"
+                className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 inline-block"
+              >
+                Get Started
+              </Link>
+            </div>
+
+            {/* Mobile menu button skeleton */}
+            <div className="md:hidden flex items-center h-10 w-10">
+              {/* Placeholder for mobile menu button */}
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 flex flex-col bg-black/80 backdrop-blur-md border-b border-white/5">
@@ -129,7 +212,6 @@ const navItems: NavItem[] = [
                 className="relative"
                 ref={(el) => {
                   if (item.hasDropdown && el !== null && item.key) {
-                    // We've already checked that item.key exists above
                     dropdownRefs.current[item.key] = el;
                   }
                 }}
@@ -254,7 +336,7 @@ const navItems: NavItem[] = [
             ))}
             <div className="pt-4 pb-2 px-3 space-y-2">
               <Link
-                href="/auth/sign-in"
+                href="/sign-in"
                 className="block w-full px-4 py-2 text-center text-sm font-medium text-gray-200 hover:text-white"
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -275,4 +357,4 @@ const navItems: NavItem[] = [
   );
 }
 
-export default NavigationBar;
+export default NavigationBarClient; 

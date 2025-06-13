@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const TeamSidebar = () => {
+export const TeamSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { currentTab, setCurrentTab, selectedClients, totalClientCount } = useTeamMode();
   const router = useRouter();

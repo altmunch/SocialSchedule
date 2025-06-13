@@ -433,8 +433,8 @@ export default function TeamOperationsPage() {
       {/* Client Detail Modal */}
       {selectedClient && (
         <ClientDetailView
-          client={selectedClient}
-          onClose={() => setSelectedClient(null)}
+          clientId={selectedClient.id}
+          onBack={() => setSelectedClient(null)}
         />
       )}
     </div>

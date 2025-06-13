@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTeamMode } from '@/providers/TeamModeProvider';
 import { useAuth } from '@/providers/AuthProvider';
+import { Role } from '@/lib/rbac/roleManager';
 import TeamSidebar from '@/components/team-dashboard/TeamSidebar';
 import TeamHeader from '@/components/team-dashboard/TeamHeader';
 import RoleManagementPanel from '@/components/team-dashboard/RoleManagementPanel';
@@ -399,7 +400,11 @@ export default function TeamSettingsPage() {
                       </CardContent>
                     </Card>
 
-                    <RoleManagementPanel />
+                    <RoleManagementPanel 
+                      teamId="team_1" 
+                      currentUserId={user?.id || "user_1"} 
+                      currentUserRole={Role.ADMIN} 
+                    />
                   </div>
                 )}
 

@@ -18,11 +18,12 @@ interface FloatingParticlesProps {
 
 const Particle = ({ id, controls, baseDuration, baseXOffset }: ParticleProps) => {
   // Initialize with deterministic values to prevent hydration mismatch
+  // Random values will be set after component mounts on client side
   const [particleProperties, setParticleProperties] = useState(() => ({
-    size: 4, // Default size
+    size: 4,
     duration: baseDuration,
     delay: 0,
-    left: 50, // Default center position
+    left: 50,
     startY: 100,
     opacity: 0.2,
     color: "#5afcc0",
@@ -31,16 +32,18 @@ const Particle = ({ id, controls, baseDuration, baseXOffset }: ParticleProps) =>
 
   // Set random values only on client-side after hydration
   useEffect(() => {
-    setParticleProperties({
-      size: Math.random() * 6 + 2,
-      duration: baseDuration * (0.7 + Math.random() * 0.6),
-      delay: Math.random() * 2,
-      left: Math.random() * 100,
-      startY: 100 + Math.random() * 20,
-      opacity: Math.random() * 0.3 + 0.1,
-      color: Math.random() > 0.5 ? "#5afcc0" : "#ffffff",
-      xOffset: baseXOffset * (0.3 + Math.random() * 0.4),
-    });
+    if (typeof window !== 'undefined') { // Ensure this runs only on the client
+      setParticleProperties({
+        size: Math.random() * 6 + 2,
+        duration: baseDuration * (0.7 + Math.random() * 0.6),
+        delay: Math.random() * 2,
+        left: Math.random() * 100,
+        startY: 100 + Math.random() * 20,
+        opacity: Math.random() * 0.3 + 0.1,
+        color: Math.random() > 0.5 ? "#5afcc0" : "#ffffff",
+        xOffset: baseXOffset * (0.3 + Math.random() * 0.4),
+      });
+    }
   }, [baseDuration, baseXOffset]);
 
   const particleStyle: React.CSSProperties = useMemo(() => ({
@@ -181,7 +184,7 @@ export default function ValueStatementSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          An AI tool that doesn't just automate shorts,<br />it makes them <span className="text-[#5afcc0] text-5xl md:text-7xl font-extrabold inline-block px-2">SELL</span>.
+          While others create content for likes,<br />we create content that <span className="text-[#5afcc0] text-5xl md:text-7xl font-extrabold inline-block px-2">CONVERTS</span>.
         </motion.h2>
         <Link href="/dashboard">
           <button className="mt-8 bg-[#8D5AFF] text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#8D5AFF]/30 hover:bg-[#8D5AFF]/90 transition-all">

@@ -33,7 +33,7 @@ interface TeamHeaderProps {
   breadcrumb?: React.ReactNode;
 }
 
-export default function TeamHeader({ breadcrumb }: TeamHeaderProps) {
+export const TeamHeader = ({ breadcrumb }: TeamHeaderProps) => {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const { 
@@ -273,4 +273,6 @@ export default function TeamHeader({ breadcrumb }: TeamHeaderProps) {
       )}
     </header>
   );
-} 
+}
+
+export default TeamHeader; 
