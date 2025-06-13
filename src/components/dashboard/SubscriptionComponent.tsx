@@ -86,9 +86,27 @@ export default function SubscriptionComponent() {
       setActivePlan(planId);
       setSuccessMessage('Your subscription plan has been updated successfully.');
       setTimeout(() => setSuccessMessage(null), 5000);
-    } else if (plan?.stripeLinkEnv) {
-      // For paid plans, redirect to Stripe checkout
-      const stripeLink = process.env[plan.stripeLinkEnv];
+    } else if (plan) {
+      // For paid plans, redirect to appropriate Stripe checkout
+      let stripeLink = '';
+      
+      if (plan.id === 'pro') {
+        if (billingCycle === 'yearly') {
+          stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || '';
+        } else {
+          stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || '';
+        }
+      } else if (plan.id === 'team') {
+        if (billingCycle === 'yearly') {
+          stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || '';
+        } else {
+          stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
+        }
+        
+        // For team plans, store redirect to team dashboard
+        localStorage.setItem('post_payment_redirect', '/team-dashboard');
+      }
+      
       if (stripeLink) {
         window.open(stripeLink, '_blank');
       } else {

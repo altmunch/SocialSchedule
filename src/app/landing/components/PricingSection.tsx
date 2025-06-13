@@ -65,10 +65,46 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
     if (plan.isFree) {
       return "/dashboard";
     }
-    if (plan.stripeLinkEnv) {
-      return process.env[plan.stripeLinkEnv] || "/dashboard";
+    
+    // Use specific environment variables for each plan and billing cycle
+    if (plan.name === 'Pro Plan') {
+      if (isAnnual) {
+        return process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || "/dashboard";
+      } else {
+        return process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || "/dashboard";
+      }
     }
+    
+    if (plan.name === 'Team Plan') {
+      if (isAnnual) {
+        return process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || "/dashboard";
+      } else {
+        return process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || "/dashboard";
+      }
+    }
+    
     return "/dashboard";
+  };
+
+  const handlePlanClick = (plan: any) => {
+    if (plan.isFree) {
+      window.location.href = "/dashboard";
+      return;
+    }
+    
+    const stripeLink = getButtonLink(plan);
+    
+    // For team plans, we need to handle post-payment redirect to team dashboard
+    if (plan.name === 'Team Plan' && stripeLink.includes('stripe')) {
+      // Store the intended redirect in localStorage for post-payment handling
+      localStorage.setItem('post_payment_redirect', '/team-dashboard');
+    }
+    
+    if (stripeLink.includes('stripe')) {
+      window.open(stripeLink, '_blank');
+    } else {
+      window.location.href = stripeLink;
+    }
   };
 
   return (
@@ -180,16 +216,15 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                     </div>
                   )}
 
-                  <a href={getButtonLink(plan)}>
-                    <button
-                      className={`w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 ${plan.highlighted 
-                        ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 
-                        : 'bg-white/10 hover:bg-white/15 border border-white/10'}`}
-                    >
-                      <span className="relative z-10">Get Started</span>
-                      <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
-                    </button>
-                  </a>
+                  <button
+                    onClick={() => handlePlanClick(plan)}
+                    className={`w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 ${plan.highlighted 
+                      ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 
+                      : 'bg-white/10 hover:bg-white/15 border border-white/10'}`}
+                  >
+                    <span className="relative z-10">Get Started</span>
+                    <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
+                  </button>
                   
                   {/* 10-day guarantee */}
                   <div className="flex items-center justify-center text-sm text-white/60 mb-6">

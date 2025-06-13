@@ -362,10 +362,31 @@ export default function PricingPage() {
                       onClick={() => {
                         if (tier.id === 'free') {
                           window.location.href = '/dashboard';
-                        } else if (tier.stripePriceId) {
-                          window.open(tier.stripePriceId, '_blank');
                         } else {
-                          window.location.href = '/dashboard';
+                          let stripeLink = '';
+                          
+                          if (tier.id === 'pro') {
+                            if (billingCycle === 'yearly') {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || '';
+                            } else {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || '';
+                            }
+                          } else if (tier.id === 'team') {
+                            if (billingCycle === 'yearly') {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || '';
+                            } else {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
+                            }
+                            
+                            // For team plans, store redirect to team dashboard
+                            localStorage.setItem('post_payment_redirect', '/team-dashboard');
+                          }
+                          
+                          if (stripeLink) {
+                            window.open(stripeLink, '_blank');
+                          } else {
+                            window.location.href = '/dashboard';
+                          }
                         }
                       }}
                       className={`w-full py-3 rounded-xl font-medium transition-all cursor-pointer ${tier.isPopular

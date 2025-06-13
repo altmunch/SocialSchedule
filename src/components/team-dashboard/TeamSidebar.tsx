@@ -160,7 +160,7 @@ const TeamSidebar = () => {
       </div>
 
       {/* Main Navigation Tabs */}
-      <div className="p-4 space-y-2">
+      <nav className="p-4 space-y-2" role="navigation" aria-label="Main navigation">
         {!isCollapsed && (
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
             Main Navigation
@@ -179,6 +179,7 @@ const TeamSidebar = () => {
                 : "text-muted-foreground hover:text-foreground"
             )}
             title={isCollapsed ? tab.name : undefined}
+            aria-current={currentTab === tab.id ? 'page' : undefined}
           >
             <tab.icon className="h-5 w-5 flex-shrink-0" />
             {!isCollapsed && (
@@ -196,7 +197,7 @@ const TeamSidebar = () => {
             )}
           </button>
         ))}
-      </div>
+      </nav>
 
       {/* Sub-navigation based on current tab */}
       {!isCollapsed && (
