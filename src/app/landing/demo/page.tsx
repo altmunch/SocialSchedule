@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Play, ChevronRight, Check } from 'lucide-react';
 import Link from 'next/link';
@@ -8,8 +8,14 @@ import Link from 'next/link';
 import NavigationBar from '@/app/landing/components/NavigationBar';
 
 export default function DemoPage() {
+  const [currentYear, setCurrentYear] = useState(2024); // Default fallback year
   const [currentStep, setCurrentStep] = useState(1);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  
+  useEffect(() => {
+    // Set the actual year only on client side to prevent hydration mismatch
+    setCurrentYear(new Date().getFullYear());
+  }, []);
   
   // Demo steps
   const demoSteps = [
@@ -256,7 +262,7 @@ export default function DemoPage() {
       <div className="border-t border-white/10 py-8 mt-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-center">
-            <p className="text-white/40 text-sm">© {new Date().getFullYear()} SocialSchedule. All rights reserved.</p>
+            <p className="text-white/40 text-sm">© {currentYear} SocialSchedule. All rights reserved.</p>
           </div>
         </div>
       </div>

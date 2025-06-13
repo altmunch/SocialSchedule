@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, HelpCircle, FileCode } from 'lucide-react';
 import Link from 'next/link';
@@ -9,6 +9,12 @@ import NavigationBar from '@/app/landing/components/NavigationBar';
 
 export default function ResourcesPage() {
   const [activeTab, setActiveTab] = useState<string>('guides');
+  const [currentYear, setCurrentYear] = useState(2024); // Default fallback year
+  
+  useEffect(() => {
+    // Set the actual year only on client side to prevent hydration mismatch
+    setCurrentYear(new Date().getFullYear());
+  }, []);
   
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -196,7 +202,7 @@ export default function ResourcesPage() {
       <div className="border-t border-white/10 py-8 mt-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-center">
-            <p className="text-white/40 text-sm">© {new Date().getFullYear()} SocialSchedule. All rights reserved.</p>
+            <p className="text-white/40 text-sm">© {currentYear} SocialSchedule. All rights reserved.</p>
           </div>
         </div>
       </div>

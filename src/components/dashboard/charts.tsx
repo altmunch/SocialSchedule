@@ -139,7 +139,11 @@ export function HotspotGeneration() {
   
   const getIntensity = (day: string, hour: string) => {
     const hotspot = hotspots.find(h => h.day === day && h.hour === hour);
-    return hotspot ? hotspot.value : Math.random() * 0.5;
+    // Use deterministic values based on day and hour to prevent hydration mismatch
+    const dayIndex = days.indexOf(day);
+    const hourIndex = hours.indexOf(hour);
+    const baseIntensity = ((dayIndex + hourIndex * 2) % 10) / 20; // Creates values 0-0.5
+    return hotspot ? hotspot.value : baseIntensity;
   };
   
   const getColor = (intensity: number) => {

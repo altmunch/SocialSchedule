@@ -34,7 +34,6 @@ export class TeamModeErrorBoundary extends Component<Props, State> {
     return {
       hasError: true,
       error,
-      errorId: Date.now().toString(36),
     };
   }
 
@@ -44,6 +43,7 @@ export class TeamModeErrorBoundary extends Component<Props, State> {
     this.setState({
       error,
       errorInfo,
+      errorId: Date.now().toString(36),
     });
 
     // Call custom error handler if provided

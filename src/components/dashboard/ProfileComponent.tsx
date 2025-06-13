@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,25 @@ export default function ProfileComponent() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Initialize connection status to prevent hydration mismatch
+  const [connectionStatus, setConnectionStatus] = useState<Record<string, { connected: boolean; buttonText: string }>>({});
+
+  // Set random connection status after hydration
+  useEffect(() => {
+    const platforms = ['Instagram', 'Twitter', 'Facebook', 'LinkedIn', 'TikTok'];
+    const status: Record<string, { connected: boolean; buttonText: string }> = {};
+    
+    platforms.forEach(platform => {
+      const isConnected = Math.random() > 0.5;
+      status[platform] = {
+        connected: isConnected,
+        buttonText: isConnected ? 'Disconnect' : 'Connect'
+      };
+    });
+    
+    setConnectionStatus(status);
+  }, []);
 
   const getInitials = (name: string) => {
     return name
@@ -300,24 +319,27 @@ export default function ProfileComponent() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {['Instagram', 'Twitter', 'Facebook', 'LinkedIn', 'TikTok'].map((platform) => (
-                      <div key={platform} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
-                            <span className="text-sm font-medium">{platform[0]}</span>
+                    {['Instagram', 'Twitter', 'Facebook', 'LinkedIn', 'TikTok'].map((platform) => {
+                      const status = connectionStatus[platform];
+                      return (
+                        <div key={platform} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                              <span className="text-sm font-medium">{platform[0]}</span>
+                            </div>
+                            <div>
+                              <p className="font-medium">{platform}</p>
+                              <p className="text-xs text-gray-500">
+                                {status ? (status.connected ? 'Connected' : 'Not connected') : 'Loading...'}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{platform}</p>
-                            <p className="text-xs text-gray-500">
-                              {Math.random() > 0.5 ? 'Connected' : 'Not connected'}
-                            </p>
-                          </div>
+                          <Button variant="outline" size="sm">
+                            {status ? status.buttonText : 'Connect'}
+                          </Button>
                         </div>
-                        <Button variant="outline" size="sm">
-                          {Math.random() > 0.5 ? 'Disconnect' : 'Connect'}
-                        </Button>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>

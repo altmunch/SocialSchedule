@@ -379,7 +379,9 @@ export default function PricingPage() {
                             }
                             
                             // For team plans, store redirect to team dashboard
-                            localStorage.setItem('post_payment_redirect', '/team-dashboard');
+                            if (typeof window !== 'undefined') {
+                              localStorage.setItem('post_payment_redirect', '/team-dashboard');
+                            }
                           }
                           
                           if (stripeLink) {

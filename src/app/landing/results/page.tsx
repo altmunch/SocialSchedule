@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Users, BarChart3, TrendingUp, Star, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
@@ -18,6 +19,13 @@ interface Testimonial {
 }
 
 export default function ResultsPage() {
+  const [currentYear, setCurrentYear] = useState(2024); // Default fallback year
+  
+  useEffect(() => {
+    // Set the actual year only on client side to prevent hydration mismatch
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
   // Testimonials data
   const testimonials: Testimonial[] = [
     {
@@ -289,7 +297,7 @@ export default function ResultsPage() {
       <div className="border-t border-white/10 py-8 mt-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-center">
-            <p className="text-white/40 text-sm">© {new Date().getFullYear()} SocialSchedule. All rights reserved.</p>
+            <p className="text-white/40 text-sm">© {currentYear} SocialSchedule. All rights reserved.</p>
           </div>
         </div>
       </div>

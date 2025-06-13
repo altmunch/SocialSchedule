@@ -96,8 +96,10 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
     
     // For team plans, we need to handle post-payment redirect to team dashboard
     if (plan.name === 'Team Plan' && stripeLink.includes('stripe')) {
-      // Store the intended redirect in localStorage for post-payment handling
-      localStorage.setItem('post_payment_redirect', '/team-dashboard');
+      // Store the intended redirect in localStorage for post-payment handling - only on client side
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('post_payment_redirect', '/team-dashboard');
+      }
     }
     
     if (stripeLink.includes('stripe')) {

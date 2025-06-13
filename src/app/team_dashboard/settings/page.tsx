@@ -445,7 +445,7 @@ export default function TeamSettingsPage() {
                       </Badge>
                       
                       <div className="text-sm text-muted-foreground">
-                        Last active: {member.lastActive.toLocaleDateString()}
+                        Last active: {member.lastActive.toLocaleDateString('en-US')}
                       </div>
                       
                       <div className="flex space-x-1">
@@ -501,7 +501,7 @@ export default function TeamSettingsPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Last Sync:</span>
-                      <span>{integration.lastSync.toLocaleString()}</span>
+                      <span>{integration.lastSync.toLocaleString('en-US')}</span>
                     </div>
                     
                     <div className="flex justify-between text-sm">

@@ -43,8 +43,8 @@ interface TeamModeContextType {
   clearSelection: () => void;
   
   // Current view state
-  currentTab: 'operations' | 'analytics';
-  setCurrentTab: (tab: 'operations' | 'analytics') => void;
+  currentTab: 'operations' | 'analytics' | 'settings';
+  setCurrentTab: (tab: 'operations' | 'analytics' | 'settings') => void;
   viewMode: 'grid' | 'list';
   setViewMode: (mode: 'grid' | 'list') => void;
 }
@@ -58,7 +58,7 @@ export function TeamModeProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({});
-  const [currentTab, setCurrentTab] = useState<'operations' | 'analytics'>('operations');
+  const [currentTab, setCurrentTab] = useState<'operations' | 'analytics' | 'settings'>('operations');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [clientCache, setClientCache] = useState<Record<number, Client>>({});
 

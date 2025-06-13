@@ -224,7 +224,7 @@ export function SocialScanner({ userId }: { userId: string }) {
   
   // Format date for display
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
+    return new Date(timestamp).toLocaleString('en-US');
   };
   
   return (
@@ -390,7 +390,7 @@ export function SocialScanner({ userId }: { userId: string }) {
                       <div className="flex items-center mb-2">
                         <span className="capitalize font-semibold mr-2">{post.platform}</span>
                         <span className="text-sm text-gray-500">
-                          {new Date(post.timestamp).toLocaleDateString()}
+                          {new Date(post.timestamp).toLocaleDateString('en-US')}
                         </span>
                       </div>
                       <p className="text-sm truncate mb-2">{post.caption || 'No caption'}</p>

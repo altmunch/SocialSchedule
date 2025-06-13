@@ -444,7 +444,9 @@ export default function BlitzComponent() {
                     // Mock engagement data - higher values during typical peak hours
                     const isPeak = (hour >= 6 && hour <= 9) || (hour >= 17 && hour <= 21);
                     const isWeekend = dayIndex >= 5;
-                    const engagement = isPeak ? (isWeekend ? 0.6 : 0.8) : (Math.random() * 0.4);
+                    // Use deterministic values based on hour and day to prevent hydration mismatch
+                    const baseEngagement = ((hour + dayIndex * 3) % 10) / 25; // Creates values 0-0.4
+                    const engagement = isPeak ? (isWeekend ? 0.6 : 0.8) : baseEngagement;
                     
                     const getHeatmapColor = (value: number) => {
                       if (value > 0.7) return 'bg-mint text-white';

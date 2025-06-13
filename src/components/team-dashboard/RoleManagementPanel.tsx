@@ -458,14 +458,14 @@ export default function RoleManagementPanel({
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      <div>{member.assignedAt.toLocaleDateString()}</div>
+                      <div>{member.assignedAt.toLocaleDateString('en-US')}</div>
                       <div className="text-gray-500">by {member.assignedBy}</div>
                     </div>
                   </TableCell>
                   <TableCell>
                     {member.lastActivity ? (
                       <div className="text-sm">
-                        {member.lastActivity.toLocaleDateString()}
+                        {member.lastActivity.toLocaleDateString('en-US')}
                       </div>
                     ) : (
                       <span className="text-gray-400">Never</span>

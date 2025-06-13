@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useTeamMode } from '@/providers/TeamModeProvider';
 import { useAuth } from '@/providers/AuthProvider';
-import { TeamSidebar } from '@/components/team-dashboard/TeamSidebar';
-import { TeamHeader } from '@/components/team-dashboard/TeamHeader';
-import { RoleManagementPanel } from '@/components/team-dashboard/RoleManagementPanel';
+import TeamSidebar from '@/components/team-dashboard/TeamSidebar';
+import TeamHeader from '@/components/team-dashboard/TeamHeader';
+import RoleManagementPanel from '@/components/team-dashboard/RoleManagementPanel';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -604,7 +604,7 @@ export default function TeamSettingsPage() {
                           <div>
                             <Label>Next Billing Date</Label>
                             <p className="text-sm mt-1">
-                              {settings.billing.nextBilling.toLocaleDateString()}
+                              {settings.billing.nextBilling.toLocaleDateString('en-US')}
                             </p>
                           </div>
                         </div>

@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import { Clock, Users, AlertTriangle } from 'lucide-react';
 
 export default function UrgencySection() {
+  const [mounted, setMounted] = useState(false);
+  
   // For the countdown timer
   const [timeLeft, setTimeLeft] = useState({
     days: 2,
@@ -16,8 +18,15 @@ export default function UrgencySection() {
   // Simulated remaining spots
   const [remainingSpots, setRemainingSpots] = useState(17);
 
-  // Countdown timer effect
+  // Set mounted state to prevent hydration mismatch
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Countdown timer effect - only start after mounting
+  useEffect(() => {
+    if (!mounted) return;
+    
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev.seconds > 0) {
@@ -34,7 +43,7 @@ export default function UrgencySection() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [mounted]);
 
   return (
     <section className="py-12 bg-black">

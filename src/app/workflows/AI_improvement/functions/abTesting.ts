@@ -5,7 +5,12 @@ const abResults: { group: 'A' | 'B'; accepted: boolean }[] = [];
 
 export function assignABGroup(userId: string): 'A' | 'B' {
   if (!abGroups[userId]) {
-    abGroups[userId] = Math.random() < 0.5 ? 'A' : 'B';
+    // Simple deterministic assignment based on userId
+    let sum = 0;
+    for (let i = 0; i < userId.length; i++) {
+      sum += userId.charCodeAt(i);
+    }
+    abGroups[userId] = sum % 2 === 0 ? 'A' : 'B';
   }
   return abGroups[userId];
 }

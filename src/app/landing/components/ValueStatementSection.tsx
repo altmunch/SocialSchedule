@@ -1,13 +1,12 @@
 "use client";
 
 import { motion, useAnimation, useInView } from "framer-motion";
-import { AnimationControls } from "framer-motion/dom";
 import { useEffect, useRef, useMemo, useState } from "react";
 import Link from "next/link";
 
 interface ParticleProps {
   id: number;
-  controls: AnimationControls;
+  controls: ReturnType<typeof useAnimation>;
   baseDuration: number;
   baseXOffset: number;
 }
@@ -18,16 +17,31 @@ interface FloatingParticlesProps {
 }
 
 const Particle = ({ id, controls, baseDuration, baseXOffset }: ParticleProps) => {
-  const [particleProperties] = useState(() => ({
-    size: Math.random() * 6 + 2,
-    duration: baseDuration * (0.7 + Math.random() * 0.6),
-    delay: Math.random() * 2,
-    left: Math.random() * 100,
-    startY: 100 + Math.random() * 20,
-    opacity: Math.random() * 0.3 + 0.1,
-    color: Math.random() > 0.5 ? "#5afcc0" : "#ffffff",
-    xOffset: baseXOffset * (0.3 + Math.random() * 0.4),
+  // Initialize with deterministic values to prevent hydration mismatch
+  const [particleProperties, setParticleProperties] = useState(() => ({
+    size: 4, // Default size
+    duration: baseDuration,
+    delay: 0,
+    left: 50, // Default center position
+    startY: 100,
+    opacity: 0.2,
+    color: "#5afcc0",
+    xOffset: baseXOffset * 0.5,
   }));
+
+  // Set random values only on client-side after hydration
+  useEffect(() => {
+    setParticleProperties({
+      size: Math.random() * 6 + 2,
+      duration: baseDuration * (0.7 + Math.random() * 0.6),
+      delay: Math.random() * 2,
+      left: Math.random() * 100,
+      startY: 100 + Math.random() * 20,
+      opacity: Math.random() * 0.3 + 0.1,
+      color: Math.random() > 0.5 ? "#5afcc0" : "#ffffff",
+      xOffset: baseXOffset * (0.3 + Math.random() * 0.4),
+    });
+  }, [baseDuration, baseXOffset]);
 
   const particleStyle: React.CSSProperties = useMemo(() => ({
     width: `${particleProperties.size}px`,
@@ -84,6 +98,11 @@ const FloatingParticles = ({ count = 15, isInView }: FloatingParticlesProps) => 
   const baseDuration = 6;
   const baseXOffset = 30;
   const isAnimating = useRef(false);
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   useEffect(() => {
     if (!isInView) {
@@ -92,19 +111,19 @@ const FloatingParticles = ({ count = 15, isInView }: FloatingParticlesProps) => 
       return;
     }
     
-    if (!isAnimating.current) {
+    if (!isAnimating.current && mounted) {
       isAnimating.current = true;
       
       // Initial animation
       controls.start("visible");
       
-      // Continuous animation
+      // Continuous animation - only start on client side
       const animateParticles = () => {
         controls.start((i) => ({
           y: -150,
           opacity: [0, 0.2, 0],
           transition: {
-            duration: baseDuration * (0.7 + Math.random() * 0.6), // Still uses random for continuous animation
+            duration: baseDuration * (0.7 + (mounted ? Math.random() * 0.6 : 0.3)), // Use deterministic value until mounted
             ease: [0.16, 1, 0.3, 1],
             repeat: Infinity,
             repeatType: 'loop',
@@ -120,7 +139,7 @@ const FloatingParticles = ({ count = 15, isInView }: FloatingParticlesProps) => 
         isAnimating.current = false;
       };
     }
-  }, [isInView, controls, baseDuration]);
+  }, [isInView, controls, baseDuration, mounted]);
   
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -164,7 +183,7 @@ export default function ValueStatementSection() {
         >
           An AI tool that doesn't just automate shorts,<br />it makes them <span className="text-[#5afcc0] text-5xl md:text-7xl font-extrabold inline-block px-2">SELL</span>.
         </motion.h2>
-        <Link href="/auth/sign-in?redirect=/dashboard">
+        <Link href="/dashboard">
           <button className="mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#8D5AFF]/30 hover:from-purple-700 hover:to-indigo-700 transition-all">
             Get Started
           </button>

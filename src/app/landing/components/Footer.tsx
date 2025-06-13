@@ -1,14 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Facebook, Instagram, Twitter, Linkedin, Mail } from 'lucide-react';
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState(2024); // Default fallback year
   
+  useEffect(() => {
+    // Set the actual year only on client side to prevent hydration mismatch
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
   const footerLinks = [
     {
       title: 'Product',

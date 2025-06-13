@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Check } from 'lucide-react';
 import Link from 'next/link';
@@ -16,6 +17,13 @@ interface Integration {
 }
 
 export default function IntegrationsPage() {
+  const [currentYear, setCurrentYear] = useState(2024); // Default fallback year
+  
+  useEffect(() => {
+    // Set the actual year only on client side to prevent hydration mismatch
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
   // Integration data
   const integrations: Integration[] = [
     // Social platforms
@@ -337,7 +345,7 @@ export default function IntegrationsPage() {
       <div className="border-t border-white/10 py-8 mt-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-center">
-            <p className="text-white/40 text-sm">© {new Date().getFullYear()} SocialSchedule. All rights reserved.</p>
+            <p className="text-white/40 text-sm">© {currentYear} SocialSchedule. All rights reserved.</p>
           </div>
         </div>
       </div>

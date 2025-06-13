@@ -3,9 +3,17 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { Shield, Lock, CreditCard, CheckCircle } from 'lucide-react';
 
 export default function RiskReversalFooter() {
+  const [currentYear, setCurrentYear] = useState(2024); // Default fallback year
+  
+  useEffect(() => {
+    // Set the actual year only on client side to prevent hydration mismatch
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
   return (
     <footer className="bg-black py-12 border-t border-neutral-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,7 +116,7 @@ export default function RiskReversalFooter() {
             transition={{ duration: 0.5, delay: 0.5 }}
           >
             <p className="text-neutral-500 text-sm">
-              © {new Date().getFullYear()} SocialSchedule. All rights reserved.
+              © {currentYear} SocialSchedule. All rights reserved.
             </p>
           </motion.div>
           

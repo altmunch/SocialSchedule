@@ -3,17 +3,30 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
-export function CountdownTimer({ targetDate = new Date(Date.now() + 4 * 60 * 60 * 1000) }: { targetDate?: Date }) {
+export function CountdownTimer({ targetDate }: { targetDate?: Date }) {
   const [timeLeft, setTimeLeft] = useState({
     hours: 0,
     minutes: 0,
     seconds: 0
   });
+  const [actualTargetDate, setActualTargetDate] = useState<Date | null>(null);
+
+  // Set target date after hydration to prevent mismatch
+  useEffect(() => {
+    if (targetDate) {
+      setActualTargetDate(targetDate);
+    } else {
+      // Default to 4 hours from now, but only on client side
+      setActualTargetDate(new Date(Date.now() + 4 * 60 * 60 * 1000));
+    }
+  }, [targetDate]);
 
   useEffect(() => {
+    if (!actualTargetDate) return;
+
     const timer = setInterval(() => {
       const now = new Date();
-      const difference = targetDate.getTime() - now.getTime();
+      const difference = actualTargetDate.getTime() - now.getTime();
 
       if (difference <= 0) {
         clearInterval(timer);
@@ -28,7 +41,7 @@ export function CountdownTimer({ targetDate = new Date(Date.now() + 4 * 60 * 60 
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [targetDate]);
+  }, [actualTargetDate]);
 
   const TimeBlock = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center mx-2">
