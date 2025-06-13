@@ -3,7 +3,11 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Removed CardDescription as it's not used
-import { PlusCircle, Edit3, PlayCircle, Trash2, GripVertical } from 'lucide-react';
+import { PlusCircle, Edit3, PlayCircle, Trash2, GripVertical, AlertTriangle, Zap } from 'lucide-react';
+import { useUsageLimits } from '@/hooks/useUsageLimits';
+import { useAuth } from '@/providers/AuthProvider';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import Link from 'next/link';
 import {
   DndContext,
   closestCenter,

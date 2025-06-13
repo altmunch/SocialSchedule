@@ -91,12 +91,29 @@ export default function PricingPage() {
       name: 'Free Plan',
       price: 0,
       yearlyPrice: 0,
-      description: 'Get started with basic features',
+      description: 'Try our core features',
       features: [
-        'Idea Generator (3 uses)',
-        '10 autoposts/month'
+        'Viral Blitz Cycle Framework (1 use)',
+        'Idea Generator Framework (1 use)',
+        '1 autopost',
+        'Basic analytics (no e-commerce)'
       ],
       ctaText: 'Get Started'
+    },
+    {
+      id: 'lite',
+      name: 'Lite Plan',
+      price: 20,
+      yearlyPrice: 240,
+      description: '$20/month',
+      features: [
+        'Viral Blitz Cycle Framework (15 uses)',
+        'Idea Generator Framework (15 uses)',
+        '15 autoposts/month',
+        'Basic analytics (no e-commerce)'
+      ],
+      ctaText: 'Select Plan',
+      stripePriceId: process.env.NEXT_PUBLIC_STRIPE_LITE_LINK
     },
     {
       id: 'pro',
@@ -105,12 +122,14 @@ export default function PricingPage() {
       yearlyPrice: 840, // Annual price ($70 * 12)
       description: '$70/month',
       features: [
-        'Viral Blitz Cycle Framework',
+        'Viral Blitz Cycle Framework (unlimited)',
         'Idea Generator Framework (unlimited)',
         'Unlimited posts',
-        '1 set of accounts',
-        'E-commerce integration'
+        'Multiple account sets',
+        'E-commerce integration',
+        'Advanced analytics & reporting'
       ],
+      isPopular: true,
       ctaText: 'Get Started',
       stripePriceId: process.env.NEXT_PUBLIC_STRIPE_PRO_LINK
     },
@@ -122,12 +141,12 @@ export default function PricingPage() {
       description: '$500/month',
       features: [
         'Everything in Pro',
+        'Team dashboard access',
         'Manage unlimited accounts',
         'Brand Voice AI (for consistency)',
         'Team collaboration mode',
-        'Advanced analytics & reporting'
+        'Priority support'
       ],
-      isPopular: true,
       ctaText: 'Choose Team',
       stripePriceId: process.env.NEXT_PUBLIC_STRIPE_TEAM_LINK
     }
@@ -365,7 +384,13 @@ export default function PricingPage() {
                         } else {
                           let stripeLink = '';
                           
-                          if (tier.id === 'pro') {
+                          if (tier.id === 'lite') {
+                            if (billingCycle === 'yearly') {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || '';
+                            } else {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || '';
+                            }
+                          } else if (tier.id === 'pro') {
                             if (billingCycle === 'yearly') {
                               stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || '';
                             } else {
@@ -393,7 +418,7 @@ export default function PricingPage() {
                       }}
                       className={`w-full py-3 rounded-xl font-medium transition-all cursor-pointer ${tier.isPopular
                         ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] text-white hover:shadow-lg hover:shadow-[#8D5AFF]/20'
-                        : 'bg-white/10 backdrop-blur-sm text-white hover:bg-white/20'}`}
+                        : 'bg-[#8D5AFF] text-white hover:bg-[#8D5AFF]/90'}`}
                     >
                       {tier.ctaText}
                     </motion.button>
@@ -518,7 +543,7 @@ export default function PricingPage() {
             <div className="text-center">
               <Link 
                 href={`#${recommendedPlan}`} 
-                className="inline-flex items-center px-8 py-3 bg-[#3D7BF4] text-lightning-DEFAULT rounded-xl font-medium hover:shadow-lg hover:shadow-blitz-blue/20 transition-all"
+                className="inline-flex items-center px-8 py-3 bg-[#8D5AFF] text-white rounded-xl font-medium hover:shadow-lg hover:shadow-[#8D5AFF]/20 transition-all"
               >
                 <span>Select {pricingTiers.find(p => p.id === recommendedPlan)?.name} Plan</span>
                 <ArrowRight className="ml-2 h-4 w-4" />

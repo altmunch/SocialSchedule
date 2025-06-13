@@ -11,6 +11,8 @@ import { ReportsAnalysisService } from '@/app/workflows/reports/ReportsAnalysisS
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { ChartWrapper } from '@/components/ui/chart-wrapper';
 import { Progress } from '@/components/ui/progress';
+import UsageTracker from '@/components/dashboard/UsageTracker';
+import { useUsageLimits } from '@/hooks/useUsageLimits';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -18,6 +20,10 @@ export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Mock subscription tier - in production, get this from user data
+  const subscriptionTier = 'free'; // This should come from actual user subscription
+  const { hasFeatureAccess, tier } = useUsageLimits(subscriptionTier);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -155,6 +161,11 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        {/* Usage Tracker */}
+        <div className="mt-6">
+          <UsageTracker tier={tier} />
+        </div>
+        
         {/* Placeholder progress (mock onboarding) */}
         <div className="mt-4">
           <h3 className="text-sm font-medium mb-1">Onboarding Progress</h3>

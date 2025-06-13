@@ -32,11 +32,15 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
+    scrollbar-gutter: stable; /* Prevent layout shift when scrollbar appears */
   }
 
   /* Smooth scroll behavior */
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden; /* Prevent horizontal scrollbar on html */
+    scrollbar-gutter: stable; /* Prevent layout shift when scrollbar appears */
   }
   
   /* Selection styling */
@@ -44,18 +48,25 @@
     @apply bg-primary/20 text-foreground;
   }
 
-  /* Custom scrollbar */
+  /* Custom scrollbar - make it more subtle */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-background;
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/30 rounded-full hover:bg-muted-foreground/50;
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30;
+    border-radius: 3px;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   }
 }
 

@@ -53,9 +53,67 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-black border-t border-white/10 py-8">
-      <div className="container mx-auto px-4 text-center">
-        <p className="text-white/40 text-sm">© {currentYear} ClipsCommerce. All rights reserved.</p>
+    <footer className="bg-black border-t border-white/10 py-12">
+      <div className="container mx-auto px-4">
+        {/* Contact Section */}
+        <motion.div 
+          className="mb-8 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <h3 className="text-xl font-semibold text-white mb-6">Get in Touch</h3>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-6">
+            <div className="flex items-center">
+              <Mail className="h-5 w-5 text-[#8D5AFF] mr-2" />
+              <a href="mailto:hello@clipscommerce.com" className="text-white/80 hover:text-white transition-colors">
+                hello@clipscommerce.com
+              </a>
+            </div>
+          </div>
+          
+          {/* Social Links */}
+          <div className="flex items-center justify-center gap-6">
+            <a 
+              href="https://twitter.com/clipscommerce" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-white/60 hover:text-[#8D5AFF] transition-colors"
+            >
+              <Twitter className="h-5 w-5" />
+            </a>
+            <a 
+              href="https://facebook.com/clipscommerce" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-white/60 hover:text-[#8D5AFF] transition-colors"
+            >
+              <Facebook className="h-5 w-5" />
+            </a>
+            <a 
+              href="https://instagram.com/clipscommerce" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-white/60 hover:text-[#8D5AFF] transition-colors"
+            >
+              <Instagram className="h-5 w-5" />
+            </a>
+            <a 
+              href="https://linkedin.com/company/clipscommerce" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-white/60 hover:text-[#8D5AFF] transition-colors"
+            >
+              <Linkedin className="h-5 w-5" />
+            </a>
+          </div>
+        </motion.div>
+
+        {/* Copyright */}
+        <div className="text-center border-t border-white/10 pt-6">
+          <p className="text-white/40 text-sm">© {currentYear} ClipsCommerce. All rights reserved.</p>
+        </div>
       </div>
     </footer>
   );

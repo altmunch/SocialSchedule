@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { useTeamMode } from '@/providers/TeamModeProvider';
+import { useUsageLimits } from '@/hooks/useUsageLimits';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,13 +19,81 @@ import {
   Clock,
   Target,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Shield,
+  Lock
 } from 'lucide-react';
 
 export default function TeamDashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { totalClientCount, setCurrentTab } = useTeamMode();
+  
+  // Mock subscription tier - in production, get this from user data
+  const subscriptionTier = 'free'; // This should come from actual user subscription
+  const { hasFeatureAccess, tier } = useUsageLimits(subscriptionTier);
+
+  // Check team dashboard access
+  const hasTeamAccess = hasFeatureAccess('teamDashboard');
+
+  // If no team access, show upgrade prompt
+  if (!hasTeamAccess) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
+        <Card className="max-w-md w-full bg-gradient-to-br from-neutral-900 to-neutral-800 border-neutral-700">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-4 rounded-full bg-gradient-to-r from-[#8D5AFF]/20 to-[#5afcc0]/20 border border-[#8D5AFF]/30">
+                <Lock className="h-8 w-8 text-[#8D5AFF]" />
+              </div>
+            </div>
+            <CardTitle className="text-xl text-white">Team Dashboard Access Required</CardTitle>
+            <CardDescription className="text-neutral-400">
+              The Team Dashboard is available for Team plan subscribers only
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-neutral-800/50 rounded-lg p-4">
+              <h4 className="font-semibold text-white mb-2">Current Plan: {tier?.name}</h4>
+              <p className="text-sm text-neutral-400 mb-3">
+                Upgrade to Team plan to unlock:
+              </p>
+              <ul className="text-sm text-neutral-300 space-y-1">
+                <li className="flex items-center">
+                  <Shield className="h-4 w-4 text-[#5afcc0] mr-2" />
+                  Advanced team management
+                </li>
+                <li className="flex items-center">
+                  <BarChart3 className="h-4 w-4 text-[#5afcc0] mr-2" />
+                  Advanced analytics & reporting
+                </li>
+                <li className="flex items-center">
+                  <Users className="h-4 w-4 text-[#5afcc0] mr-2" />
+                  Multi-account management
+                </li>
+              </ul>
+            </div>
+            
+            <div className="flex flex-col space-y-2">
+              <Button
+                onClick={() => router.push('/dashboard/subscription')}
+                className="bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] text-white font-bold hover:opacity-90 transition-all"
+              >
+                Upgrade to Team Plan
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/dashboard')}
+                className="border-neutral-600 text-neutral-300 hover:bg-neutral-800"
+              >
+                Back to Dashboard
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Redirect to operations by default
   useEffect(() => {

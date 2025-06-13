@@ -19,15 +19,31 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
   const plans = [
     {
       name: 'Free Plan',
-      subtitle: 'Get started with basic features',
+      subtitle: 'Try our core features',
       annualPrice: 0,
       monthlyPrice: 0,
       features: [
-        'Idea Generator (3 uses)',
-        '10 autoposts/month',
+        'Viral Blitz Cycle Framework (1 use)',
+        'Idea Generator Framework (1 use)',
+        '1 autopost',
+        'Basic analytics (no e-commerce)',
       ],
       highlighted: false,
       isFree: true,
+    },
+    {
+      name: 'Lite Plan',
+      subtitle: '$20/month',
+      annualPrice: 240, // $20 * 12
+      monthlyPrice: 20,
+      features: [
+        'Viral Blitz Cycle Framework (15 uses)',
+        'Idea Generator Framework (15 uses)',
+        '15 autoposts/month',
+        'Basic analytics (no e-commerce)',
+      ],
+      highlighted: false,
+      stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_LITE_LINK',
     },
     {
       name: 'Pro Plan',
@@ -35,13 +51,14 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
       annualPrice: 840, // $70 * 12
       monthlyPrice: 70,
       features: [
-        'Viral Blitz Cycle Framework',
+        'Viral Blitz Cycle Framework (unlimited)',
         'Idea Generator Framework (unlimited)',
         'Unlimited posts',
-        '1 set of accounts',
+        'Multiple account sets',
         'E-commerce integration',
+        'Advanced analytics & reporting',
       ],
-      highlighted: false,
+      highlighted: true,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_PRO_LINK',
     },
     {
@@ -51,12 +68,13 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
       monthlyPrice: 500,
       features: [
         'Everything in Pro',
+        'Team dashboard access',
         'Manage unlimited accounts',
         'Brand Voice AI (for consistency)',
         'Team collaboration mode',
-        'Advanced analytics & reporting',
+        'Priority support',
       ],
-      highlighted: true,
+      highlighted: false,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_TEAM_LINK',
     }
   ];
@@ -222,9 +240,9 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                     onClick={() => handlePlanClick(plan)}
                     className={`w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 ${plan.highlighted 
                       ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 
-                      : 'bg-white/10 hover:bg-white/15 border border-white/10'}`}
+                      : 'bg-[#8D5AFF] hover:bg-[#8D5AFF]/90'}`}
                   >
-                    <span className="relative z-10">Get Started</span>
+                    <span className="relative z-10">{plan.highlighted ? 'Get Started' : 'Select Plan'}</span>
                     <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
                   </button>
                   

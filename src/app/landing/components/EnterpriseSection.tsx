@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BarChart2, TrendingUp } from "lucide-react";
+import { BarChart2, TrendingUp, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function EnterpriseSection() {
   return (
@@ -54,6 +55,22 @@ export default function EnterpriseSection() {
             </div>
           </motion.div>
         </div>
+        
+        {/* Team page CTA */}
+        <motion.div 
+          className="text-center mt-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
+          <Link href="/landing/team">
+            <button className="bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white px-8 py-4 rounded-lg font-medium text-lg shadow-lg shadow-[#8D5AFF]/20 transition-all duration-300 inline-flex items-center">
+              Part of a team? Check out the team page
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </button>
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

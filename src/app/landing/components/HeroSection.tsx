@@ -67,7 +67,7 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <div className="absolute -inset-4 border-l border-t border-white/10 rounded-tl-lg" />
-            <Link href="/landing/pricing" passHref>
+            <Link href="/dashboard" passHref>
               <motion.button
                 className="bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#8D5AFF]/30 transform transition-all"
                 whileHover={{ scale: 1.02, boxShadow: '0 10px 25px -5px rgba(141, 90, 255, 0.5)' }}

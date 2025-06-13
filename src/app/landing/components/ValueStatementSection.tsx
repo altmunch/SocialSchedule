@@ -184,7 +184,7 @@ export default function ValueStatementSection() {
           An AI tool that doesn't just automate shorts,<br />it makes them <span className="text-[#5afcc0] text-5xl md:text-7xl font-extrabold inline-block px-2">SELL</span>.
         </motion.h2>
         <Link href="/dashboard">
-          <button className="mt-8 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#8D5AFF]/30 hover:from-purple-700 hover:to-indigo-700 transition-all">
+          <button className="mt-8 bg-[#8D5AFF] text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#8D5AFF]/30 hover:bg-[#8D5AFF]/90 transition-all">
             Get Started
           </button>
         </Link>
