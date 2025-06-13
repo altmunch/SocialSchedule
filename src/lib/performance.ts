@@ -1,3 +1,7 @@
+'use client';
+
+import React from 'react';
+
 /**
  * Performance Utility Library
  * Provides functions for optimizing large datasets and monitoring performance

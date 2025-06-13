@@ -147,7 +147,7 @@ const nextConfig = {
 
     // Tree shaking optimizations
     // config.optimization.usedExports = true;
-    config.optimization.sideEffects = false;
+    // config.optimization.sideEffects = false;
 
     return config;
   },
