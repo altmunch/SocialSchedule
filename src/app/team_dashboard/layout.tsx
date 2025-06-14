@@ -44,12 +44,9 @@ export default function TeamDashboardLayout({
 
   // Mock function - in real app, check against user's subscription tier
   const checkTeamAccess = async (user: any): Promise<boolean> => {
-    // Simulate API call to check subscription
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // For demo, allow access if user exists
-    // In production: check user.subscription_tier === 'team' || 'enterprise'
-    return true;
+    // In production, fetch subscription from backend; for now rely on metadata
+    const tier = (user as any)?.subscriptionTier || 'free';
+    return tier === 'team';
   };
 
   if (loading || isCheckingAccess) {

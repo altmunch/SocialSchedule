@@ -16,21 +16,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
     return Math.round(annualPrice / 12 * 1.25);
   };
 
-  const plans = [
-    {
-      name: 'Free Plan',
-      subtitle: 'Try our core features',
-      annualPrice: 0,
-      monthlyPrice: 0,
-      features: [
-        'Viral Blitz Cycle Framework (1 use)',
-        'Idea Generator Framework (1 use)',
-        '1 autopost',
-        'Basic analytics (no e-commerce)',
-      ],
-      highlighted: false,
-      isFree: true,
-    },
+  const plans: any[] = [
     {
       name: 'Lite Plan',
       subtitle: '$20/month',
@@ -43,6 +29,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
         'Basic analytics (no e-commerce)',
       ],
       highlighted: false,
+      isFree: false,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_LITE_LINK',
     },
     {
@@ -59,6 +46,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
         'Advanced analytics & reporting',
       ],
       highlighted: true,
+      isFree: false,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_PRO_LINK',
     },
     {
@@ -75,16 +63,19 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
         'Priority support',
       ],
       highlighted: false,
+      isFree: false,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_TEAM_LINK',
     }
   ];
 
   const getButtonLink = (plan: any) => {
-    if (plan.isFree) {
-      return "/dashboard";
+    if (plan.name === 'Lite Plan') {
+      if (isAnnual) {
+        return process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || "/dashboard";
+      }
+      return process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || "/dashboard";
     }
     
-    // Use specific environment variables for each plan and billing cycle
     if (plan.name === 'Pro Plan') {
       if (isAnnual) {
         return process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || "/dashboard";
@@ -105,11 +96,6 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
   };
 
   const handlePlanClick = (plan: any) => {
-    if (plan.isFree) {
-      window.location.href = "/dashboard";
-      return;
-    }
-    
     const stripeLink = getButtonLink(plan);
     
     // For team plans, we need to handle post-payment redirect to team dashboard
@@ -257,7 +243,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                     <p className="text-sm font-medium text-white border-b border-white/10 pb-2 mb-3">
                       FEATURES
                     </p>
-                    {plan.features.map((feature, idx) => (
+                    {plan.features.map((feature: string, idx: number) => (
                       <motion.div 
                         key={idx} 
                         className="flex items-start"

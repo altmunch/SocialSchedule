@@ -140,6 +140,24 @@ describe('NavigationBar', () => {
       const trackingLink = screen.getByText('Performance Tracking');
       expect(trackingLink.closest('a')).toHaveAttribute('href', '/#testimonials');
     });
+
+    it('should have correct dropdown links for Solutions dropdown', () => {
+      render(<NavigationBar />);
+
+      // Open Solutions dropdown
+      const solutionsButton = screen.getByRole('button', { name: /solutions/i });
+      fireEvent.click(solutionsButton);
+
+      // Check dropdown links
+      const ecommerceLink = screen.getByText('E-commerce');
+      expect(ecommerceLink.closest('a')).toHaveAttribute('href', '/landing/solutions');
+
+      const contentMarketingLink = screen.getByText('Content Marketing');
+      expect(contentMarketingLink.closest('a')).toHaveAttribute('href', '/landing/solutions');
+
+      const teamLink = screen.getByText('Team');
+      expect(teamLink.closest('a')).toHaveAttribute('href', '/landing/team');
+    });
   });
 
   describe('Get Started Buttons', () => {

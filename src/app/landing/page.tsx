@@ -19,6 +19,7 @@ import ProblemSolutionSection from '@/app/landing/components/ProblemSolutionSect
 import ResultsSection from '@/app/landing/components/ResultsSection';
 import TestimonialsSection from '@/app/landing/components/TestimonialsSection';
 import Footer from '@/app/landing/components/Footer';
+import ContactSection from '@/app/landing/components/ContactSection';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -62,6 +63,7 @@ export default function LandingPage() {
         <EnterpriseSection />
         <DifferentiatorSection />
         <FinalCTASection onGetStarted={handleGetStarted} />
+        <ContactSection />
       </main>
       
       <motion.footer

@@ -261,7 +261,7 @@ const navItems: NavItem[] = [
                 Sign In
               </Link>
               <Link
-                href="/auth/sign-in?redirect=/dashboard"
+                href="/dashboard"
                 className="block w-full text-center bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-all duration-300"
                 onClick={() => setMobileMenuOpen(false)}
               >

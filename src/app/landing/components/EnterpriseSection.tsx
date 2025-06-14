@@ -56,7 +56,7 @@ export default function EnterpriseSection() {
           </motion.div>
         </div>
         
-        {/* Team page CTA */}
+        {/* Team CTA added */}
         <motion.div 
           className="text-center mt-12"
           initial={{ opacity: 0, y: 20 }}

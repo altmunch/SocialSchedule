@@ -1,4 +1,7 @@
 import './globals.css';
+import { Inter } from 'next/font/google';
+
+const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
 // Production metadata
 export const metadata = {
@@ -6,7 +9,6 @@ export const metadata = {
   description: 'Transform your social media content into sales with AI-powered optimization. Generate viral content, automate posting, and boost conversions with ClipsCommerce.',
   keywords: 'AI content creation, social media automation, e-commerce marketing, viral content, TikTok marketing, Instagram marketing, content optimization',
   author: 'ClipsCommerce',
-  viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
   canonical: 'https://clipscommerce.com',
   openGraph: {
@@ -21,7 +23,13 @@ export const metadata = {
     title: 'ClipsCommerce - AI-Powered Content That Sells',
     description: 'Transform your social media content into sales with AI-powered optimization.',
     image: '/images/twitter-card.png',
+    site: '@clipscommerce',
   },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -33,11 +41,10 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="canonical" href="https://clipscommerce.com" />
       </head>
-      <body>
+      <body className={inter.className}>
         {children}
       </body>
     </html>

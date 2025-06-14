@@ -47,7 +47,7 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             </div>
             <div className="relative pb-6 mb-4">
               <div className="whitespace-nowrap text-5xl sm:text-6xl font-medium text-white leading-tight tracking-tight">
-                Stop Editing. Start Selling.
+                Automate Shorts. Skyrocket Sales.
               </div>
               <div className="absolute bottom-0 left-1/2 w-48 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-1/2" />
             </div>
@@ -126,14 +126,14 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          <div className="relative h-[400px] md:h-[550px] bg-gradient-to-b from-[#0F172A] to-[#1E293B] border border-storm-light/20 rounded-xl overflow-hidden">
-            {/* This would be replaced with your actual app screenshot */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-[#E5E7EB] text-2xl font-semibold mb-4">AI-Powered Content Optimization Dashboard</div>
-                <div className="text-[#94A3B8] text-base max-w-lg mx-auto">Your dashboard preview would appear here, showcasing the powerful AI features of SocialSchedule</div>
-              </div>
-            </div>
+          <div className="relative h-[400px] md:h-[550px] border border-storm-light/20 rounded-xl overflow-hidden">
+            <Image
+              src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png"
+              alt="ClipsCommerce dashboard screenshot"
+              fill
+              style={{ objectFit: 'cover' }}
+              priority
+            />
           </div>
         </motion.div>
       </div>

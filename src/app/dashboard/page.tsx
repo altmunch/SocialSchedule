@@ -163,7 +163,7 @@ export default function DashboardPage() {
         </div>
         {/* Usage Tracker */}
         <div className="mt-6">
-          <UsageTracker tier={tier} />
+          <UsageTracker />
         </div>
         
         {/* Placeholder progress (mock onboarding) */}

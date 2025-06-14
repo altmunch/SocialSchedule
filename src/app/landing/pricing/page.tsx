@@ -87,20 +87,6 @@ export default function PricingPage() {
   // Predefined pricing tiers with specified pricing structure
   const pricingTiers: PricingTier[] = [
     {
-      id: 'free',
-      name: 'Free Plan',
-      price: 0,
-      yearlyPrice: 0,
-      description: 'Try our core features',
-      features: [
-        'Viral Blitz Cycle Framework (1 use)',
-        'Idea Generator Framework (1 use)',
-        '1 autopost',
-        'Basic analytics (no e-commerce)'
-      ],
-      ctaText: 'Get Started'
-    },
-    {
       id: 'lite',
       name: 'Lite Plan',
       price: 20,
@@ -155,27 +141,27 @@ export default function PricingPage() {
   const features: Feature[] = [
     {
       name: 'AI clipping',
-      tiers: { 'Free': true, 'Pro': true, 'Business': true },
+      tiers: { 'Lite': true, 'Pro': true, 'Business': true },
       description: 'Automated content clip generation'
     },
     {
       name: 'Processing speed',
-      tiers: { 'Free': false, 'Pro': true, 'Business': true },
+      tiers: { 'Lite': false, 'Pro': true, 'Business': true },
       description: 'Faster processing times for content'
     },
     {
       name: 'Video import sources',
-      tiers: { 'Free': false, 'Pro': true, 'Business': true },
+      tiers: { 'Lite': false, 'Pro': true, 'Business': true },
       description: 'Import from multiple platforms'
     },
     {
       name: 'Dedicated account manager',
-      tiers: { 'Free': false, 'Pro': false, 'Business': true },
+      tiers: { 'Lite': false, 'Pro': false, 'Business': true },
       description: 'Personal support for your account'
     },
     {
       name: 'API Access',
-      tiers: { 'Free': false, 'Pro': false, 'Business': true },
+      tiers: { 'Lite': false, 'Pro': false, 'Business': true },
       description: 'Full API access for custom integrations'
     }
   ];
@@ -235,7 +221,7 @@ export default function PricingPage() {
   const getRecommendedPlan = () => {
     if (followers > 10000 || posts > 30) return 'team';
     if (followers > 1000 || posts > 10) return 'pro';
-    return 'free';
+    return 'lite';
   };
 
   const recommendedPlan = getRecommendedPlan();
@@ -379,40 +365,28 @@ export default function PricingPage() {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => {
-                        if (tier.id === 'free') {
-                          window.location.href = '/dashboard';
-                        } else {
-                          let stripeLink = '';
-                          
-                          if (tier.id === 'lite') {
-                            if (billingCycle === 'yearly') {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || '';
-                            } else {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || '';
-                            }
-                          } else if (tier.id === 'pro') {
-                            if (billingCycle === 'yearly') {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || '';
-                            } else {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || '';
-                            }
-                          } else if (tier.id === 'team') {
-                            if (billingCycle === 'yearly') {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || '';
-                            } else {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
-                            }
-                            
-                            // For team plans, store redirect to team dashboard
-                            if (typeof window !== 'undefined') {
-                              localStorage.setItem('post_payment_redirect', '/team-dashboard');
-                            }
+                        if (tier.id === 'lite') {
+                          if (billingCycle === 'yearly') {
+                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || '';
+                          } else {
+                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || '';
+                          }
+                        } else if (tier.id === 'pro') {
+                          if (billingCycle === 'yearly') {
+                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || '';
+                          } else {
+                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || '';
+                          }
+                        } else if (tier.id === 'team') {
+                          if (billingCycle === 'yearly') {
+                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || '';
+                          } else {
+                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
                           }
                           
-                          if (stripeLink) {
-                            window.open(stripeLink, '_blank');
-                          } else {
-                            window.location.href = '/dashboard';
+                          // For team plans, store redirect to team dashboard
+                          if (typeof window !== 'undefined') {
+                            localStorage.setItem('post_payment_redirect', '/team-dashboard');
                           }
                         }
                       }}
@@ -431,7 +405,7 @@ export default function PricingPage() {
                     {tier.features.map((feature, i) => (
                       <div key={i} className="flex items-start">
                         <div className="w-4 h-4 rounded-full bg-[#5afcc0]/10 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
-                          <Check className="h-2.5 w-2.5 text-[#5afcc0]" />
+                          <Check className="h-2.5 w-2.5 text-[#8D5AFF]" />
                         </div>
                         <span className="text-xs text-white/80">{feature}</span>
                       </div>
@@ -536,7 +510,7 @@ export default function PricingPage() {
               
               <div className="bg-black/30 rounded-xl p-6 text-center">
                 <h4 className="text-white/70 mb-1 text-sm">Est. growth per month</h4>
-                <div className="text-xl font-bold text-blitz-green">+{estimatedGrowth}</div>
+                <div className="text-xl font-bold text-[#8D5AFF]">+{estimatedGrowth}</div>
               </div>
             </div>
             
@@ -592,7 +566,7 @@ export default function PricingPage() {
                 {pricingTiers.map((tier: PricingTier) => (
                   <div key={`${tier.id}-${index}`} className="p-6 flex items-center justify-center border-b border-white/10">
                     {feature.tiers[tier.name as keyof typeof feature.tiers] ? (
-                      <Check className="w-5 h-5 text-blitz-green" />
+                      <Check className="w-5 h-5 text-[#8D5AFF]" />
                     ) : (
                       <X className="w-5 h-5 text-white/30" />
                     )}
