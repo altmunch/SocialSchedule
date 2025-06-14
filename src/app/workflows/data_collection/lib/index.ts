@@ -6,7 +6,7 @@ export * from './platforms/platform-factory';
 
 // Export platform-specific clients
 export { TikTokClient } from './platforms/tiktok-client';
-export { InstagramClient } from './platforms/consolidated/InstagramClient';
+export { InstagramClient } from './platforms/instagram-client';
 export { YouTubeClient } from './platforms/youtube-client';
 
 // Export the main service

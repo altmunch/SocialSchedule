@@ -62,25 +62,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
-  const { pathname } = request.nextUrl;
-  const subscriptionTier = request.cookies.get('subscription_tier')?.value;
-
-  // Redirect team plan users to team dashboard when visiting root
-  if (pathname === '/' && subscriptionTier === 'team') {
-    const url = request.nextUrl.clone();
-    url.pathname = '/team_dashboard';
-    return NextResponse.redirect(url);
-  }
-
-  // Protect team dashboard from unauthorized access
-  if (pathname.startsWith('/team_dashboard')) {
-    if (subscriptionTier !== 'team') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/dashboard/subscription?upgrade=team';
-      return NextResponse.redirect(url);
-    }
-  }
-
   return response
 }
 
@@ -97,7 +78,5 @@ export const config = {
      * - api/webhooks (webhook endpoints)
      */
     '/((?!_next/static|_next/image|favicon.ico|public|api/auth|api/webhooks).*)',
-    '/',
-    '/team_dashboard/:path*',
   ],
 }

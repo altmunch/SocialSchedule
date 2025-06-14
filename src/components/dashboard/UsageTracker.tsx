@@ -108,27 +108,24 @@ const FeatureCard = ({ title, icon: Icon, used, limit, remaining, gradient, isUn
   );
 };
 
-interface UsageTrackerProps {
-  tier: SubscriptionTier;
-}
-
-export default function UsageTracker({ tier }: UsageTrackerProps) {
+export default function UsageTracker() {
   const { user } = useAuth();
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscriptionTier, setSubscriptionTier] = useState('free'); // Mock - in production get from user data
 
   useEffect(() => {
-    if (user && tier) {
-      loadUsageStats(tier);
+    if (user) {
+      loadUsageStats();
     }
-  }, [user, tier]);
+  }, [user, subscriptionTier]);
 
-  const loadUsageStats = async (currentTier: SubscriptionTier) => {
+  const loadUsageStats = async () => {
     if (!user) return;
     
     try {
       setLoading(true);
-      const stats = await usageLimitsService.getUsageSummary(user.id, currentTier.id);
+      const stats = await usageLimitsService.getUsageSummary(user.id, subscriptionTier);
       setUsageStats(stats);
     } catch (error) {
       console.error('Error loading usage stats:', error);

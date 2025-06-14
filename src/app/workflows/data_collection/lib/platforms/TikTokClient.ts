@@ -131,7 +131,7 @@ export class TikTokClient extends BasePlatformClient {
         throw error;
       }
       this.log('error', `Unhandled error in ${methodName}`, { error });
-      throw new PlatformError(this.platform, 'UNHANDLED_ERROR', `Unhandled error in ${methodName}: ${(error as Error).message}`, error);
+      throw new PlatformError(this.platform, `Unhandled error in ${methodName}: ${(error as Error).message}`);
     }
   }
 
@@ -148,7 +148,7 @@ export class TikTokClient extends BasePlatformClient {
           TikTokUserInfoResponseSchema,
           params
         );
-        if (!result || !('data' in result) || !result.data || typeof result.data !== 'object' || !('user' in result.data)) {
+        if (!result || !('data' in result) || !result.data || !('user' in result.data)) {
           throw new Error('TikTokClient: No user data returned in test/mock mode');
         }
         return result.data.user;
@@ -163,7 +163,7 @@ export class TikTokClient extends BasePlatformClient {
         TikTokUserInfoResponseSchema,
         'getUserInfo'
       );
-      if (!result || !result.data || typeof result.data !== 'object' || !('user' in result.data)) {
+      if (!result || !result.data || !('user' in result.data)) {
         throw new Error('TikTokClient: No user data returned');
       }
       return result.data.user;

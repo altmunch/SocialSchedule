@@ -2,7 +2,7 @@
 // Ensure proper error handling for rate limits and token refreshes
 
 import { BasePlatformClient, HeaderValue } from './base-platform'; // Added HeaderValue
-import { ApiConfig, ApiResponse, PlatformPostMetrics, PlatformUserActivity, PlatformPost, PlatformComment } from './types'; // Consolidated imports
+import { ApiConfig, ApiResponse, PlatformPostMetrics, PlatformUserActivity, PlatformPost } from './types'; // Consolidated imports
 import { IAuthTokenManager } from '../auth.types';
 import { Platform } from '../../../deliverables/types/deliverables_types';
 import { ApiError, PlatformError, RateLimitError } from '../utils/errors'; // Corrected error imports path
@@ -544,19 +544,4 @@ export class TikTokClient extends BasePlatformClient {
       };
     }
   } // End getUserVideos method
-
-  async getVideoComments(postId: string, options?: { cursor?: string; limit?: number; }): Promise<ApiResponse<{ comments: PlatformComment[]; nextPageCursor?: string; hasMore?: boolean }>> {
-    // TikTok API doesn't provide public access to video comments for third-party apps
-    // This is a stub implementation that returns empty results
-    this.log('warn', `[TikTokClient] getVideoComments called but TikTok API doesn't support public comment access for postId: ${postId}`);
-    
-    return {
-      data: {
-        comments: [],
-        nextPageCursor: undefined,
-        hasMore: false,
-      },
-      rateLimit: this.rateLimit || undefined,
-    };
-  }
 }

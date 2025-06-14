@@ -1,10 +1,9 @@
 // difficult: This file defines the core types and validation for the SCAN phase
 import { z } from 'zod';
-import { Platform as PlatformEnum } from '../../deliverables/types/deliverables_types';
+import { Platform } from '../../deliverables/types/deliverables_types';
 
-export const PlatformSchema = z.nativeEnum(PlatformEnum);
-export type Platform = PlatformEnum;
-export const PlatformValues = PlatformEnum;
+export const PlatformSchema = z.nativeEnum(Platform);
+export type Platform = Platform;
 
 // Common error types
 export type ApiError = {

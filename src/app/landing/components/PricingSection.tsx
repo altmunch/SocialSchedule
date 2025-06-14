@@ -18,58 +18,64 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
 
   const plans = [
     {
-      name: 'Starter',
-      subtitle: 'Perfect for testing the waters',
-      description: 'Ideal for solo creators ready to transform their content into sales',
+      name: 'Free Plan',
+      subtitle: 'Try our core features',
+      annualPrice: 0,
+      monthlyPrice: 0,
+      features: [
+        'Viral Blitz Cycle Framework (1 use)',
+        'Idea Generator Framework (1 use)',
+        '1 autopost',
+        'Basic analytics (no e-commerce)',
+      ],
+      highlighted: false,
+      isFree: true,
+    },
+    {
+      name: 'Lite Plan',
+      subtitle: '$20/month',
       annualPrice: 240, // $20 * 12
       monthlyPrice: 20,
       features: [
-        'AI-powered Viral Blitz Cycle (15 optimized posts/month)',
-        'Smart content idea generation (15 uses/month)',
-        'Automated posting to 3 platforms',
-        'Basic performance analytics',
-        'Email support'
+        'Viral Blitz Cycle Framework (15 uses)',
+        'Idea Generator Framework (15 uses)',
+        '15 autoposts/month',
+        'Basic analytics (no e-commerce)',
       ],
       highlighted: false,
-      isFree: false,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_LITE_LINK',
-      valueProps: ['Test our AI optimization', 'See results in 14 days', 'Perfect for beginners']
     },
     {
-      name: 'Professional',
-      subtitle: 'Most popular for serious sellers',
-      description: 'Everything you need to scale your content and maximize sales',
+      name: 'Pro Plan',
+      subtitle: '$70/month',
       annualPrice: 840, // $70 * 12
       monthlyPrice: 70,
       features: [
-        'Unlimited AI-optimized content creation',
-        'Advanced Viral Blitz Cycle with competitor analysis',
-        'Multi-platform posting (unlimited accounts)',
-        'E-commerce integration (Shopify, WooCommerce, etc.)',
-        'Advanced sales analytics & ROI tracking',
-        'Priority support & onboarding'
+        'Viral Blitz Cycle Framework (unlimited)',
+        'Idea Generator Framework (unlimited)',
+        'Unlimited posts',
+        'Multiple account sets',
+        'E-commerce integration',
+        'Advanced analytics & reporting',
       ],
       highlighted: true,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_PRO_LINK',
-      valueProps: ['3x more sales on average', 'Complete automation', 'Full e-commerce integration']
     },
     {
-      name: 'Enterprise',
-      subtitle: 'Built for teams and agencies',
-      description: 'Advanced features for teams managing multiple brands and clients',
+      name: 'Team Plan',
+      subtitle: '$500/month',
       annualPrice: 6000, // $500 * 12
       monthlyPrice: 500,
       features: [
-        'Everything in Professional',
-        'Team collaboration dashboard',
-        'Unlimited brand accounts & client management',
-        'Custom Brand Voice AI training',
-        'White-label reporting',
-        'Dedicated account manager & priority support'
+        'Everything in Pro',
+        'Team dashboard access',
+        'Manage unlimited accounts',
+        'Brand Voice AI (for consistency)',
+        'Team collaboration mode',
+        'Priority support',
       ],
       highlighted: false,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_TEAM_LINK',
-      valueProps: ['Scale across teams', 'Manage multiple brands', 'White-label solution']
     }
   ];
 
@@ -79,7 +85,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
     }
     
     // Use specific environment variables for each plan and billing cycle
-    if (plan.name === 'Professional') {
+    if (plan.name === 'Pro Plan') {
       if (isAnnual) {
         return process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || "/dashboard";
       } else {
@@ -87,7 +93,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
       }
     }
     
-    if (plan.name === 'Enterprise') {
+    if (plan.name === 'Team Plan') {
       if (isAnnual) {
         return process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || "/dashboard";
       } else {
@@ -107,7 +113,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
     const stripeLink = getButtonLink(plan);
     
     // For team plans, we need to handle post-payment redirect to team dashboard
-    if (plan.name === 'Enterprise' && stripeLink.includes('stripe')) {
+    if (plan.name === 'Team Plan' && stripeLink.includes('stripe')) {
       // Store the intended redirect in localStorage for post-payment handling - only on client side
       if (typeof window !== 'undefined') {
         localStorage.setItem('post_payment_redirect', '/team-dashboard');
@@ -132,7 +138,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Choose Your Growth Plan
+            Simple, Transparent Pricing
           </motion.span>
           
           <motion.h2 
@@ -142,7 +148,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Transform Content Into <span className="text-[#8D5AFF]">Consistent Revenue</span>
+            Scale Your Content and <span className="text-[#8D5AFF]">Maximize Sales</span>
           </motion.h2>
           
           <motion.p 
@@ -152,7 +158,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Join thousands of creators who've increased their sales by 3x with AI-powered content optimization. Start your 14-day risk-free trial today.
+            Select the plan that best fits your needs. All plans include our core AI-powered features.
           </motion.p>
           
           {/* Billing toggle */}
@@ -185,7 +191,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
             {plans.map((plan, index) => (
               <motion.div
                 key={plan.name}
-                className={`relative rounded-2xl overflow-hidden backdrop-blur-sm ${plan.highlighted ? 'border-2 border-[#8D5AFF]/50 bg-gradient-to-br from-black to-[#1A1A1A] scale-105' : 'border border-white/10 bg-black/40'}`}
+                className={`relative rounded-2xl overflow-hidden backdrop-blur-sm ${plan.highlighted ? 'border-2 border-[#8D5AFF]/50 bg-gradient-to-br from-black to-[#1A1A1A]' : 'border border-white/10 bg-black/40'}`}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -193,7 +199,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
               >
                 {plan.highlighted && (
                   <div className="bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] text-white text-center py-3 font-semibold text-sm tracking-wider">
-                    ⭐ MOST POPULAR - BEST VALUE
+                    MOST POPULAR
                   </div>
                 )}
                 
@@ -204,8 +210,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                   )}
                   
                   <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
-                  <p className="text-[#5afcc0] font-medium mb-2">{plan.subtitle}</p>
-                  <p className="text-white/70 text-sm mb-6 min-h-[40px]">{plan.description}</p>
+                  <p className="text-white/60 mb-6 min-h-[40px]">{plan.subtitle}</p>
                   
                   <div className="flex items-baseline mb-6">
                     <span className="text-4xl font-bold text-white">
@@ -217,16 +222,6 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                       </span>
                     )}
                   </div>
-
-                  {/* Value propositions */}
-                  <div className="mb-6">
-                    {plan.valueProps.map((prop, idx) => (
-                      <div key={idx} className="flex items-center mb-2">
-                        <div className="w-2 h-2 bg-[#5afcc0] rounded-full mr-2"></div>
-                        <span className="text-[#5afcc0] text-sm font-medium">{prop}</span>
-                      </div>
-                    ))}
-                  </div>
                   
                   {/* Bonus section - only show for paid plans */}
                   {!plan.isFree && (
@@ -234,8 +229,8 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                       <div className="flex items-start">
                         <Sparkles className="h-5 w-5 text-[#5afcc0] mr-2 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-[#5afcc0] font-medium">🎁 Limited Time Bonuses</p>
-                          <p className="text-sm text-white/70">Hook Generator + Template Library included ($899 value)</p>
+                          <p className="text-[#5afcc0] font-medium">Limited Time Bonuses</p>
+                          <p className="text-sm text-white/70">Template Generator & Hook Creator included ($899 value)</p>
                         </div>
                       </div>
                     </div>
@@ -243,26 +238,24 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
 
                   <button
                     onClick={() => handlePlanClick(plan)}
-                    className={`w-full group relative py-4 px-6 rounded-lg font-bold text-lg transition-all duration-300 overflow-hidden mb-8 ${plan.highlighted 
-                      ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20 text-white' 
-                      : 'bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white'}`}
+                    className={`w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 ${plan.highlighted 
+                      ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 
+                      : 'bg-[#8D5AFF] hover:bg-[#8D5AFF]/90'}`}
                   >
-                    <span className="relative z-10">
-                      {plan.highlighted ? '🚀 Start Scaling Now' : plan.name === 'Enterprise' ? '💼 Contact Sales' : '✨ Start Free Trial'}
-                    </span>
+                    <span className="relative z-10">{plan.highlighted ? 'Get Started' : 'Select Plan'}</span>
                     <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
                   </button>
                   
-                  {/* 14-day guarantee */}
+                  {/* 10-day guarantee */}
                   <div className="flex items-center justify-center text-sm text-white/60 mb-6">
                     <Shield className="h-4 w-4 mr-2 text-[#5afcc0]" />
-                    <span>14-day money-back guarantee</span>
+                    <span>10-day results guarantee</span>
                   </div>
                   
                   {/* Features */}
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-white border-b border-white/10 pb-2 mb-3">
-                      WHAT'S INCLUDED
+                      FEATURES
                     </p>
                     {plan.features.map((feature, idx) => (
                       <motion.div 

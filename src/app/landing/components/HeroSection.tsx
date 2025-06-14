@@ -43,17 +43,17 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <div className="text-[#5afcc0] text-sm uppercase tracking-normal mb-6 font-medium">
-              TRANSFORM EVERY VIDEO INTO A SALES POWERHOUSE
+              THE ONLY AI TOOL THAT DOES SHORT-FORM MARKETING FOR YOU
             </div>
             <div className="relative pb-6 mb-4">
               <div className="whitespace-nowrap text-5xl sm:text-6xl font-medium text-white leading-tight tracking-tight">
-                Triple Your Sales with AI-Driven Content Optimization
+                Stop Editing. Start Selling.
               </div>
               <div className="absolute bottom-0 left-1/2 w-48 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-1/2" />
             </div>
             <div className="relative">
               <p className="text-xl text-[#E5E7EB] max-w-3xl mx-auto font-light tracking-wide mb-2">
-                Generate <span className="font-bold text-white">3x more sales</span> from your existing content with AI that optimizes every post for <span className="font-bold text-white">actual purchases</span>
+                Automate clip uploads for <span className="font-bold text-white">more sales</span>, <span className="font-bold text-white">less effort</span>
               </p>
               <div className="absolute -bottom-2 left-1/2 w-32 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent transform -translate-x-1/2" />
             </div>
@@ -74,7 +74,7 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
                 whileTap={{ scale: 0.98 }}
               >
                 <span className="flex items-center justify-center">
-                  Start Your Sales Journey Now
+                  Start Selling Now
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </span>
               </motion.button>
@@ -97,9 +97,9 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             {[
-              'Increase conversion rates by 73% with AI optimization',
-              'Post when customers are 5x more likely to buy',
-              'Steal winning strategies from top performers'
+              'AI optimizes content for conversions',
+              'Schedule posts for maximum sales',
+              'Outperform competitor content'
             ].map((benefit, index) => (
               <motion.div 
                 key={index} 

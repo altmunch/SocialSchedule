@@ -16,39 +16,39 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
     {
       number: 1,
       title: 'Accelerate',
-      subtitle: 'Revenue-Focused Content Engine',
-      description: 'Transform your content into a sales machine. Our AI doesn\'t just optimize for engagement—it optimizes for actual purchases and conversions.',
+      subtitle: 'Content Optimization Engine',
+      description: 'Our AI analyzes your content and optimizes captions, hashtags, and posting times to maximize engagement and reach your target audience effectively.',
       highlights: [
-        'Boost conversions by 73%',
-        'AI learns your niche for tailored strategies',
-        'Steal proven tactics from top-selling competitors',
-        'Captions that sell, not just entertain'
+        'Constant optimization engines that work 24/7',
+        'Real-time learning from audience reactions',
+        'Optimize using tactics from high-performing competitors',
+        'Conveys value through strategic captions'
       ],
-      valueIndicator: 'Converts Views to Sales'
+      valueIndicator: 'Captures & Audits'
     },
     {
       number: 2,
       title: 'Blitz',
-      subtitle: 'Perfect Timing for Maximum Sales',
-      description: 'Post when your audience is ready to buy, not just scroll. Our algorithm identifies peak purchasing moments for your specific customer base.',
+      subtitle: 'Precise Automated Posting',
+      description: 'Push your content to the most targeted audience and see results in a flash. Our sophisticated algorithm identifies and reaches the perfect audience in your niche.',
       highlights: [
-        'Post when customers are 5x more likely to purchase',
-        'Audience behavior analysis for optimal timing',
-        'Platform-specific optimization for each social channel'
+        'Precise, automated posting schedules',
+        'Content optimization for maximum engagement',
+        'Sophisticated algorithm to target audience in your niche'
       ],
-      valueIndicator: 'Right Time, Right Audience'
+      valueIndicator: 'Sell At The Right Time'
     },
     {
       number: 3,
       title: 'Cycle',
-      subtitle: 'Continuous Revenue Optimization',
-      description: 'Every post teaches our AI how to sell better. Watch your conversion rates improve with each piece of content as the system learns what drives your sales.',
+      subtitle: 'Viral Cycle of Improvements',
+      description: 'Create a virtual cycle of improvements with continuous optimization. Our system learns from every post, constantly improving your content strategy and performance metrics.',
       highlights: [
-        'Performance improves automatically over time',
-        'Generate content ideas based on what actually sells',
-        'Clear ROI tracking and sales attribution'
+        'Constantly improve from analytics',
+        'Generate top-performing content ideas',
+        'Simplifies complex analytics into actionable insights'
       ],
-      valueIndicator: 'Gets Smarter, Sells More'
+      valueIndicator: 'Simplifies Analytics'
     }
   ];
 
@@ -116,7 +116,7 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
             whileHover={{ scale: 1.03, boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.4)' }}
             whileTap={{ scale: 0.98 }}
           >
-            Unlock Your Sales Potential
+            Start Selling Smarter with AI
           </motion.button>
         </motion.div>
       </div>
