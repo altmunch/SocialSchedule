@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { Check, Zap, Target, TrendingUp, Clock } from 'lucide-react';
 
 // Sub-components for better maintainability
 import FeatureItem from './FeatureItem';
@@ -14,54 +14,28 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
   // Feature data
   const features = [
     {
-      number: 1,
-      title: 'Accelerate',
-      subtitle: 'Content Optimization Engine',
-      description: 'Our AI analyzes your content and optimizes captions, hashtags, and posting times to maximize engagement and reach your target audience effectively.',
-      highlights: [
-        'Constant optimization engines that work 24/7',
-        'Real-time learning from audience reactions',
-        'Optimize using tactics from high-performing competitors',
-        'Conveys value through strategic captions'
-      ],
-      valueIndicator: 'Captures & Audits'
+      icon: Zap,
+      title: "Revenue-Focused AI",
+      description: "Our AI doesn't just create content—it creates content that converts. Every post is optimized for maximum sales potential, not just engagement.",
+      gradient: "from-[#8D5AFF] to-[#5afcc0]"
     },
     {
-      number: 2,
-      title: 'Blitz',
-      subtitle: 'Precise Automated Posting',
-      description: 'Push your content to the most targeted audience and see results in a flash. Our sophisticated algorithm identifies and reaches the perfect audience in your niche.',
-      highlights: [
-        'Precise, automated posting schedules',
-        'Content optimization for maximum engagement',
-        'Sophisticated algorithm to target audience in your niche'
-      ],
-      valueIndicator: 'Sell At The Right Time'
+      icon: Target,
+      title: "Smart Audience Targeting",
+      description: "Reach the right customers at the right time. Our AI analyzes buying patterns to target users most likely to purchase your products.",
+      gradient: "from-[#5afcc0] to-blue-500"
     },
     {
-      number: 3,
-      title: 'Cycle',
-      subtitle: 'Viral Cycle of Improvements',
-      description: 'Create a virtual cycle of improvements with continuous optimization. Our system learns from every post, constantly improving your content strategy and performance metrics.',
-      highlights: [
-        'Constantly improve from analytics',
-        'Generate top-performing content ideas',
-        'Simplifies complex analytics into actionable insights'
-      ],
-      valueIndicator: 'Simplifies Analytics'
+      icon: TrendingUp,
+      title: "Performance Analytics",
+      description: "Track what matters: sales, conversions, and ROI. Get detailed insights into which content drives the most revenue for your business.",
+      gradient: "from-blue-500 to-purple-500"
     },
     {
-      number: 4,
-      title: "Scan",
-      subtitle: 'Niche & Competitor Analysis',
-      description: "Our AI analyzes your niche, products, and competitors to identify winning strategies and content gaps, providing a solid foundation for your content plan.",
-      highlights: [
-        'Deep dive into niche trends and audience insights',
-        'Competitive analysis to find what works for others',
-        'Identify content gaps and opportunities',
-        'Data-driven content strategy formulation'
-      ],
-      valueIndicator: 'Strategic Insights'
+      icon: Clock,
+      title: "Automated Sales Funnel",
+      description: "From awareness to purchase, our AI creates a complete content funnel that guides customers through your sales process automatically.",
+      gradient: "from-purple-500 to-[#8D5AFF]"
     }
   ];
 
@@ -72,46 +46,43 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
       
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 relative z-10">
         {/* Section header */}
-        <motion.div 
-          className="text-center mb-24"
+        <motion.div
+          className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="relative overflow-hidden h-[60px] md:h-[72px] mb-5">
-            <motion.h2 
-              className="text-4xl md:text-5xl font-bold text-[#8D5AFF] absolute w-full"
-              initial={{ x: -100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -100, opacity: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              The Viral Blitz Cycle
-            </motion.h2>
-            <motion.h2 
-              className="text-4xl md:text-5xl font-bold text-[#8D5AFF] absolute w-full"
-              initial={{ x: 0, opacity: 1 }}
-              animate={{ x: 100, opacity: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              How It Works
-            </motion.h2>
-          </div>
-          <p className="text-xl text-white max-w-2xl mx-auto">
-            Transform your content creation process with our AI-powered automation system
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+            Features That <span className="text-[#5afcc0]">Generate Revenue</span>
+          </h2>
+          <p className="text-xl text-white/80 max-w-3xl mx-auto">
+            Every feature is designed with one goal: turning your social media presence into a profitable business.
           </p>
         </motion.div>
         
         {/* Feature items */}
-        <div className="space-y-32">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           {features.map((feature, index) => (
-            <FeatureItem 
+            <motion.div
               key={feature.title}
-              feature={feature}
-              isReversed={index % 2 !== 0}
-              index={index}
-            />
+              className="bg-gradient-to-br from-neutral-900/50 to-neutral-800/50 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:border-white/20 transition-all duration-300"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            >
+              <div className="flex items-start space-x-4">
+                <div className={`p-3 rounded-xl bg-gradient-to-r ${feature.gradient} bg-opacity-20 flex-shrink-0`}>
+                  <feature.icon className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
+                  <p className="text-white/80 leading-relaxed">{feature.description}</p>
+                </div>
+              </div>
+            </motion.div>
           ))}
         </div>
 

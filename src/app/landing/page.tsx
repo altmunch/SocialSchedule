@@ -58,7 +58,7 @@ export default function LandingPage() {
         
         {/* New Landing Sections */}
         <ValueStatementSection />
-        <ViralBlitzCycle />
+        <FeaturesSection onGetStarted={handleGetStarted} />
         <BonusesSection />
         <EnterpriseSection />
         <DifferentiatorSection />

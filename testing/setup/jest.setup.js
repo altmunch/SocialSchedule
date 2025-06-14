@@ -1,8 +1,7 @@
 // Enhanced Jest setup for ClipsCommerce testing infrastructure
-import '@testing-library/jest-dom';
+require('@testing-library/jest-dom');
 const { TextEncoder, TextDecoder } = require('util');
 const nodeFetch = require('node-fetch');
-const mockReact = require('react');
 
 // =============================================================================
 // GLOBAL POLYFILLS AND UTILITIES
@@ -36,7 +35,8 @@ if (!global.performance) {
 jest.mock('next/image', () => ({
   __esModule: true,
   default: (props) => {
-    return mockReact.createElement('img', { 
+    const React = require('react');
+    return React.createElement('img', { 
       ...props, 
       alt: props.alt || '',
       // Convert Next.js specific props to standard img props
@@ -51,7 +51,8 @@ jest.mock('next/image', () => ({
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ children, href, ...props }) => {
-    return mockReact.createElement('a', { 
+    const React = require('react');
+    return React.createElement('a', { 
       href, 
       ...props,
       onClick: (e) => {
@@ -189,9 +190,9 @@ jest.mock('framer-motion', () => ({
   motion: new Proxy({}, {
     get: (target, prop) => {
       if (typeof prop === 'string') {
-        return mockReact.forwardRef((props, ref) => {
+        return React.forwardRef((props, ref) => {
           const { children, ...otherProps } = props;
-          return mockReact.createElement(prop, { ...otherProps, ref }, children);
+          return React.createElement(prop, { ...otherProps, ref }, children);
         });
       }
       return target[prop];
@@ -218,7 +219,7 @@ jest.mock('framer-motion', () => ({
 jest.mock('lucide-react', () => new Proxy({}, {
   get: (target, prop) => {
     if (typeof prop === 'string') {
-      return (props) => mockReact.createElement('svg', { 
+      return (props) => React.createElement('svg', { 
         'data-testid': `${prop}-icon`,
         ...props 
       });
@@ -270,22 +271,31 @@ Object.defineProperty(window, 'getComputedStyle', {
   configurable: true,
 });
 
-// Mock location object completely
-delete window.location;
-window.location = {
-  href: 'http://localhost:3000/',
-  origin: 'http://localhost:3000',
-  protocol: 'http:',
-  host: 'localhost:3000',
-  hostname: 'localhost',
-  port: '3000',
-  pathname: '/',
-  search: '',
-  hash: '',
-  reload: jest.fn(),
-  assign: jest.fn(),
-  replace: jest.fn(),
-};
+// Mock location object
+if (!window.location) {
+  Object.defineProperty(window, 'location', {
+    value: {
+      href: 'http://localhost:3000/',
+      origin: 'http://localhost:3000',
+      protocol: 'http:',
+      host: 'localhost:3000',
+      hostname: 'localhost',
+      port: '3000',
+      pathname: '/',
+      search: '',
+      hash: '',
+      reload: jest.fn(),
+      assign: jest.fn(),
+      replace: jest.fn(),
+    },
+    writable: true,
+    configurable: true,
+  });
+} else {
+  window.location.reload = jest.fn();
+  window.location.assign = jest.fn();
+  window.location.replace = jest.fn();
+}
 
 // Mock localStorage and sessionStorage
 const createStorageMock = () => {

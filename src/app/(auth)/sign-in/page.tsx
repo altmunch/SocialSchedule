@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -97,15 +96,8 @@ export default function SignInPage() {
           <div className="w-full max-w-md">
             {/* Logo/Brand */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] rounded-2xl mb-4 overflow-hidden">
-                <Image
-                  src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png"
-                  alt="ClipsCommerce Logo"
-                  width={64}
-                  height={64}
-                  className="object-cover rounded-2xl"
-                  style={{ filter: 'invert(1)' }}
-                />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] rounded-2xl mb-4">
+                <span className="text-2xl font-bold text-white">CC</span>
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome back</h1>
               <p className="text-gray-300">Sign in to your ClipsCommerce account</p>

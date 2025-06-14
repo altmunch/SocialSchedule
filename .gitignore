@@ -53,6 +53,3 @@ node_modules/
 
 # lead generation
 lead_gen/
-
-# jest cache
-.jest-cache/

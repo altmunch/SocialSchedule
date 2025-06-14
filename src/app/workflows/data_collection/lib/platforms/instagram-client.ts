@@ -5,7 +5,6 @@ import { BasePlatformClient } from './base-platform';
 import { ApiConfig, ApiCredentials, ApiResponse, PlatformPostMetrics, PlatformUserActivity } from './types';
 
 export class InstagramClient extends BasePlatformClient {
-  protected readonly platform = 'INSTAGRAM' as any;
   private static readonly DEFAULT_CONFIG: ApiConfig = {
     baseUrl: 'https://graph.instagram.com',
     version: 'v12.0',
@@ -15,32 +14,28 @@ export class InstagramClient extends BasePlatformClient {
     }
   };
 
-  private _platformUserId: string | null = null;
+  private _userId: string | null = null;
   
-  // Getter for platform user ID
-  private get platformUserId(): string {
-    if (!this._platformUserId) {
-      throw new Error('Platform User ID not initialized. Call ensureUserId() first.');
+  // Getter with type assertion to ensure non-null when accessed
+  protected get userId(): string {
+    if (!this._userId) {
+      throw new Error('User ID not initialized. Call ensureUserId() first.');
     }
-    return this._platformUserId;
+    return this._userId;
   }
   
-  // Setter for platform user ID
-  private set platformUserId(value: string) {
-    this._platformUserId = value;
+  // Setter to maintain type safety
+  protected set userId(value: string) {
+    this._userId = value;
   }
 
-  constructor(authTokenManager: any, userId?: string, config: Partial<ApiConfig> = {}) {
-    super({ ...InstagramClient.DEFAULT_CONFIG, ...config }, authTokenManager, userId);
+  constructor(credentials: ApiCredentials, config: Partial<ApiConfig> = {}) {
+    super({ ...InstagramClient.DEFAULT_CONFIG, ...config }, credentials);
   }
 
-  protected async getAuthHeaders(): Promise<Record<string, string>> {
-    const credentials = await this.authTokenManager.getValidCredentials({ platform: this.platform, userId: this.userId });
-    if (!credentials) {
-      throw new Error('No valid credentials found');
-    }
+  protected getAuthHeaders(): Record<string, string> {
     return {
-      'Authorization': `Bearer ${(credentials as any).accessToken}`,
+      'Authorization': `Bearer ${this.credentials.accessToken}`,
       'Content-Type': 'application/json'
     };
   }
@@ -66,12 +61,11 @@ export class InstagramClient extends BasePlatformClient {
   }
 
   private async ensureUserId(): Promise<string> {
-    if (this._platformUserId) return this.platformUserId;
+    if (this.userId) return this.userId;
     
     const url = `${this.config.baseUrl}/me?fields=id`;
-    const headers = await this.getAuthHeaders();
     const response = await fetch(url, {
-      headers
+      headers: this.getAuthHeaders()
     });
     
     if (!response.ok) {
@@ -79,17 +73,16 @@ export class InstagramClient extends BasePlatformClient {
     }
     
     const data = await response.json();
-    this.platformUserId = data.id;
-    return this.platformUserId;
+    this.userId = data.id;
+    return this.userId;
   }
 
   async getPostMetrics(postId: string): Promise<ApiResponse<PlatformPostMetrics>> {
     const url = `${this.config.baseUrl}/${postId}?fields=id,comments_count,like_count,media_product_type,media_type,media_url,permalink,timestamp,username,caption`;
     
     return this.enqueueRequest<PlatformPostMetrics>(async () => {
-      const headers = await this.getAuthHeaders();
       const response = await fetch(url, {
-        headers
+        headers: this.getAuthHeaders()
       });
 
       const data = await response.json();
@@ -119,9 +112,8 @@ export class InstagramClient extends BasePlatformClient {
     const url = `${this.config.baseUrl}/${userId}?fields=account_type,media_count,username,media.limit(1){like_count,comments_count}`;
     
     return this.enqueueRequest<PlatformUserActivity>(async () => {
-      const headers = await this.getAuthHeaders();
       const response = await fetch(url, {
-        headers
+        headers: this.getAuthHeaders()
       });
 
       const data = await response.json();
@@ -159,9 +151,8 @@ export class InstagramClient extends BasePlatformClient {
     const url = `${this.config.baseUrl}/${mediaId}/insights?metric=engagement,impressions,reach,saved,video_views`;
     
     return this.enqueueRequest<any>(async () => {
-      const headers = await this.getAuthHeaders();
       const response = await fetch(url, {
-        headers
+        headers: this.getAuthHeaders()
       });
 
       return response;

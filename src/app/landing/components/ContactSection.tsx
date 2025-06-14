@@ -6,12 +6,12 @@ export default function ContactSection() {
     {
       icon: Mail,
       label: 'Email',
-      href: 'mailto: cheemunkhin@gmail.com',
+      href: 'mailto:hello@clipscommerce.com',
     },
     {
       icon: Twitter,
       label: 'Twitter',
-      href: 'https://twitter.com/clips_commerce',
+      href: 'https://twitter.com/clipscommerce',
     },
     {
       icon: Facebook,

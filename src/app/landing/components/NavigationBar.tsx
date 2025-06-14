@@ -50,8 +50,9 @@ const navItems: NavItem[] = [
       key: 'features',
       hasDropdown: true,
       dropdown: [
-        { label: 'Blitz Cycle', href: '#blitz-cycle' },
-        { label: 'Accelerate', href: '#accelerate' },
+        { label: 'Content Optimization', href: '/#features' },
+        { label: 'AI Analytics', href: '/#how-it-works' },
+        { label: 'Performance Tracking', href: '/#testimonials' },
       ]
     },
     { 
@@ -159,7 +160,7 @@ const navItems: NavItem[] = [
                         <Link
                           key={dropdownItem.label}
                           href={dropdownItem.href}
-                          className="block px-4 py-2 text-sm text-gray-200 text-center hover:bg-gray-800 hover:text-white w-full"
+                          className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 hover:text-white"
                           onClick={() => setOpenDropdown(null)}
                           scroll={true}
                         >

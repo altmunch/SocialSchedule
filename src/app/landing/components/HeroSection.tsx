@@ -43,12 +43,12 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <div className="text-[#5afcc0] text-sm uppercase tracking-normal mb-6 font-medium">
-              THE ONLY ALL-IN-ONE AI SHORT-FORM MARKETING PLATFORM
+              TRANSFORM YOUR CONTENT INTO CASH WITH AI
             </div>
             <div className="relative pb-6 mb-4">
-              <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white leading-tight tracking-tight">
-                The future of short-form marketing.
-              </h1>
+              <div className="whitespace-nowrap text-5xl sm:text-6xl font-medium text-white leading-tight tracking-tight">
+                Turn Every Post Into Profit
+              </div>
               <div className="absolute bottom-0 left-1/2 w-48 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-1/2" />
             </div>
             <div className="relative">
@@ -132,7 +132,6 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
               src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png"
               alt="ClipsCommerce dashboard screenshot"
               fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
               style={{ objectFit: 'cover' }}
               priority
             />
