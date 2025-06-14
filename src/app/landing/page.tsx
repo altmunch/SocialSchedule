@@ -10,7 +10,7 @@ import { ArrowRight } from 'lucide-react';
 import NavigationBar from '@/app/landing/components/NavigationBar';
 import HeroSection from '@/app/landing/components/HeroSection';
 import ValueStatementSection from '@/app/landing/components/ValueStatementSection';
-import FeaturesSection from '@/app/landing/components/FeaturesSection';
+import ViralBlitzCycle from '@/app/landing/components/ViralBlitzCycle';
 import BonusesSection from '@/app/landing/components/BonusesSection';
 import EnterpriseSection from '@/app/landing/components/EnterpriseSection';
 import DifferentiatorSection from '@/app/landing/components/DifferentiatorSection';
@@ -58,7 +58,7 @@ export default function LandingPage() {
         
         {/* New Landing Sections */}
         <ValueStatementSection />
-        <FeaturesSection />
+        <ViralBlitzCycle />
         <BonusesSection />
         <EnterpriseSection />
         <DifferentiatorSection />

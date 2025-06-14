@@ -49,6 +49,19 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
         'Simplifies complex analytics into actionable insights'
       ],
       valueIndicator: 'Simplifies Analytics'
+    },
+    {
+      number: 4,
+      title: "Scan",
+      subtitle: 'Niche & Competitor Analysis',
+      description: "Our AI analyzes your niche, products, and competitors to identify winning strategies and content gaps, providing a solid foundation for your content plan.",
+      highlights: [
+        'Deep dive into niche trends and audience insights',
+        'Competitive analysis to find what works for others',
+        'Identify content gaps and opportunities',
+        'Data-driven content strategy formulation'
+      ],
+      valueIndicator: 'Strategic Insights'
     }
   ];
 

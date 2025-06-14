@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, ChevronRight, Shield, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 
 interface PricingSectionProps {
   onGetStarted: () => void;
@@ -236,8 +237,10 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                       ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 
                       : 'bg-[#8D5AFF] hover:bg-[#8D5AFF]/90'}`}
                   >
-                    <span className="relative z-10">{plan.highlighted ? 'Get Started' : 'Select Plan'}</span>
-                    <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
+                    <Link href="/dashboard" passHref>
+                      <span className="relative z-10">{plan.highlighted ? 'Get Started' : 'Select Plan'}</span>
+                      <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
+                    </Link>
                   </button>
                   
                   {/* 10-day guarantee */}

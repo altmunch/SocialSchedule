@@ -19,6 +19,7 @@ interface FeatureItemProps {
 export default function FeatureItem({ feature, isReversed, index }: FeatureItemProps) {
   return (
     <motion.div
+      id={feature.title.toLowerCase()}
       className="flex flex-col md:flex-row items-center gap-20"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}

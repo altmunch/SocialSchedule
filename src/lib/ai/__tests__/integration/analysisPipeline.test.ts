@@ -2,7 +2,7 @@ import 'openai/shims/node';
 import { EnhancedTextAnalyzer } from '../../enhancedTextAnalyzer';
 import { SentimentAnalyzer } from '../../sentimentAnalyzer';
 import { ApiCostEstimator } from '../../ApiCostEstimator';
-import { createTestConfig } from '../testUtils/index';
+import { createTestConfig } from '@/lib/ai/testUtils/index';
 
 describe('Analysis Pipeline Integration', () => {
   let textAnalyzer: EnhancedTextAnalyzer;

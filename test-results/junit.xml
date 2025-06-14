@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="1" failures="1" errors="0" time="3.635">
+  <testsuite name="PricingSection" errors="0" failures="1" skipped="0" timestamp="2025-06-14T10:31:41" time="2.097" tests="1">
+    <testcase classname="PricingSection matches snapshot" name="PricingSection matches snapshot" time="0.142">
+      <failure>Error: expect(received).toMatchSnapshot()
+
+Snapshot name: `PricingSection matches snapshot 1`
+
+- Snapshot  - 24
++ Received  + 36
+
+@@ -150,19 +150,23 @@
+                  &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;button
+                  class=&quot;w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 bg-[#8D5AFF] hover:bg-[#8D5AFF]/90&quot;
+                &gt;
+-                 &lt;span
+-                   class=&quot;relative z-10&quot;
++                 &lt;a
++                   href=&quot;/dashboard&quot;
+                  &gt;
+-                   Select Plan
+-                 &lt;/span&gt;
+-                 &lt;svg
+-                   class=&quot;ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1&quot;
+-                   data-testid=&quot;ChevronRight-icon&quot;
+-                 /&gt;
++                   &lt;span
++                     class=&quot;relative z-10&quot;
++                   &gt;
++                     Select Plan
++                   &lt;/span&gt;
++                   &lt;svg
++                     class=&quot;ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1&quot;
++                     data-testid=&quot;ChevronRight-icon&quot;
++                   /&gt;
++                 &lt;/a&gt;
+                &lt;/button&gt;
+                &lt;div
+                  class=&quot;flex items-center justify-center text-sm text-white/60 mb-6&quot;
+                &gt;
+                  &lt;svg
+@@ -336,19 +340,23 @@
+                  &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;button
+                  class=&quot;w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20&quot;
+                &gt;
+-                 &lt;span
+-                   class=&quot;relative z-10&quot;
++                 &lt;a
++                   href=&quot;/dashboard&quot;
+                  &gt;
+-                   Get Started
+-                 &lt;/span&gt;
+-                 &lt;svg
+-                   class=&quot;ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1&quot;
+-                   data-testid=&quot;ChevronRight-icon&quot;
+-                 /&gt;
++                   &lt;span
++                     class=&quot;relative z-10&quot;
++                   &gt;
++                     Get Started
++                   &lt;/span&gt;
++                   &lt;svg
++                     class=&quot;ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1&quot;
++                     data-testid=&quot;ChevronRight-icon&quot;
++                   /&gt;
++                 &lt;/a&gt;
+                &lt;/button&gt;
+                &lt;div
+                  class=&quot;flex items-center justify-center text-sm text-white/60 mb-6&quot;
+                &gt;
+                  &lt;svg
+@@ -559,19 +567,23 @@
+                  &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;button
+                  class=&quot;w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 bg-[#8D5AFF] hover:bg-[#8D5AFF]/90&quot;
+                &gt;
+-                 &lt;span
+-                   class=&quot;relative z-10&quot;
++                 &lt;a
++                   href=&quot;/dashboard&quot;
+                  &gt;
+-                   Select Plan
+-                 &lt;/span&gt;
+-                 &lt;svg
+-                   class=&quot;ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1&quot;
+-                   data-testid=&quot;ChevronRight-icon&quot;
+-                 /&gt;
++                   &lt;span
++                     class=&quot;relative z-10&quot;
++                   &gt;
++                     Select Plan
++                   &lt;/span&gt;
++                   &lt;svg
++                     class=&quot;ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1&quot;
++                     data-testid=&quot;ChevronRight-icon&quot;
++                   /&gt;
++                 &lt;/a&gt;
+                &lt;/button&gt;
+                &lt;div
+                  class=&quot;flex items-center justify-center text-sm text-white/60 mb-6&quot;
+                &gt;
+                  &lt;svg
+    at Object.&lt;anonymous&gt; (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\src\__tests__\PricingSection.snapshot.test.tsx:7:23)
+    at Promise.then.completed (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-circus\build\run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at _runTest (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

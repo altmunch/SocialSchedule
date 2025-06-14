@@ -319,4 +319,5 @@
 /* Prevent horizontal overflow */
 html, body {
   overflow-x: hidden;
+  overflow-y: auto; /* Allow vertical scrolling, but only one */
 }

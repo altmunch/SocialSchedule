@@ -53,7 +53,8 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             </div>
             <div className="relative">
               <p className="text-xl text-[#E5E7EB] max-w-3xl mx-auto font-light tracking-wide mb-2">
-                The only AI platform that creates <span className="font-bold text-white">viral content</span> designed to <span className="font-bold text-white">drive sales</span>, not just likes
+                <div className="mb-2">Stop creating content that gets likes.</div>
+                <div>Start creating content that gets <span className="font-bold text-white">SALES</span>.</div>
               </p>
               <div className="absolute -bottom-2 left-1/2 w-32 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent transform -translate-x-1/2" />
             </div>
