@@ -316,6 +316,7 @@
   color: transparent;
 }
 
+/* Prevent horizontal overflow */
 html, body {
   overflow-x: hidden;
 }

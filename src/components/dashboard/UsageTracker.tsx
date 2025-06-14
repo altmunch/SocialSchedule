@@ -112,13 +112,15 @@ export default function UsageTracker() {
   const { user } = useAuth();
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [subscriptionTier, setSubscriptionTier] = useState('free'); // Mock - in production get from user data
+  const [subscriptionTier, setSubscriptionTier] = useState('free');
 
   useEffect(() => {
     if (user) {
+      const tier = (user as any)?.user_metadata?.subscription_tier || 'free';
+      setSubscriptionTier(tier);
       loadUsageStats();
     }
-  }, [user, subscriptionTier]);
+  }, [user]);
 
   const loadUsageStats = async () => {
     if (!user) return;

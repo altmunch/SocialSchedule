@@ -21,8 +21,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Mock subscription tier - in production, get this from user data
-  const subscriptionTier = 'free'; // This should come from actual user subscription
+  const subscriptionTier = (user as any)?.user_metadata?.subscription_tier || 'free';
   const { hasFeatureAccess, tier } = useUsageLimits(subscriptionTier);
 
   useEffect(() => {

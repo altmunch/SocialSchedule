@@ -87,20 +87,6 @@ export default function PricingPage() {
   // Predefined pricing tiers with specified pricing structure
   const pricingTiers: PricingTier[] = [
     {
-      id: 'free',
-      name: 'Free Plan',
-      price: 0,
-      yearlyPrice: 0,
-      description: 'Try our core features',
-      features: [
-        'Viral Blitz Cycle Framework (1 use)',
-        'Idea Generator Framework (1 use)',
-        '1 autopost',
-        'Basic analytics (no e-commerce)'
-      ],
-      ctaText: 'Get Started'
-    },
-    {
       id: 'lite',
       name: 'Lite Plan',
       price: 20,
@@ -118,8 +104,8 @@ export default function PricingPage() {
     {
       id: 'pro',
       name: 'Pro Plan',
-      price: 70, // Monthly price
-      yearlyPrice: 840, // Annual price ($70 * 12)
+      price: 70,
+      yearlyPrice: 840,
       description: '$70/month',
       features: [
         'Viral Blitz Cycle Framework (unlimited)',
@@ -235,7 +221,7 @@ export default function PricingPage() {
   const getRecommendedPlan = () => {
     if (followers > 10000 || posts > 30) return 'team';
     if (followers > 1000 || posts > 10) return 'pro';
-    return 'free';
+    return 'lite';
   };
 
   const recommendedPlan = getRecommendedPlan();
@@ -379,41 +365,28 @@ export default function PricingPage() {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => {
-                        if (tier.id === 'free') {
-                          window.location.href = '/dashboard';
+                        let stripeLink = '';
+                        if (tier.id === 'lite') {
+                          stripeLink = billingCycle === 'yearly'
+                            ? process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || ''
+                            : process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || '';
+                        } else if (tier.id === 'pro') {
+                          stripeLink = billingCycle === 'yearly'
+                            ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || ''
+                            : process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || '';
+                        } else if (tier.id === 'team') {
+                          stripeLink = billingCycle === 'yearly'
+                            ? process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || ''
+                            : process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
+                          if (typeof window !== 'undefined') {
+                            localStorage.setItem('post_payment_redirect', '/team-dashboard');
+                          }
+                        }
+
+                        if (stripeLink) {
+                          window.open(stripeLink, '_blank');
                         } else {
-                          let stripeLink = '';
-                          
-                          if (tier.id === 'lite') {
-                            if (billingCycle === 'yearly') {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || '';
-                            } else {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || '';
-                            }
-                          } else if (tier.id === 'pro') {
-                            if (billingCycle === 'yearly') {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || '';
-                            } else {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || '';
-                            }
-                          } else if (tier.id === 'team') {
-                            if (billingCycle === 'yearly') {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || '';
-                            } else {
-                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
-                            }
-                            
-                            // For team plans, store redirect to team dashboard
-                            if (typeof window !== 'undefined') {
-                              localStorage.setItem('post_payment_redirect', '/team-dashboard');
-                            }
-                          }
-                          
-                          if (stripeLink) {
-                            window.open(stripeLink, '_blank');
-                          } else {
-                            window.location.href = '/dashboard';
-                          }
+                          window.location.href = '/dashboard';
                         }
                       }}
                       className={`w-full py-3 rounded-xl font-medium transition-all cursor-pointer ${tier.isPopular

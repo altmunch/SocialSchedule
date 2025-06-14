@@ -10,6 +10,7 @@ import TeamSidebar from '@/components/team-dashboard/TeamSidebar';
 import { TeamModeErrorBoundary } from '@/components/team-dashboard/TeamModeErrorBoundary';
 import { Card } from '@/components/ui/card';
 import { Shield, Users, BarChart3 } from 'lucide-react';
+import { usageLimitsService } from '@/lib/usage-limits';
 
 export default function TeamDashboardLayout({
   children,
@@ -44,12 +45,8 @@ export default function TeamDashboardLayout({
 
   // Mock function - in real app, check against user's subscription tier
   const checkTeamAccess = async (user: any): Promise<boolean> => {
-    // Simulate API call to check subscription
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // For demo, allow access if user exists
-    // In production: check user.subscription_tier === 'team' || 'enterprise'
-    return true;
+    const tier = user?.user_metadata?.subscription_tier || 'free';
+    return usageLimitsService.hasFeatureAccess(tier, 'teamDashboard');
   };
 
   if (loading || isCheckingAccess) {

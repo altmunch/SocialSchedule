@@ -60,8 +60,8 @@ const navItems: NavItem[] = [
       key: 'solutions',
       hasDropdown: true,
       dropdown: [
-        { label: 'E-commerce', href: '/landing/solutions' },
-        { label: 'Content Marketing', href: '/landing/solutions' },
+        { label: 'E-commerce', href: '/landing/solutions/ecommerce' },
+        { label: 'Content Marketing', href: '/landing/solutions/content-marketing' },
       ]
     },
     { label: 'Pricing', href: '/landing/pricing', hasDropdown: false },
