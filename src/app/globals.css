@@ -45,6 +45,8 @@
   }
 
   /* Custom scrollbar - make it more subtle */
+  /* Remove scrollbar styles */
+  /*
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -58,12 +60,15 @@
     @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30;
     border-radius: 3px;
   }
+  */
 
   /* Firefox scrollbar */
+  /*
   * {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
   }
+  */
 }
 
 @keyframes gradient {
@@ -193,6 +198,7 @@
 }
 
 /* Custom scrollbar */
+/*
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -210,6 +216,7 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground)/0.5);
 }
+*/
 
 /* Animation classes */
 .animate-in {

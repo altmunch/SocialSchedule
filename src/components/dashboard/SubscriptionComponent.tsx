@@ -31,7 +31,7 @@ export default function SubscriptionComponent() {
   const plans: Plan[] = [
     {
       id: 'lite',
-      name: 'Lite Plan',
+      name: 'Lite',
       price: 20,
       yearlyPrice: 240, // $20 * 12
       interval: billingCycle,
@@ -46,7 +46,7 @@ export default function SubscriptionComponent() {
     },
     {
       id: 'pro',
-      name: 'Pro Plan',
+      name: 'Pro',
       price: 70,
       yearlyPrice: 840, // $70 * 12
       interval: billingCycle,
@@ -62,7 +62,7 @@ export default function SubscriptionComponent() {
     },
     {
       id: 'team',
-      name: 'Team Plan',
+      name: 'Team',
       price: 500,
       yearlyPrice: 6000, // $500 * 12
       interval: billingCycle,

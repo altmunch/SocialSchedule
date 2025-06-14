@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/AuthProvider';
 import { useTeamMode } from '@/providers/TeamModeProvider';
+import { useUsageLimits } from '@/hooks/useUsageLimits';
 import TeamDashboardPage from '@/app/team-dashboard/page';
 import { TeamAnalyticsOverview } from '@/components/team-dashboard/TeamAnalyticsOverview';
 import { PerformanceMonitoringDashboard } from '@/components/team-dashboard/PerformanceMonitoringDashboard';
@@ -25,6 +26,10 @@ jest.mock('@/providers/AuthProvider', () => ({
 
 jest.mock('@/providers/TeamModeProvider', () => ({
   useTeamMode: jest.fn(),
+}));
+
+jest.mock('@/hooks/useUsageLimits', () => ({
+  useUsageLimits: jest.fn(),
 }));
 
 // Mock UI components
@@ -105,6 +110,10 @@ describe('Team Dashboard Components', () => {
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     (useAuth as jest.Mock).mockReturnValue(mockAuth);
     (useTeamMode as jest.Mock).mockReturnValue(mockTeamMode);
+    (useUsageLimits as jest.Mock).mockReturnValue({
+      hasFeatureAccess: (feature: string) => feature === 'teamDashboard',
+      tier: { name: 'Team' },
+    });
     jest.clearAllMocks();
   });
 

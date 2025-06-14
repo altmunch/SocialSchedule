@@ -44,16 +44,16 @@ describe('SubscriptionComponent', () => {
   it('renders the three pricing tiers', () => {
     render(<SubscriptionComponent />);
     
+    expect(screen.getByText('Lite')).toBeInTheDocument();
     expect(screen.getByText('Pro')).toBeInTheDocument();
     expect(screen.getByText('Team')).toBeInTheDocument();
-    expect(screen.getByText('Enterprise')).toBeInTheDocument();
   });
 
   it('shows the correct pricing for Pro tier', () => {
     render(<SubscriptionComponent />);
     
-    // Should show $70/month for Pro tier
-    expect(screen.getByText('$70/month')).toBeInTheDocument();
+    // Should show $70/month for Pro tier (check for multiple instances)
+    expect(screen.getAllByText('$70/month')).toHaveLength(2);
   });
 
   it('renders the tab navigation for Plans, Billing, and Invoices', () => {

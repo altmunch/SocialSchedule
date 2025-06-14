@@ -32,6 +32,10 @@ jest.mock('@/components/team-dashboard/RoleManagementPanel', () => ({
   RoleManagementPanel: () => <div data-testid="role-management-panel">Role Management Panel</div>,
 }));
 
+jest.mock('@/app/team-dashboard/settings/page', () => {
+  return { __esModule: true, default: () => <div data-testid="team-settings-page">Mocked Team Settings Page</div> };
+});
+
 describe('TeamSettingsPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, ChevronDown, BarChart3, Users, Building2, Calculator, ArrowRight, ChevronRight, Shield, Sparkles, Linkedin } from 'lucide-react';
+import { Check, X, ChevronDown, BarChart3, Users, Building2, Calculator, ArrowRight, ChevronRight, Shield, Sparkles, Linkedin, Mail } from 'lucide-react';
 import Link from 'next/link';
 import NavigationBar from '@/app/landing/components/NavigationBar';
 
@@ -360,8 +360,7 @@ export default function PricingPage() {
                     <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#8D5AFF]/20 rounded-full filter blur-3xl -z-10" />
                   )}
                   
-                  <h3 className="text-xl font-bold text-white mb-1">{tier.name}</h3>
-                  <p className="text-white/60 mb-4 text-sm h-[40px]">{tier.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-4">{tier.name}</h3>
                   
                   <div className="flex items-baseline mb-4">
                     <span className="text-4xl font-bold text-white">
@@ -613,6 +612,42 @@ export default function PricingPage() {
               </motion.div>
             ))}
           </div>
+        </div>
+
+        {/* Get in Touch Bar */}
+        <div className="mt-32 mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-[#8D5AFF]/10 to-[#5afcc0]/10 border border-[#8D5AFF]/20 rounded-2xl p-8 text-center"
+          >
+            <h3 className="text-2xl font-bold text-white mb-4">
+              Need a Custom Solution?
+            </h3>
+            <p className="text-white/70 mb-6 max-w-2xl mx-auto">
+              Have specific requirements or need enterprise features? Our team is here to help you find the perfect solution for your business.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <motion.a
+                href="mailto:support@clipscommerce.com"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center px-6 py-3 bg-[#8D5AFF] text-white rounded-xl font-medium hover:bg-[#8D5AFF]/90 transition-all"
+              >
+                <Mail className="mr-2 h-4 w-4" />
+                Get in Touch
+              </motion.a>
+              <motion.a
+                href="tel:+1-555-0123"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center px-6 py-3 border border-white/20 text-white rounded-xl font-medium hover:bg-white/5 transition-all"
+              >
+                <span className="mr-2">📞</span>
+                Call Us: +1 (555) 012-3456
+              </motion.a>
+            </div>
+          </motion.div>
         </div>
       </div>
     </div>

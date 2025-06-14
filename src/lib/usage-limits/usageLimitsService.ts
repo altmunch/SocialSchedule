@@ -25,7 +25,7 @@ export interface SubscriptionTier {
 export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
   free: {
     id: 'free',
-    name: 'Free Plan',
+    name: 'Free',
     limits: {
       viralBlitzCycle: 1,
       ideaGenerator: 1,
@@ -38,7 +38,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
   },
   lite: {
     id: 'lite',
-    name: 'Lite Plan',
+    name: 'Lite',
     limits: {
       viralBlitzCycle: 15,
       ideaGenerator: 15,
@@ -51,7 +51,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
   },
   pro: {
     id: 'pro',
-    name: 'Pro Plan', 
+    name: 'Pro', 
     limits: {
       viralBlitzCycle: -1, // unlimited
       ideaGenerator: -1, // unlimited
@@ -64,7 +64,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
   },
   team: {
     id: 'team',
-    name: 'Team Plan',
+    name: 'Team',
     limits: {
       viralBlitzCycle: -1, // unlimited
       ideaGenerator: -1, // unlimited
