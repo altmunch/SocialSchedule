@@ -134,7 +134,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Scale Your Content and <span className="text-[#8D5AFF]">Maximize Sales</span>
+            Pick a Plan &amp; Watch <span className="text-[#8D5AFF]">Revenue Compound</span>
           </motion.h2>
           
           <motion.p 

@@ -28,7 +28,7 @@ export default function GuaranteeSection({ onGetStarted }: GuaranteeSectionProps
           </div>
 
           <h2 className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-6">
-            Our Sales-Generation Guarantee
+            We Pay Your Next Month If Sales Don't Rise
           </h2>
           
           <p className="text-xl text-lightning-dim/80 mb-10 max-w-3xl mx-auto leading-relaxed">

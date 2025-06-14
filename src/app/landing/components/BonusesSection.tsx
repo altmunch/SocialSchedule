@@ -8,20 +8,20 @@ export default function BonusesSection() {
     {
       icon: Gift,
       title: "Hook generator",
-      description: "Instantly generate scroll-stopping hooks tailored to your niche.",
+      description: "Craft thumb-stopping openings proven to make shoppers watch.",
       highlight: false
     },
     {
       icon: Sparkles,
       title: "Template generator",
-      description: "Access high-converting content templates for any campaign.",
+      description: "Grab plug-and-play templates that convert browsers into buyers.",
       highlight: false
     },
     {
       icon: UserCheck,
       title: "Personalized AI model",
       subtitle: "+ content template generator",
-      description: "Learns your brand voice for truly unique content.",
+      description: "AI learns your brand voice so every post sounds uniquely you—at scale.",
       highlight: true,
       limitedTime: true
     }

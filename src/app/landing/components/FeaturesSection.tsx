@@ -17,7 +17,7 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
       number: 1,
       title: 'Accelerate',
       subtitle: 'Content Optimization Engine',
-      description: 'Our AI analyzes your content and optimizes captions, hashtags, and posting times to maximize engagement and reach your target audience effectively.',
+      description: 'Our AI optimizes captions, hashtags, and timing so each post turns viewers into buyers.',
       highlights: [
         'Constant optimization engines that work 24/7',
         'Real-time learning from audience reactions',
@@ -30,7 +30,7 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
       number: 2,
       title: 'Blitz',
       subtitle: 'Precise Automated Posting',
-      description: 'Push your content to the most targeted audience and see results in a flash. Our sophisticated algorithm identifies and reaches the perfect audience in your niche.',
+      description: 'AI fires content at the exact minute your customers pull out their wallets.',
       highlights: [
         'Precise, automated posting schedules',
         'Content optimization for maximum engagement',
@@ -42,7 +42,7 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
       number: 3,
       title: 'Cycle',
       subtitle: 'Viral Cycle of Improvements',
-      description: 'Create a virtual cycle of improvements with continuous optimization. Our system learns from every post, constantly improving your content strategy and performance metrics.',
+      description: 'Every post teaches our AI to craft an even better seller—no analytics spreadsheets required.',
       highlights: [
         'Constantly improve from analytics',
         'Generate top-performing content ideas',

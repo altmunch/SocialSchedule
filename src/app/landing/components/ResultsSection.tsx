@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 
 export default function ResultsSection() {
   const stats = [
-    { value: '$3.2M+', label: 'Sales Generated' },
-    { value: '58%', label: 'Avg. Conversion Increase' },
-    { value: '72h', label: 'To First Sale-Generating Post' },
+    { value: '$3.2M+', label: 'Revenue Attributed' },
+    { value: '58%', label: 'Avg. Conversion Lift' },
+    { value: '72h', label: 'Time to First Checkout' },
     { value: '12K+', label: 'Active Sellers' }
   ];
 

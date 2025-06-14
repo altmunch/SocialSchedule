@@ -15,9 +15,9 @@ export default function SocialProofBar() {
   
   // Key stats focused on seller results
   const stats = [
-    { value: '$3.2M+', label: 'Sales Generated' },
+    { value: '$3.2M+', label: 'Revenue Driven' },
     { value: '12K+', label: 'Active Sellers' },
-    { value: '58%', label: 'Average Conversion Increase' }
+    { value: '58%', label: 'Avg. Checkout Conversion Lift' }
   ];
   
   return (

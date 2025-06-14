@@ -38,11 +38,11 @@ export default function ProblemSolutionSection() {
             
             <ul className="space-y-4">
               {[
-                'Focused on views and engagement, not actual sales',
-                'Generic content templates not optimized for product selling',
-                'Limited e-commerce integration and sales tracking',
-                'One-size-fits-all approach to content scheduling',
-                'No competitor research tools specific to your product niche',
+                'Chase likes, not sales',
+                'Use generic templates that don\'t sell',
+                'Offer weak or no store integration',
+                'Post whenever, hoping for the best',
+                'Ignore competitor product tactics',
               ].map((item, index) => (
                 <motion.li 
                   key={index} 
@@ -75,11 +75,11 @@ export default function ProblemSolutionSection() {
             
             <ul className="space-y-4">
               {[
-                'Content optimized specifically to drive product sales',
-                'AI learns your unique brand voice and product selling points',
-                'Direct integration with your e-commerce platform for sales tracking',
-                'Precise "Blitz" scheduling based on when your audience buys most',
-                'Advanced "Scan" feature to analyze top-performing competitor content in your niche',
+                'Pinpoint buyer behavior and sell',
+                'Reflect your brand voice automatically',
+                'Sync orders for dollar-level ROI',
+                'Fire posts at proven buying windows',
+                'Steal winning tactics from rivals instantly',
               ].map((item, index) => (
                 <motion.li 
                   key={index} 

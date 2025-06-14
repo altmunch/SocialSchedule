@@ -85,7 +85,7 @@ const navItems: NavItem[] = [
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-sm font-medium text-white">
           <span className="flex items-center">
             <Star className="h-4 w-4 mr-1.5 text-yellow-300 fill-yellow-300" />
-            AI-powered e-commerce content creation and optimization platform
+            🚀 New AI scheduling engine just launched—claim founder pricing today
           </span>
           <Link 
             href="/dashboard" 

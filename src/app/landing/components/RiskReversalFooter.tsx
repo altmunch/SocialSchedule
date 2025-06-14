@@ -29,7 +29,8 @@ export default function RiskReversalFooter() {
             { icon: Shield, text: "10-Day Results Guarantee" },
             { icon: Lock, text: "Enterprise-Grade Security" },
             { icon: CreditCard, text: "Secure Payment Processing" },
-            { icon: CheckCircle, text: "Trusted by 10,000+ Creators" }
+            { icon: CheckCircle, text: "Trusted by 10,000+ Creators" },
+            { icon: CheckCircle, text: "SOC-2–Compliant Hosting" }
           ].map((item, index) => (
             <div key={index} className="flex items-center">
               <item.icon className="h-5 w-5 text-indigo-400 mr-2" />

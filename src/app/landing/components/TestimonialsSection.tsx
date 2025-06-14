@@ -43,7 +43,7 @@ export default function TestimonialsSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            Success Stories From E-Commerce Sellers
+            Real Sellers, Real Revenue Jumps
           </motion.h2>
           
           <motion.p 

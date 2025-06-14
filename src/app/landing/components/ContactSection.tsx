@@ -30,7 +30,7 @@ export default function ContactSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          Get in Touch
+          Questions? Our Team Is One Email Away
         </motion.h3>
         <div className="flex items-center justify-center gap-6">
           {contacts.map((c, i) => (

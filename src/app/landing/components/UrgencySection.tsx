@@ -59,10 +59,10 @@ export default function UrgencySection() {
             <div className="md:flex-1">
               <div className="flex items-center mb-3">
                 <AlertTriangle className="text-indigo-400 mr-2 h-5 w-5" />
-                <h3 className="font-bold text-xl text-white">Limited Time Offer</h3>
+                <h3 className="font-bold text-xl text-white">Early-Bird Pricing Ends Soon</h3>
               </div>
               <p className="text-neutral-400 mb-4">
-                Our current pricing is only available for a limited time. We're increasing prices soon as we add new AI features.
+                Founder pricing disappears with our next AI rollout—lock in your rate today.
               </p>
               
               <div className="flex items-center mb-2">

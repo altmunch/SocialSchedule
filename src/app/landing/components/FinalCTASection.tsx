@@ -55,7 +55,7 @@ export default function FinalCTASection({ onGetStarted }: FinalCTASectionProps) 
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            Transform Your Content into Sales
+            Let Every Post Ring the Cash Register
           </motion.h2>
           
           <motion.p 
