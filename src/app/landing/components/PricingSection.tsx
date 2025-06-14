@@ -19,7 +19,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
 
   const plans: any[] = [
     {
-      name: 'Lite Plan',
+      name: 'Lite',
       subtitle: '$20/month',
       annualPrice: 240, // $20 * 12
       monthlyPrice: 20,
@@ -33,7 +33,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_LITE_LINK',
     },
     {
-      name: 'Pro Plan',
+      name: 'Pro',
       subtitle: '$70/month',
       annualPrice: 840, // $70 * 12
       monthlyPrice: 70,
@@ -49,7 +49,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_PRO_LINK',
     },
     {
-      name: 'Team Plan',
+      name: 'Team',
       subtitle: '$500/month',
       annualPrice: 6000, // $500 * 12
       monthlyPrice: 500,
@@ -67,14 +67,14 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
   ];
 
   const getButtonLink = (plan: any) => {
-    if (plan.name === 'Lite Plan') {
+    if (plan.name === 'Lite') {
       if (isAnnual) {
         return process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || "/dashboard";
       }
       return process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || "/dashboard";
     }
     
-    if (plan.name === 'Pro Plan') {
+    if (plan.name === 'Pro') {
       if (isAnnual) {
         return process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || "/dashboard";
       } else {
@@ -82,7 +82,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
       }
     }
     
-    if (plan.name === 'Team Plan') {
+    if (plan.name === 'Team') {
       if (isAnnual) {
         return process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || "/dashboard";
       } else {
@@ -97,7 +97,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
     const stripeLink = getButtonLink(plan);
     
     // For team plans, we need to handle post-payment redirect to team dashboard
-    if (plan.name === 'Team Plan' && stripeLink.includes('stripe')) {
+    if (plan.name === 'Team' && stripeLink.includes('stripe')) {
       // Store the intended redirect in localStorage for post-payment handling - only on client side
       if (typeof window !== 'undefined') {
         localStorage.setItem('post_payment_redirect', '/team-dashboard');

@@ -51,8 +51,8 @@ const navItems: NavItem[] = [
       hasDropdown: true,
       dropdown: [
         { label: 'Content Optimization', href: '/#features' },
-        { label: 'AI Analytics', href: '/#how-it-works' },
-        { label: 'Performance Tracking', href: '/#testimonials' },
+        { label: 'Precise Autoposting', href: '/#how-it-works' },
+        { label: 'AI Analytics', href: '/#testimonials' },
       ]
     },
     { 

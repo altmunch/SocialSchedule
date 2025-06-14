@@ -65,8 +65,8 @@ describe('NavigationBar', () => {
       
       // Should show dropdown items after click
       expect(screen.getByText('Content Optimization')).toBeInTheDocument();
+      expect(screen.getByText('Precise Autoposting')).toBeInTheDocument();
       expect(screen.getByText('AI Analytics')).toBeInTheDocument();
-      expect(screen.getByText('Performance Tracking')).toBeInTheDocument();
     });
   });
 
@@ -134,11 +134,11 @@ describe('NavigationBar', () => {
       const contentOptLink = screen.getByText('Content Optimization');
       expect(contentOptLink.closest('a')).toHaveAttribute('href', '/#features');
       
-      const analyticsLink = screen.getByText('AI Analytics');
-      expect(analyticsLink.closest('a')).toHaveAttribute('href', '/#how-it-works');
+      const autopostingLink = screen.getByText('Precise Autoposting');
+      expect(autopostingLink.closest('a')).toHaveAttribute('href', '/#how-it-works');
       
-      const trackingLink = screen.getByText('Performance Tracking');
-      expect(trackingLink.closest('a')).toHaveAttribute('href', '/#testimonials');
+      const analyticsLink = screen.getByText('AI Analytics');
+      expect(analyticsLink.closest('a')).toHaveAttribute('href', '/#testimonials');
     });
 
     it('should have correct dropdown links for Solutions dropdown', () => {
@@ -150,10 +150,10 @@ describe('NavigationBar', () => {
 
       // Check dropdown links
       const ecommerceLink = screen.getByText('E-commerce');
-      expect(ecommerceLink.closest('a')).toHaveAttribute('href', '/landing/solutions');
+      expect(ecommerceLink.closest('a')).toHaveAttribute('href', '/landing/solutions/ecommerce');
 
       const contentMarketingLink = screen.getByText('Content Marketing');
-      expect(contentMarketingLink.closest('a')).toHaveAttribute('href', '/landing/solutions');
+      expect(contentMarketingLink.closest('a')).toHaveAttribute('href', '/landing/solutions/content-marketing');
 
       const teamLink = screen.getByText('Team');
       expect(teamLink.closest('a')).toHaveAttribute('href', '/landing/team');
@@ -169,22 +169,14 @@ describe('NavigationBar', () => {
     });
 
     it('should handle Get Started button clicks', () => {
-      const mockPush = jest.fn();
-      
-      // Mock useRouter hook
-      require('next/navigation').useRouter.mockReturnValue({
-        push: mockPush,
-        pathname: '/',
-        query: {},
-        asPath: '/',
-      });
-      
       render(<NavigationBar />);
       
-      const getStartedButton = screen.getAllByText('Get Started')[0];
-      fireEvent.click(getStartedButton);
+      const getStartedButtons = screen.getAllByText('Get Started');
+      expect(getStartedButtons.length).toBeGreaterThan(0);
       
-      expect(mockPush).toHaveBeenCalledWith('/dashboard');
+      // Check that the Get Started button has the correct href
+      const getStartedButton = getStartedButtons[0];
+      expect(getStartedButton.closest('a')).toHaveAttribute('href', '/dashboard');
     });
   });
 }); 

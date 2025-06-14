@@ -3,7 +3,7 @@ export interface UsageLimits {
   ideaGenerator: number; // -1 for unlimited  
   autoposts: number; // -1 for unlimited
   ecommerceAccess: boolean;
-  analyticsAccess: 'none' | 'basic' | 'advanced';
+  analyticsAccess: 'basic' | 'advanced';
   accountSets: number; // -1 for unlimited
   teamDashboard: boolean;
 }
@@ -17,7 +17,7 @@ export interface UserUsage {
 }
 
 export interface SubscriptionTier {
-  id: 'free' | 'lite' | 'pro' | 'team';
+  id: string;
   name: string;
   limits: UsageLimits;
 }
@@ -25,7 +25,7 @@ export interface SubscriptionTier {
 export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
   free: {
     id: 'free',
-    name: 'Free Plan',
+    name: 'Free',
     limits: {
       viralBlitzCycle: 1,
       ideaGenerator: 1,
@@ -38,7 +38,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
   },
   lite: {
     id: 'lite',
-    name: 'Lite Plan',
+    name: 'Lite',
     limits: {
       viralBlitzCycle: 15,
       ideaGenerator: 15,
@@ -51,7 +51,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
   },
   pro: {
     id: 'pro',
-    name: 'Pro Plan', 
+    name: 'Pro', 
     limits: {
       viralBlitzCycle: -1, // unlimited
       ideaGenerator: -1, // unlimited
@@ -64,7 +64,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
   },
   team: {
     id: 'team',
-    name: 'Team Plan',
+    name: 'Team',
     limits: {
       viralBlitzCycle: -1, // unlimited
       ideaGenerator: -1, // unlimited
@@ -85,6 +85,74 @@ export class UsageLimitsService {
       UsageLimitsService.instance = new UsageLimitsService();
     }
     return UsageLimitsService.instance;
+  }
+
+  /**
+   * Get the usage limits for a specific subscription tier
+   */
+  getLimitsForTier(tierId: string): UsageLimits | null {
+    const tier = SUBSCRIPTION_TIERS[tierId];
+    return tier ? tier.limits : null;
+  }
+
+  /**
+   * Check if a feature is available for a given tier
+   */
+  hasFeatureAccess(tierId: string, feature: keyof UsageLimits): boolean {
+    const limits = this.getLimitsForTier(tierId);
+    if (!limits) return false;
+
+    const featureLimit = limits[feature];
+    if (typeof featureLimit === 'boolean') {
+      return featureLimit;
+    }
+    
+    return featureLimit !== 0;
+  }
+
+  /**
+   * Check if usage is within limits for a given tier
+   */
+  isWithinLimits(tierId: string, feature: keyof UsageLimits, currentUsage: number): boolean {
+    const limits = this.getLimitsForTier(tierId);
+    if (!limits) return false;
+
+    const featureLimit = limits[feature];
+    if (typeof featureLimit === 'number') {
+      return featureLimit === -1 || currentUsage < featureLimit;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Get remaining usage for a feature in a given tier
+   */
+  getRemainingUsage(tierId: string, feature: keyof UsageLimits, currentUsage: number): number {
+    const limits = this.getLimitsForTier(tierId);
+    if (!limits) return 0;
+
+    const featureLimit = limits[feature];
+    if (typeof featureLimit === 'number') {
+      if (featureLimit === -1) return Infinity;
+      return Math.max(0, featureLimit - currentUsage);
+    }
+    
+    return 0;
+  }
+
+  /**
+   * Get all available subscription tiers
+   */
+  getAllTiers(): SubscriptionTier[] {
+    return Object.values(SUBSCRIPTION_TIERS);
+  }
+
+  /**
+   * Get a specific tier by ID
+   */
+  getTier(tierId: string): SubscriptionTier | null {
+    return SUBSCRIPTION_TIERS[tierId] || null;
   }
 
   /**
@@ -152,33 +220,11 @@ export class UsageLimitsService {
   }
 
   /**
-   * Check if user has access to feature type
-   */
-  hasFeatureAccess(
-    subscriptionTier: string,
-    feature: 'ecommerce' | 'analytics' | 'teamDashboard'
-  ): boolean {
-    const tier = SUBSCRIPTION_TIERS[subscriptionTier];
-    if (!tier) return false;
-
-    switch (feature) {
-      case 'ecommerce':
-        return tier.limits.ecommerceAccess;
-      case 'analytics':
-        return tier.limits.analyticsAccess !== 'none';
-      case 'teamDashboard':
-        return tier.limits.teamDashboard;
-      default:
-        return false;
-    }
-  }
-
-  /**
    * Get analytics access level
    */
-  getAnalyticsAccess(subscriptionTier: string): 'none' | 'basic' | 'advanced' {
+  getAnalyticsAccess(subscriptionTier: string): 'basic' | 'advanced' {
     const tier = SUBSCRIPTION_TIERS[subscriptionTier];
-    return tier?.limits.analyticsAccess || 'none';
+    return tier?.limits.analyticsAccess || 'basic';
   }
 
   /**

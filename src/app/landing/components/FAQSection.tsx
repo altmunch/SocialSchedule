@@ -69,7 +69,7 @@ export default function FAQSection() {
           </motion.span>
           
           <motion.h2 
-            className="text-4xl md:text-5xl font-extrabold text-white mb-8 leading-[1.1] tracking-tight"
+            className="text-4xl md:text-5xl font-extrabold text-[#8B5CF6] mb-8 leading-[1.1] tracking-tight"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -89,7 +89,7 @@ export default function FAQSection() {
           </motion.p>
         </div>
         
-        <div ref={scope} className="space-y-6 w-full max-w-3xl mx-auto mt-12">
+        <div ref={scope} className="max-w-3xl mx-auto space-y-4">
           {faqs.map((faq, index) => (
             <motion.div
               key={index}
@@ -110,9 +110,9 @@ export default function FAQSection() {
                 <h3 className="text-lg md:text-xl font-medium text-white pr-10 leading-relaxed">
                   {faq.question}
                 </h3>
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#1E90FF]/15 to-[#9370DB]/15 flex items-center justify-center transition-all ${openIndex === index ? 'bg-[#1E90FF]/25' : ''} group-hover:bg-[#1E90FF]/20`}>
+                <div className={`flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#1E90FF]/15 to-[#9370DB]/15 flex items-center justify-center transition-all duration-300 ${openIndex === index ? 'bg-[#1E90FF]/25' : ''} group-hover:bg-[#1E90FF]/20`}>
                   <ChevronDown 
-                    className={`w-4 h-4 text-[#1E90FF] transition-transform duration-300 ${openIndex === index ? 'transform rotate-180' : ''}`} 
+                    className={`w-4 h-4 text-[#1E90FF] transition-all duration-300 ease-in-out ${openIndex === index ? 'transform rotate-180' : ''}`} 
                   />
                 </div>
               </button>
@@ -120,10 +120,14 @@ export default function FAQSection() {
               <AnimatePresence>
                 {openIndex === index && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    initial={{ height: 0, opacity: 0, y: -10 }}
+                    animate={{ height: 'auto', opacity: 1, y: 0 }}
+                    exit={{ height: 0, opacity: 0, y: -10 }}
+                    transition={{ 
+                      duration: 0.4, 
+                      ease: [0.4, 0.0, 0.2, 1],
+                      opacity: { duration: 0.3 }
+                    }}
                     className="overflow-hidden"
                   >
                     <div className="px-6 pb-8 -mt-2 text-[#E5E7EB]/90 border-t border-storm-light/10">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X, ChevronDown, BarChart3, Users, Building2, Calculator, ArrowRight, ChevronRight, Shield, Sparkles } from 'lucide-react';
+import { Check, X, ChevronDown, BarChart3, Users, Building2, Calculator, ArrowRight, ChevronRight, Shield, Sparkles, Linkedin } from 'lucide-react';
 import Link from 'next/link';
 import NavigationBar from '@/app/landing/components/NavigationBar';
 
@@ -64,10 +64,9 @@ const teamCardVariants = {
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('tiktok');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['tiktok']);
   const [followers, setFollowers] = useState<number>(0);
   const [posts, setPosts] = useState<number>(0);
-  const [platform, setPlatform] = useState<string>('tiktok');
   const [loading, setLoading] = useState(false);
 
   const toggleFaq = (index: number) => {
@@ -82,13 +81,21 @@ export default function PricingPage() {
     setPosts(parseInt(e.target.value) || 0);
   };
 
+  const togglePlatform = (platformId: string) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platformId)
+        ? prev.filter(id => id !== platformId)
+        : [...prev, platformId]
+    );
+  };
+
   // Using fixed prices as specified
   
   // Predefined pricing tiers with specified pricing structure
   const pricingTiers: PricingTier[] = [
     {
       id: 'lite',
-      name: 'Lite Plan',
+      name: 'Lite',
       price: 20,
       yearlyPrice: 240,
       description: '$20/month',
@@ -103,7 +110,7 @@ export default function PricingPage() {
     },
     {
       id: 'pro',
-      name: 'Pro Plan',
+      name: 'Pro',
       price: 70,
       yearlyPrice: 840,
       description: '$70/month',
@@ -121,7 +128,7 @@ export default function PricingPage() {
     },
     {
       id: 'team',
-      name: 'Team Plan',
+      name: 'Team',
       price: 500, // Monthly price
       yearlyPrice: 6000, // Annual price ($500 * 12)
       description: '$500/month',
@@ -133,7 +140,7 @@ export default function PricingPage() {
         'Team collaboration mode',
         'Priority support'
       ],
-      ctaText: 'Choose Team',
+      ctaText: 'Select Plan',
       stripePriceId: process.env.NEXT_PUBLIC_STRIPE_TEAM_LINK
     }
   ];
@@ -204,23 +211,49 @@ export default function PricingPage() {
       id: 'youtube',
       label: 'YouTube',
       icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+    },
+    {
+      id: 'linkedin',
+      label: 'LinkedIn',
+      icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
     }
   ];
 
-  // Calculate the estimated growth based on inputs
+  // Enhanced ROI calculation with more accurate logic
   const calculateGrowth = () => {
-    // Example calculation - would be replaced with actual business logic
-    const baseGrowth = followers * 0.05 + posts * 10;
-    const platformMultiplier = platform === 'tiktok' ? 1.2 : platform === 'instagram' ? 1.0 : 1.1;
-    return Math.round(baseGrowth * platformMultiplier);
+    if (followers === 0 && posts === 0) return 0;
+    
+    // Base engagement calculation based on platform mix
+    const platformMultipliers = {
+      tiktok: 1.5,    // Higher viral potential
+      instagram: 1.2, // Good for business
+      youtube: 1.8,   // Highest retention value
+      linkedin: 1.3   // B2B focused
+    };
+    
+    // Calculate weighted platform multiplier
+    const avgMultiplier = selectedPlatforms.length > 0 
+      ? selectedPlatforms.reduce((sum, platform) => 
+          sum + (platformMultipliers[platform as keyof typeof platformMultipliers] || 1), 0
+        ) / selectedPlatforms.length
+      : 1;
+    
+    // More sophisticated growth calculation
+    const baseGrowthRate = Math.min(followers * 0.08, 5000); // Cap base growth
+    const contentBoost = posts * 15 * avgMultiplier;
+    const platformDiversityBonus = selectedPlatforms.length > 1 ? 1.2 : 1;
+    
+    const totalGrowth = (baseGrowthRate + contentBoost) * platformDiversityBonus;
+    
+    return Math.round(Math.min(totalGrowth, 50000)); // Cap at 50k for realism
   };
 
   const estimatedGrowth = calculateGrowth();
 
   // Recommended plan based on inputs
   const getRecommendedPlan = () => {
-    if (followers > 10000 || posts > 30) return 'team';
-    if (followers > 1000 || posts > 10) return 'pro';
+    if (followers > 10000 || posts > 30 || selectedPlatforms.length > 2) return 'team';
+    if (followers > 1000 || posts > 10 || selectedPlatforms.length > 1) return 'pro';
     return 'lite';
   };
 
@@ -477,18 +510,18 @@ export default function PricingPage() {
             </div>
             
             <div className="mb-8">
-              <label className="block text-white/70 mb-2 font-medium">What category?</label>
-              <div className="grid grid-cols-3 gap-2">
+              <label className="block text-white/70 mb-2 font-medium">Select platforms (you can choose multiple)</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {platformOptions.map((option) => (
                   <button
                     key={option.id}
-                    onClick={() => setPlatform(option.id)}
-                    className={`flex items-center justify-center space-x-2 p-3 rounded-lg border transition-all ${platform === option.id 
+                    onClick={() => togglePlatform(option.id)}
+                    className={`flex items-center justify-center space-x-2 p-3 rounded-lg border transition-all ${selectedPlatforms.includes(option.id)
                       ? 'border-blitz-blue/50 bg-blitz-blue/5 text-lightning-DEFAULT' 
                       : 'border-white/10 bg-black/20 text-white/70 hover:text-white/90 hover:border-white/20'}`}
                   >
                     <span className="text-blitz-blue">{option.icon}</span>
-                    <span>{option.label}</span>
+                    <span className="text-sm">{option.label}</span>
                   </button>
                 ))}
               </div>
@@ -496,20 +529,25 @@ export default function PricingPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-black/30 rounded-xl p-6 text-center">
-                <h4 className="text-white/70 mb-1 text-sm">Will you post on</h4>
-                <div className="text-xl font-bold text-lightning-DEFAULT">{platformOptions.find(p => p.id === platform)?.label}</div>
+                <h4 className="text-white/70 mb-1 text-sm">Selected platforms</h4>
+                <div className="text-lg font-bold text-lightning-DEFAULT">
+                  {selectedPlatforms.length > 0 
+                    ? selectedPlatforms.map(id => platformOptions.find(p => p.id === id)?.label).join(', ')
+                    : 'None selected'
+                  }
+                </div>
               </div>
               
               <div className="bg-black/30 rounded-xl p-6 text-center">
                 <h4 className="text-white/70 mb-1 text-sm">We recommend</h4>
-                <div className="text-xl font-bold text-lightning-DEFAULT">
-                  {pricingTiers.find(p => p.id === recommendedPlan)?.name} Plan
+                <div className="text-lg font-bold text-lightning-DEFAULT">
+                  {pricingTiers.find(p => p.id === recommendedPlan)?.name}
                 </div>
               </div>
               
               <div className="bg-black/30 rounded-xl p-6 text-center">
                 <h4 className="text-white/70 mb-1 text-sm">Est. growth per month</h4>
-                <div className="text-xl font-bold text-[#8D5AFF]">+{estimatedGrowth}</div>
+                <div className="text-lg font-bold text-[#8D5AFF]">+{estimatedGrowth.toLocaleString()}</div>
               </div>
             </div>
             
@@ -518,62 +556,11 @@ export default function PricingPage() {
                 href={`#${recommendedPlan}`} 
                 className="inline-flex items-center px-8 py-3 bg-[#8D5AFF] text-white rounded-xl font-medium hover:shadow-lg hover:shadow-[#8D5AFF]/20 transition-all"
               >
-                <span>Select {pricingTiers.find(p => p.id === recommendedPlan)?.name} Plan</span>
+                <span>Select {pricingTiers.find(p => p.id === recommendedPlan)?.name}</span>
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </div>
           </motion.div>
-        </div>
-
-        {/* Comparison table */}
-        <div className="mb-32 max-w-6xl mx-auto">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-center mb-12 bg-[#3D7BF4] bg-clip-text text-transparent"
-          >
-            Compare all plans
-          </motion.h2>
-          
-          <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 p-8">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="bg-[#8D5AFF]/10 rounded-full p-3">
-                <Calculator className="w-6 h-6 text-[#8D5AFF]" />
-              </div>
-              <h3 className="text-xl font-semibold text-white">ROI Calculator</h3>
-            </div>
-            <div className="grid grid-cols-4 gap-0">
-              <div className="p-6 border-b border-white/10">
-                <h3 className="font-bold text-lightning-DEFAULT">From</h3>
-              </div>
-              {pricingTiers.map((tier: PricingTier) => (
-                <div key={tier.id} className="p-6 text-center border-b border-white/10">
-                  <h3 className="font-bold text-lightning-DEFAULT">{tier.name}</h3>
-                  <p className="text-white/70">${tier.price}/mo</p>
-                </div>
-              ))}
-            </div>
-            
-            {features.map((feature, index) => (
-              <div key={index} className="grid grid-cols-4 gap-0 hover:bg-black/20 transition-colors">
-                <div className="p-6 border-b border-white/10 flex items-center">
-                  <div>
-                    <h4 className="font-medium text-lightning-DEFAULT">{feature.name}</h4>
-                    <p className="text-sm text-white/70">{feature.description}</p>
-                  </div>
-                </div>
-                {pricingTiers.map((tier: PricingTier) => (
-                  <div key={`${tier.id}-${index}`} className="p-6 flex items-center justify-center border-b border-white/10">
-                    {feature.tiers[tier.name as keyof typeof feature.tiers] ? (
-                      <Check className="w-5 h-5 text-[#8D5AFF]" />
-                    ) : (
-                      <X className="w-5 h-5 text-white/30" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* FAQ Section */}
@@ -581,7 +568,7 @@ export default function PricingPage() {
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-center mb-12 bg-[#3D7BF4] bg-clip-text text-transparent"
+            className="text-3xl font-bold text-center mb-12 text-[#8B5CF6]"
           >
             Frequently Asked Questions
           </motion.h2>
@@ -597,50 +584,35 @@ export default function PricingPage() {
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="flex justify-between items-center w-full text-left p-6"
+                  className="flex justify-between items-center w-full text-left p-6 hover:bg-white/5 transition-colors duration-200"
                 >
                   <span className="font-medium text-lg text-white">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-[#5afcc0] transition-transform ${activeFaq === index ? 'transform rotate-180' : ''}`} />
+                  <ChevronDown className={`w-5 h-5 text-[#5afcc0] transition-all duration-300 ease-in-out ${activeFaq === index ? 'transform rotate-180' : ''}`} />
                 </button>
                 <AnimatePresence>
                   {activeFaq === index && (
                     <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="px-6 pb-6 pt-0 text-white/80"
+                      initial={{ height: 0, opacity: 0, y: -10 }}
+                      animate={{ height: 'auto', opacity: 1, y: 0 }}
+                      exit={{ height: 0, opacity: 0, y: -10 }}
+                      transition={{ 
+                        duration: 0.4, 
+                        ease: [0.4, 0.0, 0.2, 1],
+                        opacity: { duration: 0.3 }
+                      }}
+                      className="overflow-hidden"
                     >
-                      {faq.answer}
+                      <div className="px-6 pb-6 pt-0 text-white/80 border-t border-white/10">
+                        <div className="pt-4">
+                          {faq.answer}
+                        </div>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </motion.div>
             ))}
           </div>
-        </div>
-
-        {/* Final CTA */}
-        <div className="text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-block px-10 py-8 bg-gradient-to-r from-blitz-blue/10 to-blitz-purple/10 rounded-2xl border border-storm-light/10 backdrop-blur-sm"
-          >
-            <h3 className="text-2xl font-bold text-lightning-DEFAULT mb-4">Ready to boost your social media presence?</h3>
-            <p className="text-lightning-dim/80 mb-8 max-w-2xl mx-auto">Join thousands of creators and businesses growing their audience with our platform.</p>
-            <motion.button 
-              className="bg-[#3D7BF4] text-lightning-DEFAULT font-medium px-8 py-4 rounded-xl shadow-lg shadow-blitz-blue/20 transition-all duration-300 hover:shadow-xl hover:shadow-blitz-blue/30"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="flex items-center">
-                Start Your 14-Day Free Trial
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </span>
-            </motion.button>
-            <p className="text-sm text-lightning-dim/60 mt-4">No credit card required. Cancel anytime.</p>
-          </motion.div>
         </div>
       </div>
     </div>

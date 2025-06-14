@@ -67,8 +67,8 @@ export default function Footer() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-6">
             <div className="flex items-center">
               <Mail className="h-5 w-5 text-[#8D5AFF] mr-2" />
-              <a href="mailto:hello@clipscommerce.com" className="text-white/80 hover:text-white transition-colors">
-                hello@clipscommerce.com
+              <a href="mailto:cheemunkhin@gmail.com" className="text-white/80 hover:text-white transition-colors">
+                cheemunkhin@gmail.com
               </a>
             </div>
           </div>
@@ -98,14 +98,6 @@ export default function Footer() {
               className="text-white/60 hover:text-[#8D5AFF] transition-colors"
             >
               <Instagram className="h-5 w-5" />
-            </a>
-            <a 
-              href="https://linkedin.com/company/clipscommerce" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-white/60 hover:text-[#8D5AFF] transition-colors"
-            >
-              <Linkedin className="h-5 w-5" />
             </a>
           </div>
         </motion.div>

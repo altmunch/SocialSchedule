@@ -43,18 +43,17 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <div className="text-[#5afcc0] text-sm uppercase tracking-normal mb-6 font-medium">
-              TRANSFORM YOUR CONTENT INTO CASH WITH AI
+              THE ONLY ALL-IN-ONE AI SHORT-FORM MARKETING PLATFORM
             </div>
             <div className="relative pb-6 mb-4">
-              <div className="whitespace-nowrap text-5xl sm:text-6xl font-medium text-white leading-tight tracking-tight">
-                Turn Every Post Into Profit
+              <div className="whitespace-nowrap text-5xl sm:text-6xl font-bold text-white leading-tight tracking-tight">
+                The future of short-form marketing
               </div>
               <div className="absolute bottom-0 left-1/2 w-48 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-1/2" />
             </div>
             <div className="relative">
               <p className="text-xl text-[#E5E7EB] max-w-3xl mx-auto font-light tracking-wide mb-2">
-                <div className="mb-2">Stop creating content that gets likes.</div>
-                <div>Start creating content that gets <span className="font-bold text-white">SALES</span>.</div>
+                From Inspiration to Optimization — All in One Platform
               </p>
               <div className="absolute -bottom-2 left-1/2 w-32 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent transform -translate-x-1/2" />
             </div>

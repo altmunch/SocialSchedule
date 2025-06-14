@@ -190,6 +190,7 @@ jest.mock('framer-motion', () => ({
   motion: new Proxy({}, {
     get: (target, prop) => {
       if (typeof prop === 'string') {
+        const React = require('react');
         return React.forwardRef((props, ref) => {
           const { children, ...otherProps } = props;
           return React.createElement(prop, { ...otherProps, ref }, children);
@@ -219,6 +220,7 @@ jest.mock('framer-motion', () => ({
 jest.mock('lucide-react', () => new Proxy({}, {
   get: (target, prop) => {
     if (typeof prop === 'string') {
+      const React = require('react');
       return (props) => React.createElement('svg', { 
         'data-testid': `${prop}-icon`,
         ...props 
@@ -272,30 +274,25 @@ Object.defineProperty(window, 'getComputedStyle', {
 });
 
 // Mock location object
-if (!window.location) {
-  Object.defineProperty(window, 'location', {
-    value: {
-      href: 'http://localhost:3000/',
-      origin: 'http://localhost:3000',
-      protocol: 'http:',
-      host: 'localhost:3000',
-      hostname: 'localhost',
-      port: '3000',
-      pathname: '/',
-      search: '',
-      hash: '',
-      reload: jest.fn(),
-      assign: jest.fn(),
-      replace: jest.fn(),
-    },
-    writable: true,
-    configurable: true,
-  });
-} else {
-  window.location.reload = jest.fn();
-  window.location.assign = jest.fn();
-  window.location.replace = jest.fn();
-}
+// delete window.location;
+// Object.defineProperty(window, 'location', {
+//   value: {
+//     href: 'http://localhost:3000/',
+//     origin: 'http://localhost:3000',
+//     protocol: 'http:',
+//     host: 'localhost:3000',
+//     hostname: 'localhost',
+//     port: '3000',
+//     pathname: '/',
+//     search: '',
+//     hash: '',
+//     reload: jest.fn(),
+//     assign: jest.fn(),
+//     replace: jest.fn(),
+//   },
+//   writable: true,
+//   configurable: true,
+// });
 
 // Mock localStorage and sessionStorage
 const createStorageMock = () => {
