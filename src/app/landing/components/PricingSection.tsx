@@ -134,7 +134,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Pick a Plan &amp; Watch <span className="text-[#8D5AFF]">Revenue Compound</span>
+            Scale Your Content and <span className="text-[#8D5AFF]">Maximize Sales</span>
           </motion.h2>
           
           <motion.p 
@@ -243,7 +243,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                     <p className="text-sm font-medium text-white border-b border-white/10 pb-2 mb-3">
                       FEATURES
                     </p>
-                    {plan.features.map((feature: string, idx: number) => (
+                    {plan.features.map((feature, idx) => (
                       <motion.div 
                         key={idx} 
                         className="flex items-start"

@@ -66,7 +66,7 @@ export default function EnterpriseSection() {
         >
           <Link href="/landing/team">
             <button className="bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white px-8 py-4 rounded-lg font-medium text-lg shadow-lg shadow-[#8D5AFF]/20 transition-all duration-300 inline-flex items-center">
-              Scaling a team? See how we slash editing hours
+              Part of a team? Check out the team page
               <ArrowRight className="ml-2 h-5 w-5" />
             </button>
           </Link>

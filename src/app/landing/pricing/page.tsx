@@ -87,6 +87,20 @@ export default function PricingPage() {
   // Predefined pricing tiers with specified pricing structure
   const pricingTiers: PricingTier[] = [
     {
+      id: 'free',
+      name: 'Free Plan',
+      price: 0,
+      yearlyPrice: 0,
+      description: 'Try our core features',
+      features: [
+        'Viral Blitz Cycle Framework (1 use)',
+        'Idea Generator Framework (1 use)',
+        '1 autopost',
+        'Basic analytics (no e-commerce)'
+      ],
+      ctaText: 'Get Started'
+    },
+    {
       id: 'lite',
       name: 'Lite Plan',
       price: 20,
@@ -141,27 +155,27 @@ export default function PricingPage() {
   const features: Feature[] = [
     {
       name: 'AI clipping',
-      tiers: { 'Lite': true, 'Pro': true, 'Business': true },
+      tiers: { 'Free': true, 'Pro': true, 'Business': true },
       description: 'Automated content clip generation'
     },
     {
       name: 'Processing speed',
-      tiers: { 'Lite': false, 'Pro': true, 'Business': true },
+      tiers: { 'Free': false, 'Pro': true, 'Business': true },
       description: 'Faster processing times for content'
     },
     {
       name: 'Video import sources',
-      tiers: { 'Lite': false, 'Pro': true, 'Business': true },
+      tiers: { 'Free': false, 'Pro': true, 'Business': true },
       description: 'Import from multiple platforms'
     },
     {
       name: 'Dedicated account manager',
-      tiers: { 'Lite': false, 'Pro': false, 'Business': true },
+      tiers: { 'Free': false, 'Pro': false, 'Business': true },
       description: 'Personal support for your account'
     },
     {
       name: 'API Access',
-      tiers: { 'Lite': false, 'Pro': false, 'Business': true },
+      tiers: { 'Free': false, 'Pro': false, 'Business': true },
       description: 'Full API access for custom integrations'
     }
   ];
@@ -221,7 +235,7 @@ export default function PricingPage() {
   const getRecommendedPlan = () => {
     if (followers > 10000 || posts > 30) return 'team';
     if (followers > 1000 || posts > 10) return 'pro';
-    return 'lite';
+    return 'free';
   };
 
   const recommendedPlan = getRecommendedPlan();
@@ -365,28 +379,40 @@ export default function PricingPage() {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => {
-                        if (tier.id === 'lite') {
-                          if (billingCycle === 'yearly') {
-                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || '';
-                          } else {
-                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || '';
-                          }
-                        } else if (tier.id === 'pro') {
-                          if (billingCycle === 'yearly') {
-                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || '';
-                          } else {
-                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || '';
-                          }
-                        } else if (tier.id === 'team') {
-                          if (billingCycle === 'yearly') {
-                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || '';
-                          } else {
-                            window.location.href = process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
+                        if (tier.id === 'free') {
+                          window.location.href = '/dashboard';
+                        } else {
+                          let stripeLink = '';
+                          
+                          if (tier.id === 'lite') {
+                            if (billingCycle === 'yearly') {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || '';
+                            } else {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || '';
+                            }
+                          } else if (tier.id === 'pro') {
+                            if (billingCycle === 'yearly') {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || '';
+                            } else {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || '';
+                            }
+                          } else if (tier.id === 'team') {
+                            if (billingCycle === 'yearly') {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || '';
+                            } else {
+                              stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
+                            }
+                            
+                            // For team plans, store redirect to team dashboard
+                            if (typeof window !== 'undefined') {
+                              localStorage.setItem('post_payment_redirect', '/team-dashboard');
+                            }
                           }
                           
-                          // For team plans, store redirect to team dashboard
-                          if (typeof window !== 'undefined') {
-                            localStorage.setItem('post_payment_redirect', '/team-dashboard');
+                          if (stripeLink) {
+                            window.open(stripeLink, '_blank');
+                          } else {
+                            window.location.href = '/dashboard';
                           }
                         }
                       }}

@@ -6,8 +6,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Video, TrendingUp, Users, BarChart3, Zap, CheckCircle, ArrowRight, Star, Target, Rocket, DollarSign } from 'lucide-react';
 
-export const dynamic = 'force-static';
-
 export default function SolutionsPage() {
   const solutions = [
     {
@@ -113,23 +111,7 @@ export default function SolutionsPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       <NavigationBar />
-      <div className="pt-32 pb-24 text-center px-6 max-w-3xl mx-auto">
-        <h1 className="text-5xl font-bold mb-6 text-[#8D5AFF]">Solutions</h1>
-        <p className="text-lg text-white/80 mb-12">
-          Discover how ClipsCommerce accelerates your growth – choose the solution that matches your goals.
-        </p>
-        <div className="grid sm:grid-cols-2 gap-8">
-          <Link href="/landing/solutions/ecommerce" className="block bg-[#8D5AFF]/10 hover:bg-[#8D5AFF]/20 border border-[#8D5AFF]/30 rounded-xl p-8 transition-all">
-            <h2 className="text-2xl font-bold mb-2 text-[#8D5AFF]">E-Commerce Growth</h2>
-            <p className="text-white/70 text-sm">Drive sales with direct platform integrations and revenue-focused dashboards.</p>
-          </Link>
-          <Link href="/landing/solutions/content-marketing" className="block bg-[#5afcc0]/10 hover:bg-[#5afcc0]/20 border border-[#5afcc0]/30 rounded-xl p-8 transition-all">
-            <h2 className="text-2xl font-bold mb-2 text-[#5afcc0]">Content Marketing</h2>
-            <p className="text-white/70 text-sm">Generate endless high-performing ideas and automate short-form creation.</p>
-          </Link>
-        </div>
-      </div>
-
+      
       {/* Hero Section */}
       <section className="pt-24 pb-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#8D5AFF]/10 to-[#5afcc0]/10"></div>

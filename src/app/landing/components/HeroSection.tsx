@@ -47,13 +47,13 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             </div>
             <div className="relative pb-6 mb-4">
               <div className="whitespace-nowrap text-5xl sm:text-6xl font-medium text-white leading-tight tracking-tight">
-                Turn Every Clip into Cash—Automatically.
+                Automate Shorts. Skyrocket Sales.
               </div>
               <div className="absolute bottom-0 left-1/2 w-48 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-1/2" />
             </div>
             <div className="relative">
               <p className="text-xl text-[#E5E7EB] max-w-3xl mx-auto font-light tracking-wide mb-2">
-                Let AI publish scroll-stopping clips while <span className="font-bold text-white">you ship orders</span>
+                Automate clip uploads for <span className="font-bold text-white">more sales</span>, <span className="font-bold text-white">less effort</span>
               </p>
               <div className="absolute -bottom-2 left-1/2 w-32 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent transform -translate-x-1/2" />
             </div>
@@ -74,7 +74,7 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
                 whileTap={{ scale: 0.98 }}
               >
                 <span className="flex items-center justify-center">
-                  Start My Free Growth Trial
+                  Start Selling Now
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </span>
               </motion.button>

@@ -40,7 +40,7 @@ interface Example {
 export default function ResourcesPage() {
   const [activeTab, setActiveTab] = useState('templates');
   const [expandedTemplate, setExpandedTemplate] = useState<number | null>(null);
-
+  
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
   };
@@ -279,7 +279,7 @@ export default function ResourcesPage() {
   const toggleTemplate = (id: number) => {
     setExpandedTemplate(expandedTemplate === id ? null : id);
   };
-
+  
   return (
     <div className="min-h-screen bg-black text-white">
       <NavigationBar />
@@ -470,17 +470,17 @@ export default function ResourcesPage() {
                           <span className="text-white">{template.engagement}</span>
                         </div>
                       </div>
-                    </div>
+              </div>
                   )}
                 </motion.div>
               ))}
             </div>
 
             {/* CTA Section */}
-            <motion.div
+              <motion.div
               className="mt-20 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
             >
               <div className="bg-gradient-to-r from-[#8D5AFF]/10 to-[#5afcc0]/10 border border-white/10 rounded-2xl p-8">
@@ -499,7 +499,7 @@ export default function ResourcesPage() {
                   </motion.button>
                 </Link>
               </div>
-            </motion.div>
+              </motion.div>
           </div>
         </section>
       )}
@@ -529,7 +529,7 @@ export default function ResourcesPage() {
               <button className="bg-[#8D5AFF] text-white px-8 py-4 rounded-xl font-bold">
                 Access Tools Now
               </button>
-            </Link>
+                </Link>
           </div>
         </section>
       )}
