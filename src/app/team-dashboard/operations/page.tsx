@@ -302,10 +302,8 @@ export default function TeamOperationsPage() {
             {/* Bulk Operations Panel */}
             {selectedClientIds.length > 0 && (
               <BulkOperationsPanel
-                selectedCount={selectedClientIds.length}
-                onBulkAction={handleBulkAction}
+                isVisible={selectedClientIds.length > 0}
                 onClose={() => setSelectedClientIds([])}
-                isLoading={isLoading}
               />
             )}
 
@@ -433,8 +431,8 @@ export default function TeamOperationsPage() {
       {/* Client Detail Modal */}
       {selectedClient && (
         <ClientDetailView
-          client={selectedClient}
-          onClose={() => setSelectedClient(null)}
+          clientId={selectedClient.id}
+          onBack={() => setSelectedClient(null)}
         />
       )}
     </div>

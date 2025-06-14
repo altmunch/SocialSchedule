@@ -62,6 +62,7 @@ const navItems: NavItem[] = [
       dropdown: [
         { label: 'E-commerce', href: '/landing/solutions/ecommerce' },
         { label: 'Content Marketing', href: '/landing/solutions/content-marketing' },
+        { label: 'Team', href: '/landing/team' },
       ]
     },
     { label: 'Pricing', href: '/landing/pricing', hasDropdown: false },
@@ -85,14 +86,14 @@ const navItems: NavItem[] = [
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-sm font-medium text-white">
           <span className="flex items-center">
             <Star className="h-4 w-4 mr-1.5 text-yellow-300 fill-yellow-300" />
-            AI-powered e-commerce content creation and optimization platform
+            Limited time pro plan offer
           </span>
           <Link 
-            href="/dashboard" 
+            href="/landing/pricing" 
             className="font-bold underline hover:text-white/90 transition-colors"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Get Started Free
+            upgrade now
           </Link>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { usageLimitsService, SUBSCRIPTION_TIERS } from '@/lib/usage-limits';
 import { useAuth } from '@/providers/AuthProvider';
 
-export function useUsageLimits(subscriptionTier: string = 'free') {
+export function useUsageLimits(subscriptionTier: string = 'lite') {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +105,7 @@ export function useUsageLimits(subscriptionTier: string = 'free') {
 export function withUsageEnforcement<T extends object>(
   Component: React.ComponentType<T>,
   feature: 'viralBlitzCycle' | 'ideaGenerator' | 'autoposts',
-  subscriptionTier: string = 'free'
+  subscriptionTier: string = 'lite'
 ) {
   return function WrappedComponent(props: T) {
     const { canUseFeature, tier } = useUsageLimits(subscriptionTier);

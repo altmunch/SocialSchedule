@@ -45,7 +45,7 @@ export default function TeamDashboardLayout({
 
   // Mock function - in real app, check against user's subscription tier
   const checkTeamAccess = async (user: any): Promise<boolean> => {
-    const tier = user?.user_metadata?.subscription_tier || 'free';
+    const tier = user?.user_metadata?.subscription_tier || 'lite';
     return usageLimitsService.hasFeatureAccess(tier, 'teamDashboard');
   };
 
@@ -124,7 +124,7 @@ export default function TeamDashboardLayout({
           <div className="flex h-screen bg-gradient-to-br from-background to-charcoal-100 text-foreground">
             <TeamSidebar />
             <div className="flex-1 flex flex-col overflow-hidden">
-              <TeamHeader breadcrumb={breadcrumb} />
+              <TeamHeader />
               <main className="flex-1 overflow-hidden bg-card/30 backdrop-blur-sm">
                 <div className="h-full">
                   {children}

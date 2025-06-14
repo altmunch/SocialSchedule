@@ -117,7 +117,7 @@ export default function TeamWorkflowsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
 
   useEffect(() => {
-    setCurrentTab('workflows');
+    setCurrentTab('operations');
   }, [setCurrentTab]);
 
   const filteredWorkflows = workflows.filter(workflow => {

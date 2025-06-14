@@ -43,17 +43,17 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <div className="text-[#5afcc0] text-sm uppercase tracking-normal mb-6 font-medium">
-              THE ONLY AI TOOL THAT DOES SHORT-FORM MARKETING FOR YOU
+              TRANSFORM YOUR CONTENT INTO CASH WITH AI
             </div>
             <div className="relative pb-6 mb-4">
               <div className="whitespace-nowrap text-5xl sm:text-6xl font-medium text-white leading-tight tracking-tight">
-                Automate Shorts. Skyrocket Sales.
+                Turn Every Post Into Profit
               </div>
               <div className="absolute bottom-0 left-1/2 w-48 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent transform -translate-x-1/2" />
             </div>
             <div className="relative">
               <p className="text-xl text-[#E5E7EB] max-w-3xl mx-auto font-light tracking-wide mb-2">
-                Automate clip uploads for <span className="font-bold text-white">more sales</span>, <span className="font-bold text-white">less effort</span>
+                The only AI platform that creates <span className="font-bold text-white">viral content</span> designed to <span className="font-bold text-white">drive sales</span>, not just likes
               </p>
               <div className="absolute -bottom-2 left-1/2 w-32 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent transform -translate-x-1/2" />
             </div>
@@ -97,9 +97,9 @@ export default function HeroSection({ onGetStarted, onDemo }: HeroSectionProps) 
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             {[
-              'AI optimizes content for conversions',
-              'Schedule posts for maximum sales',
-              'Outperform competitor content'
+              'AI creates content that converts browsers into buyers',
+              'Post at perfect times for maximum revenue impact',
+              'Outperform competitors with data-driven content strategy'
             ].map((benefit, index) => (
               <motion.div 
                 key={index} 

@@ -1,6 +1,7 @@
 // difficult: TikTok API client implementation
 import { BasePlatformClient } from './BasePlatformClient';
-import { PostMetrics, Platform, PaginatedResponse, Pagination } from '../types';
+import { PostMetrics, PaginatedResponse, Pagination } from '../types';
+import { Platform } from '../../../deliverables/types/deliverables_types';
 
 interface TikTokVideo {
   id: string;
@@ -54,7 +55,7 @@ export class TikTokClient extends BasePlatformClient {
   private readonly API_BASE = 'https://open.tiktokapis.com/v2';
   
   constructor(accessToken: string) {
-    super(accessToken, 'tiktok');
+    super(accessToken, Platform.TIKTOK);
   }
 
   async getPostMetrics(postId: string): Promise<PostMetrics> {
@@ -255,8 +256,8 @@ export class TikTokClient extends BasePlatformClient {
     
     return {
       id: video.id,
-      platform: 'tiktok',
-      views,
+      platform: Platform.TIKTOK,
+      views: video.view_count || 0,
       likes,
       comments,
       shares,

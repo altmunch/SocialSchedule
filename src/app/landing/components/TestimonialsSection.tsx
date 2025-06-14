@@ -35,28 +35,20 @@ export default function TestimonialsSection() {
   return (
     <section className="py-16 md:py-24 bg-gradient-to-b from-storm-darker to-storm-darkest" id="testimonials">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <motion.h2 
-            className="text-3xl md:text-4xl font-bold text-lightning-DEFAULT mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            Real Sellers, Real Revenue Jumps
-          </motion.h2>
-          
-          <motion.p 
-            className="text-xl text-lightning-dim/80 max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            Join thousands of e-commerce sellers who have transformed their social media 
-            content into a consistent sales engine
-          </motion.p>
-        </div>
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white">
+            Real Results from <span className="text-[#5afcc0]">Real Businesses</span>
+          </h2>
+          <p className="text-xl text-white/80 max-w-3xl mx-auto">
+            See how businesses like yours are turning their social media into profitable revenue streams.
+          </p>
+        </motion.div>
 
         <div className="relative">
           {/* Decorative background elements */}

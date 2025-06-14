@@ -1,6 +1,7 @@
 // difficult: Instagram Graph API client implementation
 import { BasePlatformClient } from './BasePlatformClient';
-import { PostMetrics, Platform, InstagramMediaProductType, PaginatedResponse, Pagination } from '../types';
+import { PostMetrics, InstagramMediaProductType, PaginatedResponse, Pagination } from '../types';
+import { Platform } from '../../../deliverables/types/deliverables_types';
 
 // Helper function to extract hashtags from caption
 function extractHashtags(caption: string | undefined): string[] {
@@ -69,7 +70,7 @@ export class InstagramClient extends BasePlatformClient {
   ].join(',');
   
   constructor(accessToken: string) {
-    super(accessToken, 'instagram');
+    super(accessToken, Platform.INSTAGRAM);
   }
 
   async getPostMetrics(postId: string, mediaProductType?: InstagramMediaProductType): Promise<PostMetrics> {
@@ -276,7 +277,7 @@ export class InstagramClient extends BasePlatformClient {
     
     return {
       id: media.id,
-      platform: 'instagram' as const,
+      platform: Platform.INSTAGRAM,
       views: videoViews || impressions,
       likes,
       comments,

@@ -29,7 +29,6 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
         'Basic analytics (no e-commerce)',
       ],
       highlighted: false,
-      isFree: false,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_LITE_LINK',
     },
     {
@@ -46,7 +45,6 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
         'Advanced analytics & reporting',
       ],
       highlighted: true,
-      isFree: false,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_PRO_LINK',
     },
     {
@@ -63,7 +61,6 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
         'Priority support',
       ],
       highlighted: false,
-      isFree: false,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_TEAM_LINK',
     }
   ];
@@ -114,8 +111,23 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-storm-darker to-storm-darkest" id="pricing">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-black to-[#0A0A0A] text-white">
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className="text-4xl md:text-6xl font-bold mb-6">
+            Choose Your <span className="text-[#5afcc0]">Revenue</span> Plan
+          </h2>
+          <p className="text-xl text-white/80 max-w-3xl mx-auto">
+            Every plan is designed to pay for itself within the first month through increased sales and conversions.
+          </p>
+        </motion.div>
+
         <div className="text-center mb-16">
           <motion.span 
             className="inline-block text-sm font-semibold text-[#5afcc0] uppercase tracking-wider mb-3"
@@ -200,27 +212,23 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                   
                   <div className="flex items-baseline mb-6">
                     <span className="text-4xl font-bold text-white">
-                      {plan.isFree ? 'Free' : `$${isAnnual ? plan.annualPrice : plan.monthlyPrice}`}
+                      ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
                     </span>
-                    {!plan.isFree && (
-                      <span className="text-white/60 ml-2">
-                        {isAnnual ? '/year' : '/month'}
-                      </span>
-                    )}
+                    <span className="text-white/60 ml-2">
+                      {isAnnual ? '/year' : '/month'}
+                    </span>
                   </div>
                   
                   {/* Bonus section - only show for paid plans */}
-                  {!plan.isFree && (
-                    <div className="bg-[#5afcc0]/10 rounded-lg p-4 mb-6 border border-[#5afcc0]/20">
-                      <div className="flex items-start">
-                        <Sparkles className="h-5 w-5 text-[#5afcc0] mr-2 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-[#5afcc0] font-medium">Limited Time Bonuses</p>
-                          <p className="text-sm text-white/70">Template Generator & Hook Creator included ($899 value)</p>
-                        </div>
+                  <div className="bg-[#5afcc0]/10 rounded-lg p-4 mb-6 border border-[#5afcc0]/20">
+                    <div className="flex items-start">
+                      <Sparkles className="h-5 w-5 text-[#5afcc0] mr-2 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-[#5afcc0] font-medium">Limited Time Bonuses</p>
+                        <p className="text-sm text-white/70">Template Generator & Hook Creator included ($899 value)</p>
                       </div>
                     </div>
-                  )}
+                  </div>
 
                   <button
                     onClick={() => handlePlanClick(plan)}
@@ -243,7 +251,7 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                     <p className="text-sm font-medium text-white border-b border-white/10 pb-2 mb-3">
                       FEATURES
                     </p>
-                    {plan.features.map((feature, idx) => (
+                    {plan.features.map((feature: string, idx: number) => (
                       <motion.div 
                         key={idx} 
                         className="flex items-start"

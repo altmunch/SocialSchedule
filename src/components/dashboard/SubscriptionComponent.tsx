@@ -18,30 +18,31 @@ type Plan = {
   description: string;
   features: string[];
   isPopular?: boolean;
-  isFree?: boolean;
   stripeLinkEnv?: string;
 };
 
 export default function SubscriptionComponent() {
   const { user } = useAuth();
-  const [activePlan, setActivePlan] = useState<string>('free'); // Default to free plan
+  const [activePlan, setActivePlan] = useState<string>('lite'); // Default to Lite plan
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Updated pricing structure to match the new schema
   const plans: Plan[] = [
     {
-      id: 'free',
-      name: 'Free Plan',
-      price: 0,
-      yearlyPrice: 0,
+      id: 'lite',
+      name: 'Lite Plan',
+      price: 20,
+      yearlyPrice: 240, // $20 * 12
       interval: billingCycle,
-      description: 'Get started with basic features',
+      description: '$20/month',
       features: [
-        'Idea Generator (3 uses)',
-        '10 autoposts/month'
+        'Viral Blitz Cycle Framework (15 uses)',
+        'Idea Generator Framework (15 uses)',
+        '15 autoposts/month',
+        'Basic analytics (no e-commerce)'
       ],
-      isFree: true
+      stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_LITE_LINK'
     },
     {
       id: 'pro',
@@ -81,16 +82,15 @@ export default function SubscriptionComponent() {
   const handleSelectPlan = (planId: string) => {
     const plan = plans.find(p => p.id === planId);
     
-    if (plan?.isFree) {
-      // For free plan, just update the active plan
-      setActivePlan(planId);
-      setSuccessMessage('Your subscription plan has been updated successfully.');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } else if (plan) {
+    if (plan) {
       // For paid plans, redirect to appropriate Stripe checkout
       let stripeLink = '';
       
-      if (plan.id === 'pro') {
+      if (plan.id === 'lite') {
+        stripeLink = billingCycle === 'yearly'
+          ? process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || ''
+          : process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || '';
+      } else if (plan.id === 'pro') {
         if (billingCycle === 'yearly') {
           stripeLink = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || '';
         } else {
@@ -119,7 +119,7 @@ export default function SubscriptionComponent() {
   };
 
   const formatPrice = (plan: Plan) => {
-    if (plan.isFree) return 'Free';
+    // Lite, Pro, Team are paid plans
     const price = billingCycle === 'yearly' ? plan.yearlyPrice || plan.price : plan.price;
     return `$${price}${billingCycle === 'monthly' ? '/month' : '/year'}`;
   };
@@ -204,7 +204,7 @@ export default function SubscriptionComponent() {
                     <span className="text-3xl font-bold">
                       {formatPrice(plan)}
                     </span>
-                    {billingCycle === 'yearly' && plan.yearlyPrice && !plan.isFree && (
+                    {billingCycle === 'yearly' && plan.yearlyPrice && (
                       <span className="text-sm text-green-600 ml-2">
                         Save 20%
                       </span>

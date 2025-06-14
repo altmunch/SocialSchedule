@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const subscriptionTier = (user as any)?.user_metadata?.subscription_tier || 'free';
+  const subscriptionTier = (user as any)?.user_metadata?.subscription_tier || 'lite';
   const { hasFeatureAccess, tier } = useUsageLimits(subscriptionTier);
 
   useEffect(() => {

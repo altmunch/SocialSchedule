@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTeamMode } from '@/providers/TeamModeProvider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -163,6 +163,10 @@ export default function WorkflowsPage() {
     .filter(w => w.status === 'completed')
     .reduce((sum, w) => sum + w.clientsAffected, 0);
   const avgProcessingTime = '23 minutes'; // Mock data
+
+  useEffect(() => {
+    setActiveTab('operations');
+  }, [setActiveTab]);
 
   return (
     <div className="p-6 space-y-6">

@@ -30,7 +30,7 @@ export default function TeamDashboardPage() {
   const { totalClientCount, setCurrentTab } = useTeamMode();
   
   // Mock subscription tier - in production, get this from user data
-  const subscriptionTier = 'free'; // This should come from actual user subscription
+  const subscriptionTier = 'lite'; // This should come from actual user subscription
   const { hasFeatureAccess, tier } = useUsageLimits(subscriptionTier);
 
   // Check team dashboard access

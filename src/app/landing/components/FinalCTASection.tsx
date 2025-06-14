@@ -45,7 +45,7 @@ export default function FinalCTASection({ onGetStarted }: FinalCTASectionProps) 
             transition={{ duration: 0.4 }}
           >
             <span className="animate-pulse mr-2 h-2 w-2 rounded-full bg-[#8D5AFF]"></span>
-            <span className="text-sm font-medium text-[#8D5AFF]">Limited time offer - Act now!</span>
+            <span className="text-sm font-medium text-[#8D5AFF]">Join 10,000+ creators already earning more</span>
           </motion.div>
           
           <motion.h2 
@@ -55,7 +55,7 @@ export default function FinalCTASection({ onGetStarted }: FinalCTASectionProps) 
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            Let Every Post Ring the Cash Register
+            Your Competition Is Already Using AI
           </motion.h2>
           
           <motion.p 
@@ -65,7 +65,7 @@ export default function FinalCTASection({ onGetStarted }: FinalCTASectionProps) 
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            Join thousands of creators who've boosted sales with AI-optimized content
+            Don't get left behind. Start turning your content into cash today.
           </motion.p>
           
           <motion.div 

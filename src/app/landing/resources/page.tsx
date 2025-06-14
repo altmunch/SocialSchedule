@@ -285,7 +285,7 @@ export default function ResourcesPage() {
       <NavigationBar />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-16 relative overflow-hidden">
+      <section className="pt-32 pb-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#8D5AFF]/10 to-[#5afcc0]/10"></div>
         <div className="absolute inset-0 [background-image:linear-gradient(to_right,rgba(141,90,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(141,90,255,0.03)_1px,transparent_1px)] [background-size:60px_60px]"></div>
         

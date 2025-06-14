@@ -37,6 +37,7 @@ import {
   CheckCircle,
   Info
 } from 'lucide-react';
+import { Role } from '@/lib/rbac/roleManager';
 
 // Mock team settings data
 interface TeamSettings {
@@ -399,7 +400,11 @@ export default function TeamSettingsPage() {
                       </CardContent>
                     </Card>
 
-                    <RoleManagementPanel />
+                    <RoleManagementPanel 
+                      teamId="team-1"
+                      currentUserId="user-1"
+                      currentUserRole={Role.ADMIN}
+                    />
                   </div>
                 )}
 

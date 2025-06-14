@@ -1,6 +1,7 @@
-// difficult: Enhanced YouTube Data API client with rate limiting and caching
+// difficult: YouTube Data API v3 client implementation
 import { BasePlatformClient } from './BasePlatformClient';
-import { PostMetrics, Platform, PaginatedResponse } from '../types';
+import { PostMetrics, PaginatedResponse, Pagination } from '../types';
+import { Platform } from '../../../deliverables/types/deliverables_types';
 
 interface YouTubeVideo {
   id: string;
@@ -103,7 +104,7 @@ export class YouTubeClient extends BasePlatformClient {
   }>();
 
   constructor(accessToken: string) {
-    super(accessToken, 'youtube');
+    super(accessToken, Platform.YOUTUBE);
   }
   
   /**
@@ -330,7 +331,7 @@ export class YouTubeClient extends BasePlatformClient {
 
     return {
       id: video.id,
-      platform: 'youtube' as Platform,
+      platform: Platform.YOUTUBE,
       views,
       likes,
       comments,
@@ -386,10 +387,6 @@ export class YouTubeClient extends BasePlatformClient {
     return matches.map(tag => tag.substring(1)); // Remove the # symbol
   }
   
-  /**
-   * Fetches data from URL with retry logic
-   * @private
-   */
   /**
    * Fetches data from URL with retry logic
    * @private
