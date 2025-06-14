@@ -16,24 +16,6 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth/sign-in');
-    }
-  }, [user, loading, router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null; // Will redirect in useEffect
-  }
-
   // simple breadcrumb from path segments (dashboard/accelerate -> Dashboard / Accelerate)
   const segments = pathname?.split('/').filter(Boolean).slice(1); // remove 'dashboard'
   const breadcrumb = segments && segments.length > 0 ? (
@@ -52,15 +34,25 @@ export default function DashboardLayout({
     </nav>
   ) : null;
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <SettingsProvider>
       <div className="flex h-screen bg-gradient-to-br from-background to-charcoal-100 text-foreground">
         <Sidebar />
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col min-h-0">
           <Header breadcrumb={breadcrumb} />
-          <main className="flex-1 overflow-y-auto p-6 bg-card/30 backdrop-blur-sm">
-            <div className="max-w-7xl mx-auto">
-              {children}
+          <main className="flex-1 p-6 bg-card/30 backdrop-blur-sm overflow-hidden">
+            <div className="h-full overflow-y-auto">
+              <div className="max-w-7xl mx-auto">
+                {children}
+              </div>
             </div>
           </main>
         </div>

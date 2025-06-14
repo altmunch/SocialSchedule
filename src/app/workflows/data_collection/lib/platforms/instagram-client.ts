@@ -2,9 +2,12 @@
 // Pay special attention to token expiration and permission scopes
 
 import { BasePlatformClient } from './base-platform';
-import { ApiConfig, ApiCredentials, ApiResponse, PlatformPostMetrics, PlatformUserActivity } from './types';
+import { ApiConfig, ApiResponse, PlatformPostMetrics, PlatformUserActivity } from './types';
+import { Platform } from '../../../deliverables/types/deliverables_types';
+import { IAuthTokenManager } from '../auth.types';
 
 export class InstagramClient extends BasePlatformClient {
+  protected readonly platform: Platform = Platform.INSTAGRAM;
   private static readonly DEFAULT_CONFIG: ApiConfig = {
     baseUrl: 'https://graph.instagram.com',
     version: 'v12.0',
@@ -14,26 +17,15 @@ export class InstagramClient extends BasePlatformClient {
     }
   };
 
-  private _userId: string | null = null;
-  
-  // Getter with type assertion to ensure non-null when accessed
-  protected get userId(): string {
-    if (!this._userId) {
-      throw new Error('User ID not initialized. Call ensureUserId() first.');
+  constructor(config: Partial<ApiConfig>, authTokenManager: IAuthTokenManager, userId?: string) {
+    super({ ...InstagramClient.DEFAULT_CONFIG, ...config }, authTokenManager, userId);
+  }
+
+  protected async getAuthHeaders(): Promise<Record<string, string>> {
+    // Ensure this.credentials is accessed after it's set by BasePlatformClient constructor
+    if (!this.credentials?.accessToken) {
+      throw new Error('Access token not available.');
     }
-    return this._userId;
-  }
-  
-  // Setter to maintain type safety
-  protected set userId(value: string) {
-    this._userId = value;
-  }
-
-  constructor(credentials: ApiCredentials, config: Partial<ApiConfig> = {}) {
-    super({ ...InstagramClient.DEFAULT_CONFIG, ...config }, credentials);
-  }
-
-  protected getAuthHeaders(): Record<string, string> {
     return {
       'Authorization': `Bearer ${this.credentials.accessToken}`,
       'Content-Type': 'application/json'
@@ -61,78 +53,74 @@ export class InstagramClient extends BasePlatformClient {
   }
 
   private async ensureUserId(): Promise<string> {
+    // The userId property is inherited from BasePlatformClient.
+    // If it's already set, return it.
     if (this.userId) return this.userId;
     
-    const url = `${this.config.baseUrl}/me?fields=id`;
-    const response = await fetch(url, {
-      headers: this.getAuthHeaders()
-    });
+    // If not set, fetch it and return. This method should not attempt to set this.userId directly
+    // as it is managed by the base class. The consumer of this method should handle updating
+    // the base client's userId if necessary after this call.
+    const response = await this.request<{
+      id: string;
+    }>({ url: '/me', params: { fields: 'id' } });
     
-    if (!response.ok) {
+    if (!response.data?.id) {
       throw new Error('Failed to fetch user ID');
     }
     
-    const data = await response.json();
-    this.userId = data.id;
-    return this.userId;
+    return response.data.id;
   }
 
   async getPostMetrics(postId: string): Promise<ApiResponse<PlatformPostMetrics>> {
-    const url = `${this.config.baseUrl}/${postId}?fields=id,comments_count,like_count,media_product_type,media_type,media_url,permalink,timestamp,username,caption`;
-    
-    return this.enqueueRequest<PlatformPostMetrics>(async () => {
-      const response = await fetch(url, {
-        headers: this.getAuthHeaders()
-      });
+    const response = await this.request<any>({
+      url: `/${postId}`,
+      params: {
+        fields: 'id,comments_count,like_count,media_product_type,media_type,media_url,permalink,timestamp,username,caption'
+      },
+    });
 
-      const data = await response.json();
-      
-      if (!response.ok) {
-        return response;
-      }
+    if (response.status !== 200 || !response.data) {
+      return { error: { code: response.status, message: response.statusText } };
+    }
 
-      // Transform Instagram's response to our standard format
-      return new Response(JSON.stringify({
+    const data = response.data;
+
+    return {
+      data: {
         id: data.id,
-        views: data.video_views || 0, // Only available for video posts
+        views: data.video_views || 0,
         likes: data.like_count || 0,
         comments: data.comments_count || 0,
-        shares: 0, // Instagram doesn't provide share count via API
+        shares: 0,
         timestamp: data.timestamp,
         engagementRate: this.calculateEngagementRate(data)
-      }), {
-        status: 200,
-        headers: response.headers
-      });
-    });
+      }
+    };
   }
 
   async getUserActivity(): Promise<ApiResponse<PlatformUserActivity>> {
     const userId = await this.ensureUserId();
-    const url = `${this.config.baseUrl}/${userId}?fields=account_type,media_count,username,media.limit(1){like_count,comments_count}`;
-    
-    return this.enqueueRequest<PlatformUserActivity>(async () => {
-      const response = await fetch(url, {
-        headers: this.getAuthHeaders()
-      });
-
-      const data = await response.json();
-      
-      if (!response.ok) {
-        return response;
+    const response = await this.request<any>({
+      url: `/${userId}`,
+      params: {
+        fields: 'account_type,media_count,username,media.limit(1){like_count,comments_count}'
       }
+    });
 
-      // Transform Instagram's response to our standard format
-      return new Response(JSON.stringify({
-        followerCount: data.followers_count || 0, // Requires additional permission
-        followingCount: data.follows_count || 0,  // Requires additional permission
+    if (response.status !== 200 || !response.data) {
+      return { error: { code: response.status, message: response.statusText } };
+    }
+
+    const data = response.data;
+
+    return {
+      data: {
+        followerCount: data.followers_count || 0,
+        followingCount: data.follows_count || 0,
         postCount: data.media_count || 0,
         lastUpdated: new Date().toISOString()
-      }), {
-        status: 200,
-        headers: response.headers
-      });
-    });
+      }
+    };
   }
 
   private calculateEngagementRate(postData: any): number {
@@ -147,15 +135,61 @@ export class InstagramClient extends BasePlatformClient {
   }
 
   // Additional Instagram-specific methods
-  async getMediaInsights(mediaId: string) {
-    const url = `${this.config.baseUrl}/${mediaId}/insights?metric=engagement,impressions,reach,saved,video_views`;
-    
-    return this.enqueueRequest<any>(async () => {
-      const response = await fetch(url, {
-        headers: this.getAuthHeaders()
-      });
-
-      return response;
+  async getMediaInsights(mediaId: string): Promise<ApiResponse<any>> {
+    const response = await this.request<any>({
+      url: `/${mediaId}/insights`,
+      params: {
+        metric: 'engagement,impressions,reach,saved,video_views'
+      }
     });
+
+    if (response.status !== 200 || !response.data) {
+      return { error: { code: response.status, message: response.statusText } };
+    }
+
+    return { data: response.data };
+  }
+
+  async getUserVideos(options?: { userId?: string; cursor?: string; limit?: number; }): Promise<ApiResponse<{ posts: any[]; nextPageCursor?: string; hasMore?: boolean }>> {
+    const targetUserId = options?.userId || await this.ensureUserId();
+    const response = await this.request<any>({
+      url: `/${targetUserId}/media`,
+      params: {
+        fields: 'id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,username,children{media_url,media_type},comments_count,like_count,owner',
+        limit: options?.limit || 25,
+        after: options?.cursor,
+      }
+    });
+
+    if (response.status !== 200 || !response.data) {
+      return { error: { code: response.status, message: response.statusText } };
+    }
+
+    const posts = response.data.data || [];
+    const nextPageCursor = response.data.paging?.cursors?.after;
+    const hasMore = !!nextPageCursor;
+
+    return { data: { posts, nextPageCursor, hasMore } };
+  }
+
+  async getVideoComments(postId: string, options?: { cursor?: string; limit?: number; }): Promise<ApiResponse<{ comments: any[]; nextPageCursor?: string; hasMore?: boolean }>> {
+    const response = await this.request<any>({
+      url: `/${postId}/comments`,
+      params: {
+        fields: 'id,username,text,timestamp',
+        limit: options?.limit || 25,
+        after: options?.cursor,
+      }
+    });
+
+    if (response.status !== 200 || !response.data) {
+      return { error: { code: response.status, message: response.statusText } };
+    }
+
+    const comments = response.data.data || [];
+    const nextPageCursor = response.data.paging?.cursors?.after;
+    const hasMore = !!nextPageCursor;
+
+    return { data: { comments, nextPageCursor, hasMore } };
   }
 }

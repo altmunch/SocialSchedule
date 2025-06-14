@@ -163,12 +163,12 @@ export default function SubscriptionComponent() {
           )}
 
           <div className="flex justify-center mb-6">
-            <div className="bg-gray-100 p-1 rounded-full inline-flex items-center">
+            <div className="bg-[#1A1A1A] p-1 rounded-full inline-flex items-center border border-[#8D5AFF]/20">
               <Button
                 variant={billingCycle === 'monthly' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setBillingCycle('monthly')}
-                className="rounded-full"
+                className={`rounded-full ${billingCycle === 'monthly' ? 'bg-[#8D5AFF] text-white' : 'text-gray-300 hover:text-white'}`}
               >
                 Monthly
               </Button>
@@ -176,10 +176,10 @@ export default function SubscriptionComponent() {
                 variant={billingCycle === 'yearly' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setBillingCycle('yearly')}
-                className="rounded-full"
+                className={`rounded-full ${billingCycle === 'yearly' ? 'bg-[#8D5AFF] text-white' : 'text-gray-300 hover:text-white'}`}
               >
                 Yearly
-                <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 border-0">
+                <Badge variant="outline" className="ml-2 bg-[#00e5a0]/20 text-[#00e5a0] border-[#00e5a0]/30">
                   Save 20%
                 </Badge>
               </Button>
@@ -190,11 +190,11 @@ export default function SubscriptionComponent() {
             {plans.map((plan) => (
               <Card 
                 key={plan.id} 
-                className={`relative ${plan.isPopular ? 'border-blue-500 shadow-md' : ''}`}
+                className={`relative bg-gradient-to-br from-[#1A1A1A] to-[#0F0F0F] border ${plan.isPopular ? 'border-[#8D5AFF] shadow-lg shadow-[#8D5AFF]/20' : 'border-[#8D5AFF]/20'}`}
               >
                 {plan.isPopular && (
                   <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2">
-                    <Badge className="bg-blue-500">Popular</Badge>
+                    <Badge className="bg-[#8D5AFF] text-white">Popular</Badge>
                   </div>
                 )}
                 <CardHeader>
@@ -215,15 +215,15 @@ export default function SubscriptionComponent() {
                   <ul className="space-y-2">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start">
-                        <Check className="h-5 w-5 text-green-500 mr-2 shrink-0" />
-                        <span className="text-sm">{feature}</span>
+                        <Check className="h-5 w-5 text-[#00e5a0] mr-2 shrink-0" />
+                        <span className="text-sm text-gray-300">{feature}</span>
                       </li>
                     ))}
                   </ul>
                 </CardContent>
                 <CardFooter>
                   <Button 
-                    className={`w-full ${activePlan === plan.id ? 'bg-gray-300 hover:bg-gray-300 cursor-default' : ''}`}
+                    className={`w-full ${activePlan === plan.id ? 'bg-[#8D5AFF]/20 text-[#8D5AFF] border-[#8D5AFF]/30 hover:bg-[#8D5AFF]/20 cursor-default' : 'bg-[#8D5AFF] hover:bg-[#8D5AFF]/90 text-white'}`}
                     variant={activePlan === plan.id ? 'outline' : 'default'}
                     onClick={() => handleSelectPlan(plan.id)}
                     disabled={activePlan === plan.id}

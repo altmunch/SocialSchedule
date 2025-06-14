@@ -94,20 +94,11 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
   };
 
   const handlePlanClick = (plan: any) => {
-    const stripeLink = getButtonLink(plan);
-    
-    // For team plans, we need to handle post-payment redirect to team dashboard
-    if (plan.name === 'Team' && stripeLink.includes('stripe')) {
-      // Store the intended redirect in localStorage for post-payment handling - only on client side
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('post_payment_redirect', '/team-dashboard');
-      }
-    }
-    
-    if (stripeLink.includes('stripe')) {
-      window.open(stripeLink, '_blank');
+    // Redirect to Stripe for paid plans, dashboard for free plans
+    if (plan.stripePriceId) {
+      window.location.href = `/api/checkout?price_id=${plan.stripePriceId}`;
     } else {
-      window.location.href = stripeLink;
+      window.location.href = '/dashboard';
     }
   };
 
@@ -237,10 +228,8 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
                       ? 'bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20' 
                       : 'bg-[#8D5AFF] hover:bg-[#8D5AFF]/90'}`}
                   >
-                    <Link href="/dashboard" passHref>
-                      <span className="relative z-10">{plan.highlighted ? 'Get Started' : 'Select Plan'}</span>
-                      <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
-                    </Link>
+                    <span className="relative z-10">{plan.highlighted ? 'Get Started' : 'Select Plan'}</span>
+                    <ChevronRight className="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1" />
                   </button>
                   
                   {/* 10-day guarantee */}

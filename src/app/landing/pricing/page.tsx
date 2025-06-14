@@ -397,26 +397,9 @@ export default function PricingPage() {
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => {
-                        let stripeLink = '';
-                        if (tier.id === 'lite') {
-                          stripeLink = billingCycle === 'yearly'
-                            ? process.env.NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK || ''
-                            : process.env.NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK || '';
-                        } else if (tier.id === 'pro') {
-                          stripeLink = billingCycle === 'yearly'
-                            ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK || ''
-                            : process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK || '';
-                        } else if (tier.id === 'team') {
-                          stripeLink = billingCycle === 'yearly'
-                            ? process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK || ''
-                            : process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
-                          if (typeof window !== 'undefined') {
-                            localStorage.setItem('post_payment_redirect', '/team-dashboard');
-                          }
-                        }
-
-                        if (stripeLink) {
-                          window.open(stripeLink, '_blank');
+                        // Redirect to Stripe for paid plans, dashboard for free plans
+                        if (tier.stripePriceId) {
+                          window.location.href = `/api/checkout?price_id=${tier.stripePriceId}`;
                         } else {
                           window.location.href = '/dashboard';
                         }

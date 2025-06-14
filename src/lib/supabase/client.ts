@@ -22,6 +22,11 @@ const createBrowserSupabaseClient = ({
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
+      realtime: {
+        params: {
+          eventsPerSecond: 2,
+        },
+      },
       cookies: {
         get(name: string) {
           if (!cookies) {
@@ -83,14 +88,24 @@ export const createServerClient = ({
         persistSession: false,
         detectSessionInUrl: false,
       },
+      realtime: {
+        params: {
+          eventsPerSecond: 2,
+        },
+      },
     }
   )
 }
 
-// For backward compatibility
+// For backward compatibility - optimized version
 export const createClient = () => {
   if (typeof window !== 'undefined') {
-    return createBrowserSupabaseClient()
+    // Ensure we don't recreate the client unnecessarily
+    const key = 'supabase-client'
+    if (!(window as any)[key]) {
+      (window as any)[key] = createBrowserSupabaseClient()
+    }
+    return (window as any)[key]
   }
   return createServerClient()
 }

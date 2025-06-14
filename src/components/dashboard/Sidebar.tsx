@@ -48,25 +48,25 @@ export default function Sidebar() {
   const incompletePaths = ['/dashboard/ideator', '/dashboard/competitor-tactics'];
 
   return (
-    <div className="w-64 h-screen bg-card/80 backdrop-blur-md border-r border-border/50 flex flex-col">
-      <div className="p-4 border-b border-border/50 flex items-center justify-center">
+    <div className="w-72 h-screen bg-gradient-to-b from-[#1A1A1A] to-[#0F0F0F] border-r border-[#8D5AFF]/20 flex flex-col shadow-xl">
+      <div className="p-6 border-b border-[#8D5AFF]/20 flex items-center justify-center">
         <Link href="/dashboard" className="flex items-center space-x-3 group">
-          <div className="relative h-10 w-10 rounded-lg overflow-hidden bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
+          <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-gradient-to-br from-[#8D5AFF] to-[#00e5a0] flex items-center justify-center">
             <Image
               src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png"
               alt="ClipsCommerce Logo"
-              width={32}
-              height={32}
+              width={40}
+              height={40}
               className="object-contain p-1 invert"
               priority
             />
           </div>
-          <span className="text-xl font-bold text-white">
+          <span className="text-2xl font-bold text-white">
             ClipsCommerce
           </span>
         </Link>
       </div>
-      <nav className="flex-1 overflow-y-auto p-4 space-y-4">
+      <nav className="flex-1 p-4 space-y-4 scrollbar-none" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {/* Primary */}
         <ul className="space-y-1 p-2">
           {mainNav.map((item) => {
@@ -78,16 +78,16 @@ export default function Sidebar() {
                   className={cn(
                     "group flex items-center py-2.5 px-3 rounded-lg text-sm font-medium transition-all duration-200",
                     isActive 
-                      ? "bg-brand-primary/10 text-brand-primary font-semibold" 
-                      : "text-muted-foreground hover:bg-secondary/20 hover:text-foreground"
+                      ? "bg-[#8D5AFF]/20 text-[#8D5AFF] font-semibold border border-[#8D5AFF]/30" 
+                      : "text-gray-300 hover:bg-[#8D5AFF]/10 hover:text-white"
                   )}
                 >
                   <item.icon 
                     className={cn(
                       "mr-3 h-5 w-5 transition-transform duration-200", 
                       isActive 
-                        ? "text-brand-primary" 
-                        : "text-muted-foreground group-hover:text-foreground group-hover:scale-105"
+                        ? "text-[#8D5AFF]" 
+                        : "text-gray-400 group-hover:text-white group-hover:scale-105"
                     )} 
                   />
                   {item.name}
@@ -101,13 +101,13 @@ export default function Sidebar() {
         <div className="mt-6 px-2">
           <button
             onClick={() => setSellFasterOpen(!sellFasterOpen)}
-            className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 rounded-lg px-3 py-2 transition-colors"
+            className="flex items-center justify-between w-full text-xs font-semibold uppercase tracking-wider text-gray-400 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8D5AFF]/30 rounded-lg px-3 py-2 transition-colors"
           >
             <span className="flex items-center">
-              <span className="h-1.5 w-1.5 rounded-full bg-brand-primary mr-2"></span>
+              <span className="h-1.5 w-1.5 rounded-full bg-[#8D5AFF] mr-2"></span>
               Sell Faster
             </span>
-            <span className={cn("transition-transform text-muted-foreground", sellFasterOpen ? "rotate-90" : "")}>
+            <span className={cn("transition-transform text-gray-400", sellFasterOpen ? "rotate-90" : "")}>
               <ChevronRight className="h-3.5 w-3.5" />
             </span>
           </button>
@@ -199,18 +199,6 @@ export default function Sidebar() {
           </ul>
         </div>
       </nav>
-      {/* Quick stats footer */}
-      <div className="p-3 mt-auto border-t border-border text-xs text-secondaryText">
-        <div className="flex items-center justify-between mb-0.5">
-          <span>Scheduled Posts</span>
-          <span className="font-semibold text-foreground">3</span>
-        </div>
-        <div className="flex items-center justify-between mb-0.5">
-          <span>Videos Processing</span>
-          <span className="font-semibold text-foreground">1</span>
-        </div>
-        <div className="text-center mt-2">&copy; {new Date().getFullYear()} ClipsCommerce</div>
-      </div>
     </div>
   );
 }

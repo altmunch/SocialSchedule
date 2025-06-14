@@ -13,6 +13,9 @@ import { ChartWrapper } from '@/components/ui/chart-wrapper';
 import { Progress } from '@/components/ui/progress';
 import UsageTracker from '@/components/dashboard/UsageTracker';
 import { useUsageLimits } from '@/hooks/useUsageLimits';
+import { useFeatureUsage } from '@/hooks/useFeatureUsage';
+import { LoginPromptPopup } from '@/components/dashboard/LoginPromptPopup';
+import { SubscriptionPromptPopup } from '@/components/dashboard/SubscriptionPromptPopup';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -23,6 +26,17 @@ export default function DashboardPage() {
   
   const subscriptionTier = (user as any)?.user_metadata?.subscription_tier || 'lite';
   const { hasFeatureAccess, tier } = useUsageLimits(subscriptionTier);
+  
+  const {
+    checkFeatureAccess,
+    recordFeatureUsage,
+    showLoginPrompt,
+    showSubscriptionPrompt,
+    currentFeature,
+    closeLoginPrompt,
+    closeSubscriptionPrompt,
+    isAuthenticated
+  } = useFeatureUsage();
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -62,6 +76,23 @@ export default function DashboardPage() {
     fetchAnalytics();
   }, [user]);
 
+  // Show login prompt for non-authenticated users on page load
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const timer = setTimeout(() => {
+        checkFeatureAccess('dashboard');
+      }, 1000); // Show popup after 1 second
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, checkFeatureAccess]);
+
+  const handleFeatureClick = (featureName: string, href: string) => {
+    if (checkFeatureAccess(featureName)) {
+      recordFeatureUsage(featureName);
+      window.location.href = href;
+    }
+  };
+
   // Feature cards for the dashboard
   const features = [
     {
@@ -95,82 +126,106 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col gap-8">
-      <div className="flex justify-between items-center py-2 px-1">
-        <h1 className="text-3xl md:text-4xl font-extrabold gradient-text">
-          {greeting}, {user?.email?.split('@')[0] || 'Creator'}
-        </h1>
-      </div>
-      
-      {/* Workflow Cards Section */}
-      <div className="flex flex-col gap-6">
-        <h2 className="text-xl font-semibold mb-2 text-creative">Choose your workflow</h2>
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="bg-panel rounded-lg p-6 flex-1 flex flex-col justify-between shadow-md border-2 border-mint/60 hover:shadow-lg transition-shadow">
-            <div>
-              <h3 className="text-lg font-bold text-creative mb-2">Sell Better</h3>
-              <p className="text-secondaryText mb-3">Optimize your sales workflow for better results. Click below to start.</p>
+    <>
+      <div className="min-h-full bg-background text-foreground flex flex-col gap-8">
+        <div className="flex justify-between items-center py-2 px-1">
+          <h1 className="text-3xl md:text-4xl font-extrabold gradient-text">
+            {greeting}, {user?.email?.split('@')[0] || 'Creator'}
+          </h1>
+        </div>
+        
+        {/* Workflow Cards Section */}
+        <div className="flex flex-col gap-6">
+          <h2 className="text-xl font-semibold mb-2 text-creative">Choose your workflow</h2>
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="bg-panel rounded-lg p-6 flex-1 flex flex-col justify-between shadow-md border-2 border-mint/60 hover:shadow-lg transition-shadow">
+              <div>
+                <h3 className="text-lg font-bold text-creative mb-2">Sell Better</h3>
+                <p className="text-secondaryText mb-3">Optimize your sales workflow for better results. Click below to start.</p>
+              </div>
+              <Button 
+                onClick={() => handleFeatureClick('accelerate', '/dashboard/accelerate')}
+                className="bg-primary text-black hover:bg-creative hover:text-white w-full"
+              >
+                Start Sell Better
+              </Button>
             </div>
-            <Link href="/dashboard/accelerate">
-              <Button className="bg-primary text-black hover:bg-creative hover:text-white w-full">Start Sell Better</Button>
-            </Link>
-          </div>
-          <div className="bg-panel rounded-lg p-6 flex-1 flex flex-col justify-between shadow-md border-2 border-lavender/60 hover:shadow-lg transition-shadow">
-            <div>
-              <h3 className="text-lg font-bold text-creative mb-2">How to Sell</h3>
-              <p className="text-secondaryText mb-3">Learn and implement proven selling tactics. Click below to explore.</p>
+            <div className="bg-panel rounded-lg p-6 flex-1 flex flex-col justify-between shadow-md border-2 border-lavender/60 hover:shadow-lg transition-shadow">
+              <div>
+                <h3 className="text-lg font-bold text-creative mb-2">How to Sell</h3>
+                <p className="text-secondaryText mb-3">Learn and implement proven selling tactics. Click below to explore.</p>
+              </div>
+              <Button 
+                onClick={() => handleFeatureClick('ideation', '/dashboard/ideation')}
+                className="bg-primary text-black hover:bg-creative hover:text-white w-full"
+              >
+                Start How to Sell
+              </Button>
             </div>
-            <Link href="/dashboard/ideation">
-              <Button className="bg-primary text-black hover:bg-creative hover:text-white w-full">Start How to Sell</Button>
-            </Link>
           </div>
+        </div>
+
+        {/* Performance Charts Section - Now moved under content */}
+        <div className="flex flex-col gap-6">
+          <h2 className="text-xl font-semibold mb-2 text-creative">Performance</h2>
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="bg-panel rounded-lg p-6 shadow-md border border-border flex flex-col items-center flex-1">
+              <span className="text-creative font-bold mb-2">Sales</span>
+              <div className="w-full h-28">
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">Loading...</div>
+                ) : error ? (
+                  <div className="text-red-500 text-sm">{error}</div>
+                ) : analytics && analytics.historicalViewGrowth ? (
+                  <ChartWrapper><BarChart /></ChartWrapper>
+                ) : (
+                  <div className="text-muted-foreground text-sm">No data</div>
+                )}
+              </div>
+            </div>
+            <div className="bg-panel rounded-lg p-6 shadow-md border border-border flex flex-col items-center flex-1">
+              <span className="text-highlight font-bold mb-2">Conversion</span>
+              <div className="w-full h-28">
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">Loading...</div>
+                ) : error ? (
+                  <div className="text-red-500 text-sm">{error}</div>
+                ) : analytics && analytics.pastPostsPerformance ? (
+                  <ChartWrapper><LineChart /></ChartWrapper>
+                ) : (
+                  <div className="text-muted-foreground text-sm">No data</div>
+                )}
+              </div>
+            </div>
+          </div>
+          {/* Usage Tracker */}
+          {user && (
+            <div className="mt-6">
+              <UsageTracker />
+            </div>
+          )}
+          
+          {/* Placeholder progress (mock onboarding) */}
+          {user && (
+            <div className="mt-4">
+              <h3 className="text-sm font-medium mb-1">Onboarding Progress</h3>
+              <Progress value={66} />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Performance Charts Section - Now moved under content */}
-      <div className="flex flex-col gap-6">
-        <h2 className="text-xl font-semibold mb-2 text-creative">Performance</h2>
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="bg-panel rounded-lg p-6 shadow-md border border-border flex flex-col items-center flex-1">
-            <span className="text-creative font-bold mb-2">Sales</span>
-            <div className="w-full h-28">
-              {loading ? (
-                <div className="flex items-center justify-center h-full">Loading...</div>
-              ) : error ? (
-                <div className="text-red-500 text-sm">{error}</div>
-              ) : analytics && analytics.historicalViewGrowth ? (
-                <ChartWrapper><BarChart /></ChartWrapper>
-              ) : (
-                <div className="text-muted-foreground text-sm">No data</div>
-              )}
-            </div>
-          </div>
-          <div className="bg-panel rounded-lg p-6 shadow-md border border-border flex flex-col items-center flex-1">
-            <span className="text-highlight font-bold mb-2">Conversion</span>
-            <div className="w-full h-28">
-              {loading ? (
-                <div className="flex items-center justify-center h-full">Loading...</div>
-              ) : error ? (
-                <div className="text-red-500 text-sm">{error}</div>
-              ) : analytics && analytics.pastPostsPerformance ? (
-                <ChartWrapper><LineChart /></ChartWrapper>
-              ) : (
-                <div className="text-muted-foreground text-sm">No data</div>
-              )}
-            </div>
-          </div>
-        </div>
-        {/* Usage Tracker */}
-        <div className="mt-6">
-          <UsageTracker />
-        </div>
-        
-        {/* Placeholder progress (mock onboarding) */}
-        <div className="mt-4">
-          <h3 className="text-sm font-medium mb-1">Onboarding Progress</h3>
-          <Progress value={66} />
-        </div>
-      </div>
-    </div>
+      {/* Popups */}
+      <LoginPromptPopup 
+        isOpen={showLoginPrompt} 
+        onClose={closeLoginPrompt} 
+      />
+      <SubscriptionPromptPopup 
+        isOpen={showSubscriptionPrompt} 
+        onClose={closeSubscriptionPrompt}
+        featureName={currentFeature}
+        autoRedirect={true}
+      />
+    </>
   );
 }

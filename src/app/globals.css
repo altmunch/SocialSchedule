@@ -323,8 +323,14 @@
   color: transparent;
 }
 
-/* Prevent horizontal overflow */
+/* Prevent horizontal overflow and ensure single scrollbar */
 html, body {
   overflow-x: hidden;
-  overflow-y: auto; /* Allow vertical scrolling, but only one */
+  overflow-y: hidden !important;
+}
+
+/* Ensure no duplicate scrollbars */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;  /* IE and Edge */
 }

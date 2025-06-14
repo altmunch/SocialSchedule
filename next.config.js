@@ -94,6 +94,23 @@ const nextConfig = {
       '@/providers': path.resolve(__dirname, 'src/providers'),
     };
 
+    // Fix for Supabase realtime-js critical dependency warning
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+      crypto: false,
+    };
+
+    // Suppress specific webpack warnings
+    config.ignoreWarnings = [
+      {
+        module: /node_modules\/@supabase\/realtime-js/,
+        message: /Critical dependency: the request of a dependency is an expression/,
+      },
+    ];
+
     // Bundle splitting optimizations
     if (!isServer && !dev) {
       config.optimization.splitChunks = {

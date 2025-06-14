@@ -39,7 +39,7 @@ export default function PricingCard({ tier, previousTierName }: PricingCardProps
       </ul>
 
       <a 
-        href={`/api/checkout?price_id=${tier.stripePriceId}`}
+        href={tier.stripePriceId ? `/api/checkout?price_id=${tier.stripePriceId}` : '/dashboard'}
         className="w-full block"
       >
         <Button className="w-full group" size="lg">
@@ -51,7 +51,7 @@ export default function PricingCard({ tier, previousTierName }: PricingCardProps
       </a>
       {tier.stripePriceId && (
         <p className="text-xs text-gray-500 mt-2 text-center">
-          Secure checkout powered by Stripe
+          Start your journey today
         </p>
       )}
 
