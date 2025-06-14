@@ -50,9 +50,9 @@ const navItems: NavItem[] = [
       key: 'features',
       hasDropdown: true,
       dropdown: [
-        { label: 'Content Optimization', href: '/#features' },
-        { label: 'AI Analytics', href: '/#how-it-works' },
-        { label: 'Performance Tracking', href: '/#testimonials' },
+        { label: 'Blitz', href: '#blitz' },
+        { label: 'Cycle', href: '#cycle' },
+        { label: 'Accelerate', href: '#accelerate' },
       ]
     },
     { 
@@ -160,7 +160,7 @@ const navItems: NavItem[] = [
                         <Link
                           key={dropdownItem.label}
                           href={dropdownItem.href}
-                          className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-800 hover:text-white"
+                          className="block px-4 py-2 text-sm text-gray-200 text-center hover:bg-gray-800 hover:text-white w-full"
                           onClick={() => setOpenDropdown(null)}
                         >
                           {dropdownItem.label}

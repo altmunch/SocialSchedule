@@ -7,6 +7,8 @@ import { TeamSidebar } from '@/components/team-dashboard/TeamSidebar';
 import { TeamHeader } from '@/components/team-dashboard/TeamHeader';
 import { TeamAnalyticsOverview } from '@/components/team-dashboard/TeamAnalyticsOverview';
 import { PerformanceMonitoringDashboard } from '@/components/team-dashboard/PerformanceMonitoringDashboard';
+import { LinkedInAnalyticsCard } from '@/components/team-dashboard/LinkedInAnalyticsCard';
+import { LinkedInCompanyInsights } from '@/components/team-dashboard/LinkedInCompanyInsights';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -100,6 +102,13 @@ const mockAnalyticsData: AnalyticsData = {
       revenue: 987500,
       engagement: 8.1,
       growth: 14.2
+    },
+    {
+      platform: 'LinkedIn',
+      clients: 234,
+      revenue: 456000,
+      engagement: 6.4,
+      growth: 22.3
     },
     {
       platform: 'YouTube',
@@ -493,6 +502,122 @@ export default function TeamAnalyticsPage() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+
+            {/* LinkedIn Analytics */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <LinkedInAnalyticsCard
+                metrics={{
+                  engagementRate: 6.4,
+                  engagementGrowth: 22.3,
+                  profileViews: 8500,
+                  profileViewsGrowth: 15.7,
+                  connections: 2847,
+                  connectionGrowth: 8.2,
+                  thoughtLeadershipScore: 72,
+                  industryPosition: 78,
+                  contentPerformance: {
+                    bestPerformingType: 'Professional Insights',
+                    averageEngagement: 6.4,
+                    optimalPostingDay: 'Tuesday'
+                  },
+                  professionalInsights: [
+                    {
+                      title: 'B2B Content Opportunity',
+                      description: 'Industry-specific content generates 40% higher engagement rates',
+                      impact: 'high'
+                    },
+                    {
+                      title: 'Networking Growth',
+                      description: 'Connection requests acceptance rate increased by 15%',
+                      impact: 'medium'
+                    }
+                  ]
+                }}
+                onViewDetails={() => console.log('View LinkedIn details')}
+              />
+              
+              <LinkedInCompanyInsights
+                metrics={{
+                  companyName: 'Tech Innovations Corp',
+                  followerCount: 12500,
+                  followerGrowth: 18.5,
+                  pageViews: 35000,
+                  pageViewsGrowth: 12.3,
+                  employeeEngagement: 7.8,
+                  industryRanking: 12,
+                  competitorComparison: [
+                    {
+                      name: 'InnovateTech Solutions',
+                      followers: 15200,
+                      engagementRate: 5.2,
+                      growthRate: 14.1
+                    },
+                    {
+                      name: 'FutureTech Dynamics',
+                      followers: 11800,
+                      engagementRate: 4.8,
+                      growthRate: 10.3
+                    },
+                    {
+                      name: 'NextGen Technologies',
+                      followers: 9500,
+                      engagementRate: 6.1,
+                      growthRate: 16.7
+                    }
+                  ],
+                  demographicBreakdown: {
+                    seniority: {
+                      'Entry Level': 15,
+                      'Mid Level': 35,
+                      'Senior Level': 40,
+                      'Executive': 10
+                    },
+                    industry: {
+                      'Technology': 60,
+                      'Finance': 20,
+                      'Healthcare': 10,
+                      'Other': 10
+                    },
+                    companySize: {
+                      '1-50': 20,
+                      '51-200': 25,
+                      '201-1000': 30,
+                      '1000+': 25
+                    },
+                    geography: {
+                      'North America': 55,
+                      'Europe': 25,
+                      'Asia': 15,
+                      'Other': 5
+                    }
+                  },
+                  contentPerformance: {
+                    topPerformingPosts: [
+                      {
+                        title: 'Announcing our Q4 Innovation Awards',
+                        engagement: 234,
+                        reach: 15600,
+                        date: '2024-01-15'
+                      },
+                      {
+                        title: 'Behind the scenes: Our engineering team at work',
+                        engagement: 189,
+                        reach: 12400,
+                        date: '2024-01-12'
+                      },
+                      {
+                        title: 'Industry trends: The future of AI in business',
+                        engagement: 156,
+                        reach: 9800,
+                        date: '2024-01-10'
+                      }
+                    ],
+                    bestContentTypes: ['Company Updates', 'Industry Insights', 'Team Highlights']
+                  }
+                }}
+                onViewDetails={() => console.log('View company details')}
+              />
             </div>
 
             {/* Analytics Components */}

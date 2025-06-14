@@ -64,10 +64,9 @@ const teamCardVariants = {
 export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('tiktok');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(['tiktok']);
   const [followers, setFollowers] = useState<number>(0);
   const [posts, setPosts] = useState<number>(0);
-  const [platform, setPlatform] = useState<string>('tiktok');
   const [loading, setLoading] = useState(false);
 
   const toggleFaq = (index: number) => {
@@ -88,7 +87,7 @@ export default function PricingPage() {
   const pricingTiers: PricingTier[] = [
     {
       id: 'lite',
-      name: 'Lite Plan',
+      name: 'Lite',
       price: 20,
       yearlyPrice: 240,
       description: '$20/month',
@@ -103,7 +102,7 @@ export default function PricingPage() {
     },
     {
       id: 'pro',
-      name: 'Pro Plan',
+      name: 'Pro',
       price: 70,
       yearlyPrice: 840,
       description: '$70/month',
@@ -121,7 +120,7 @@ export default function PricingPage() {
     },
     {
       id: 'team',
-      name: 'Team Plan',
+      name: 'Team',
       price: 500, // Monthly price
       yearlyPrice: 6000, // Annual price ($500 * 12)
       description: '$500/month',
@@ -133,7 +132,7 @@ export default function PricingPage() {
         'Team collaboration mode',
         'Priority support'
       ],
-      ctaText: 'Choose Team',
+      ctaText: 'Select Plan',
       stripePriceId: process.env.NEXT_PUBLIC_STRIPE_TEAM_LINK
     }
   ];
@@ -209,18 +208,17 @@ export default function PricingPage() {
 
   // Calculate the estimated growth based on inputs
   const calculateGrowth = () => {
-    // Example calculation - would be replaced with actual business logic
-    const baseGrowth = followers * 0.05 + posts * 10;
-    const platformMultiplier = platform === 'tiktok' ? 1.2 : platform === 'instagram' ? 1.0 : 1.1;
-    return Math.round(baseGrowth * platformMultiplier);
+    // A simple growth estimate based on number of creators, posting frequency, and platforms selected
+    const platformMultiplier = selectedPlatforms.length;
+    return Math.round(followers * posts * platformMultiplier * 0.01);
   };
 
   const estimatedGrowth = calculateGrowth();
 
   // Recommended plan based on inputs
   const getRecommendedPlan = () => {
-    if (followers > 10000 || posts > 30) return 'team';
-    if (followers > 1000 || posts > 10) return 'pro';
+    if (followers >= 10 || posts >= 100 || selectedPlatforms.length >= 3) return 'team';
+    if (followers >= 3 || posts >= 30 || selectedPlatforms.length === 2) return 'pro';
     return 'lite';
   };
 
@@ -477,17 +475,19 @@ export default function PricingPage() {
             </div>
             
             <div className="mb-8">
-              <label className="block text-white/70 mb-2 font-medium">What category?</label>
+              <label className="block text-white/70 mb-2 font-medium">What platforms?</label>
               <div className="grid grid-cols-3 gap-2">
                 {platformOptions.map((option) => (
                   <button
                     key={option.id}
-                    onClick={() => setPlatform(option.id)}
-                    className={`flex items-center justify-center space-x-2 p-3 rounded-lg border transition-all ${platform === option.id 
+                    onClick={() => {
+                      setSelectedPlatforms((prev) => prev.includes(option.id) ? prev.filter(p => p !== option.id) : [...prev, option.id]);
+                    }}
+                    className={`flex items-center justify-center space-x-2 p-3 rounded-lg border transition-all ${selectedPlatforms.includes(option.id)
                       ? 'border-blitz-blue/50 bg-blitz-blue/5 text-lightning-DEFAULT' 
                       : 'border-white/10 bg-black/20 text-white/70 hover:text-white/90 hover:border-white/20'}`}
                   >
-                    <span className="text-blitz-blue">{option.icon}</span>
+                    <span className="text-green-500">{option.icon}</span>
                     <span>{option.label}</span>
                   </button>
                 ))}
@@ -496,14 +496,14 @@ export default function PricingPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-black/30 rounded-xl p-6 text-center">
-                <h4 className="text-white/70 mb-1 text-sm">Will you post on</h4>
-                <div className="text-xl font-bold text-lightning-DEFAULT">{platformOptions.find(p => p.id === platform)?.label}</div>
+                <h4 className="text-white/70 mb-1 text-sm">Platforms selected</h4>
+                <div className="text-xl font-bold text-lightning-DEFAULT">{selectedPlatforms.map(id => platformOptions.find(p=>p.id===id)?.label).join(', ')}</div>
               </div>
               
               <div className="bg-black/30 rounded-xl p-6 text-center">
                 <h4 className="text-white/70 mb-1 text-sm">We recommend</h4>
                 <div className="text-xl font-bold text-lightning-DEFAULT">
-                  {pricingTiers.find(p => p.id === recommendedPlan)?.name} Plan
+                  {pricingTiers.find(p => p.id === recommendedPlan)?.name}
                 </div>
               </div>
               
@@ -518,129 +518,79 @@ export default function PricingPage() {
                 href={`#${recommendedPlan}`} 
                 className="inline-flex items-center px-8 py-3 bg-[#8D5AFF] text-white rounded-xl font-medium hover:shadow-lg hover:shadow-[#8D5AFF]/20 transition-all"
               >
-                <span>Select {pricingTiers.find(p => p.id === recommendedPlan)?.name} Plan</span>
+                <span>Select {pricingTiers.find(p => p.id === recommendedPlan)?.name}</span>
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </div>
           </motion.div>
         </div>
 
-        {/* Comparison table */}
-        <div className="mb-32 max-w-6xl mx-auto">
+        {/* FAQ Section with smooth animations */}
+        <div className="mb-32 max-w-4xl mx-auto">
           <motion.h2 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-center mb-12 bg-[#3D7BF4] bg-clip-text text-transparent"
-          >
-            Compare all plans
-          </motion.h2>
-          
-          <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 p-8">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="bg-[#8D5AFF]/10 rounded-full p-3">
-                <Calculator className="w-6 h-6 text-[#8D5AFF]" />
-              </div>
-              <h3 className="text-xl font-semibold text-white">ROI Calculator</h3>
-            </div>
-            <div className="grid grid-cols-4 gap-0">
-              <div className="p-6 border-b border-white/10">
-                <h3 className="font-bold text-lightning-DEFAULT">From</h3>
-              </div>
-              {pricingTiers.map((tier: PricingTier) => (
-                <div key={tier.id} className="p-6 text-center border-b border-white/10">
-                  <h3 className="font-bold text-lightning-DEFAULT">{tier.name}</h3>
-                  <p className="text-white/70">${tier.price}/mo</p>
-                </div>
-              ))}
-            </div>
-            
-            {features.map((feature, index) => (
-              <div key={index} className="grid grid-cols-4 gap-0 hover:bg-black/20 transition-colors">
-                <div className="p-6 border-b border-white/10 flex items-center">
-                  <div>
-                    <h4 className="font-medium text-lightning-DEFAULT">{feature.name}</h4>
-                    <p className="text-sm text-white/70">{feature.description}</p>
-                  </div>
-                </div>
-                {pricingTiers.map((tier: PricingTier) => (
-                  <div key={`${tier.id}-${index}`} className="p-6 flex items-center justify-center border-b border-white/10">
-                    {feature.tiers[tier.name as keyof typeof feature.tiers] ? (
-                      <Check className="w-5 h-5 text-[#8D5AFF]" />
-                    ) : (
-                      <X className="w-5 h-5 text-white/30" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="mb-32 max-w-3xl mx-auto">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-center mb-12 bg-[#3D7BF4] bg-clip-text text-transparent"
+            className="text-3xl font-bold text-center mb-12 text-[#8D5AFF]"
           >
             Frequently Asked Questions
           </motion.h2>
           
           <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <motion.div 
+            {[
+              {
+                question: "How does the Viral Blitz Cycle work?",
+                answer: "Our proprietary Viral Blitz Cycle analyzes trending content, identifies viral patterns, and generates content specifically designed to maximize engagement and drive sales conversions."
+              },
+              {
+                question: "Can I cancel anytime?",
+                answer: "Yes, you can cancel your subscription at any time. No long-term contracts or cancellation fees."
+              },
+              {
+                question: "What platforms do you support?",
+                answer: "We support TikTok, Instagram, YouTube, and more platforms are coming soon."
+              },
+              {
+                question: "Is there a refund policy?",
+                answer: "We offer a 10-day results guarantee. If you don't see improved engagement within 10 days, we'll refund your purchase."
+              }
+            ].map((faq, index) => (
+              <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-black/40 border border-white/10 rounded-xl overflow-hidden"
+                className="bg-black/40 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden"
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="flex justify-between items-center w-full text-left p-6"
+                  className="w-full p-6 text-left flex justify-between items-center hover:bg-white/5 transition-all duration-300"
                 >
-                  <span className="font-medium text-lg text-white">{faq.question}</span>
-                  <ChevronDown className={`w-5 h-5 text-[#5afcc0] transition-transform ${activeFaq === index ? 'transform rotate-180' : ''}`} />
+                  <h3 className="text-lg font-semibold text-white">{faq.question}</h3>
+                  <motion.div
+                    animate={{ rotate: activeFaq === index ? 180 : 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    <ChevronDown className="w-5 h-5 text-[#8D5AFF]" />
+                  </motion.div>
                 </button>
                 <AnimatePresence>
                   {activeFaq === index && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
+                      animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="px-6 pb-6 pt-0 text-white/80"
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="overflow-hidden"
                     >
-                      {faq.answer}
+                      <div className="px-6 pb-6">
+                        <p className="text-white/80 leading-relaxed">{faq.answer}</p>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </motion.div>
             ))}
           </div>
-        </div>
-
-        {/* Final CTA */}
-        <div className="text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-block px-10 py-8 bg-gradient-to-r from-blitz-blue/10 to-blitz-purple/10 rounded-2xl border border-storm-light/10 backdrop-blur-sm"
-          >
-            <h3 className="text-2xl font-bold text-lightning-DEFAULT mb-4">Ready to boost your social media presence?</h3>
-            <p className="text-lightning-dim/80 mb-8 max-w-2xl mx-auto">Join thousands of creators and businesses growing their audience with our platform.</p>
-            <motion.button 
-              className="bg-[#3D7BF4] text-lightning-DEFAULT font-medium px-8 py-4 rounded-xl shadow-lg shadow-blitz-blue/20 transition-all duration-300 hover:shadow-xl hover:shadow-blitz-blue/30"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="flex items-center">
-                Start Your 14-Day Free Trial
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </span>
-            </motion.button>
-            <p className="text-sm text-lightning-dim/60 mt-4">No credit card required. Cancel anytime.</p>
-          </motion.div>
         </div>
       </div>
     </div>
