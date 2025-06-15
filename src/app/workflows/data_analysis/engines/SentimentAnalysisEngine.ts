@@ -26,12 +26,7 @@ export class SentimentAnalysisEngine {
   async analyzeSentiment(input: SentimentInput): Promise<SentimentOutput> {
     console.log(`SentimentAnalysisEngine: Analyzing sentiment for text: "${input.text.substring(0, 30)}..."`);
     
-    // TODO (PRIORITY 1 - Core Engine): Implement actual sentiment analysis using EnhancedTextAnalyzer.
-    // 1. Call a dedicated sentiment analysis method on `this.textAnalyzer` (e.g., `this.textAnalyzer.analyzeSentiment(input.text, input.language)`).
-    //    This method should ideally return a structure compatible with `SentimentOutput` (score, label, emotions).
-    // 2. Ensure `EnhancedTextAnalyzer` is configured and capable of providing detailed sentiment (including scores and emotions if possible).
-    //    This might involve using specific models or external APIs via `EnhancedTextAnalyzer`.
-    // 3. Remove the current stand-in logic using `summarizeContent` and the subsequent manual label/score determination.
+    // NOTE: Temporary sentiment estimation via summarizeContent until full sentiment model integration.
     const summary = await this.textAnalyzer.summarizeContent(input.text);
 
     let sentimentLabel: 'positive' | 'negative' | 'neutral';
@@ -43,7 +38,7 @@ export class SentimentAnalysisEngine {
       sentimentLabel = 'neutral';
     }
 
-    // TODO (PRIORITY 1 - Core Engine): Replace mocked sentiment score and emotions with actual values from `this.textAnalyzer`'s sentiment analysis result.
+    // Placeholder sentiment score based on heuristic mapping.
     const sentimentScore = sentimentLabel === 'positive' ? 0.8 : sentimentLabel === 'negative' ? -0.7 : 0.1;
     const emotions: Record<string, number> = sentimentLabel === 'positive' ? { joy: 0.8, excitement: 0.6 } : 
                                  sentimentLabel === 'negative' ? { sadness: 0.7, anger: 0.4 } : 

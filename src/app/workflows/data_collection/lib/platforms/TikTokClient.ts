@@ -1,5 +1,5 @@
 import { BasePlatformClient, HeaderValue, ApiResponse as BaseApiResponse } from './base-platform';
-import { ApiConfig as PlatformSpecificApiConfig } from './types';
+import { ApiConfig as PlatformSpecificApiConfig, PlatformComment, ApiResponse } from './types';
 import { IAuthTokenManager } from '../auth.types';
 import { Platform } from '../../../deliverables/types/deliverables_types';
 import { ApiError, PlatformError, RateLimitError, ValidationError } from '../utils/errors';
@@ -130,8 +130,8 @@ export class TikTokClient extends BasePlatformClient {
       if (error instanceof ApiError || error instanceof ValidationError || error instanceof RateLimitError || error instanceof PlatformError) {
         throw error;
       }
-      this.log('error', `Unhandled error in ${methodName}`, { error });
-      throw new PlatformError(this.platform, `Unhandled error in ${methodName}: ${(error as Error).message}`);
+      this.log('error', `Unhandled error in ${methodName}`, { error, methodName });
+      throw new PlatformError(this.platform, `Unhandled error in ${methodName}: ${(error as Error).message}`, 'UNHANDLED_PLATFORM_ERROR', error);
     }
   }
 
@@ -139,14 +139,13 @@ export class TikTokClient extends BasePlatformClient {
     return (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') || typeof (globalThis as any).jest !== 'undefined';
   }
 
-  async getUserInfo(params: TikTokUserInfoRequest): Promise<any> {
+  async getUserInfo(params: TikTokUserInfoRequest): Promise<TikTokUserInfo> {
     if ((params as any).__testCall) {
       try {
-        const result = await this._callTikTokApi(
+        const result = await this._callTikTokApi<TikTokUserInfoRequest, TikTokUserInfoResponseData, TikTokUserInfoResponse>(
           'getUserInfo',
           { method: 'POST', url: '/user/info/', data: params },
-          TikTokUserInfoResponseSchema,
-          params
+          TikTokUserInfoResponseSchema
         );
         if (!result || !('data' in result) || !result.data || !('user' in result.data)) {
           throw new Error('TikTokClient: No user data returned in test/mock mode');
@@ -157,7 +156,7 @@ export class TikTokClient extends BasePlatformClient {
       }
     }
     try {
-      const result = await this._callTikTokApi<TikTokUserInfoRequest, any, any>(
+      const result = await this._callTikTokApi<TikTokUserInfoRequest, TikTokUserInfoResponseData, TikTokUserInfoResponse>(
         '/user/info/',
         params,
         TikTokUserInfoResponseSchema,
@@ -188,6 +187,9 @@ export class TikTokClient extends BasePlatformClient {
       TikTokVideoListResponseSchema,
       'listUserVideos'
     );
+    if (!response.data) {
+      throw new Error('Failed to get video list data from TikTok API');
+    }
     return response.data;
   }
 
@@ -207,6 +209,9 @@ export class TikTokClient extends BasePlatformClient {
       TikTokVideoQueryResponseSchema,
       'queryVideos'
     );
+    if (!response.data) {
+      throw new Error('Failed to get video query data from TikTok API');
+    }
     return response.data;
   }
 
@@ -226,6 +231,9 @@ export class TikTokClient extends BasePlatformClient {
       TikTokVideoUploadInitResponseSchema,
       'initiateVideoUpload'
     );
+    if (!response.data) {
+      throw new Error('Failed to get upload data from TikTok API');
+    }
     return response.data;
   }
 
@@ -245,10 +253,13 @@ export class TikTokClient extends BasePlatformClient {
       TikTokVideoPublishResponseSchema,
       'publishVideo'
     );
+    if (!response.data) {
+      throw new Error('Failed to get publish data from TikTok API');
+    }
     return response.data;
   }
 
-  async postVideo(params: TikTokPostVideoParams): Promise<TikTokVideoPublishResponseData | undefined> {
+  async postVideo(params: TikTokPostVideoParams): Promise<TikTokVideoPublishResponseData> {
     this.log('info', 'Attempting to post video to TikTok via PULL_URL strategy.', { title: params.title });
 
     const validationResult = TikTokPostVideoParamsSchema.safeParse(params);
@@ -320,5 +331,20 @@ export class TikTokClient extends BasePlatformClient {
     };
 
     return this.publishVideo(publishParams);
+  }
+
+  async getVideoComments(
+    postId: string,
+    options?: { cursor?: string; limit?: number }
+  ): Promise<ApiResponse<{ comments: PlatformComment[]; nextPageCursor?: string; hasMore?: boolean }>> {
+    this.log('warn', 'getVideoComments is not yet implemented for TikTokClient. Returning stubbed response.', { postId, options });
+    return Promise.resolve({
+      data: {
+        comments: [],
+        nextPageCursor: undefined,
+        hasMore: false,
+      },
+      rateLimit: this.rateLimit === null ? undefined : this.rateLimit,
+    });
   }
 }

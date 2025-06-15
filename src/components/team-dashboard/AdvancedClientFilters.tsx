@@ -27,8 +27,12 @@ import {
   Zap,
   RefreshCw,
   Save,
-  Bookmark
+  Bookmark,
+  ArrowRight,
+  SlidersHorizontal,
+  XCircle
 } from 'lucide-react';
+import { Client } from "@/lib/types"; // Adjust this import based on your actual Client type definition
 
 interface FilterOption {
   id: string;
@@ -56,8 +60,12 @@ interface SavedFilter {
   isDefault?: boolean;
 }
 
-interface AdvancedClientFiltersProps {
-  onFiltersChange: (filters: Record<string, any>) => void;
+export interface AdvancedClientFiltersProps {
+  onFiltersChange: (filters: {
+    status: string[];
+    industry: string[];
+    country: string[];
+  }) => void;
   clientCount: number;
   filteredCount: number;
 }

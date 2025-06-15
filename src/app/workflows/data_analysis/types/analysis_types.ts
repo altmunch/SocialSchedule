@@ -41,6 +41,7 @@ export interface AnalysisResult<TData> {
     cacheStatus?: 'hit' | 'miss';
     warnings?: string[];
     correlationId?: string; // For tracing requests
+    processingTime?: number; // Added processingTime
   };
 }
 
@@ -226,39 +227,7 @@ export interface SentimentAnalysisResult {
   dominantEmotion?: string; // e.g., joy, anger, sadness (if model supports it)
 }
 
-// --- Feature Enhancement: ML-based Audio Recommendation Types ---
-export const AudioFeaturesInputSchema = z.object({
-  videoContentSummary: z.string().optional(), // Summary/transcript of video
-  desiredMood: z.array(z.string()).optional(), // e.g., ['upbeat', 'energetic']
-  genrePreferences: z.array(z.string()).optional(), // e.g., ['electronic', 'pop']
-  tempoRange: z.tuple([z.number().min(0), z.number().min(0)]).optional(), // [minBPM, maxBPM]
-  videoTheme: z.string().optional(), // e.g., 'tutorial', 'comedy skit', 'product review'
-  targetAudienceDemographics: z.string().optional(), // e.g., 'Gen Z, urban'
-  existingAudioContext: z.array(AudioViralitySchema).optional(), // Context from current audio trends
-});
-export type AudioFeaturesInput = z.infer<typeof AudioFeaturesInputSchema>;
-
-export const RecommendedAudioTrackSchema = z.object({
-  trackId: z.string(),
-  title: z.string(),
-  artist: z.string().optional(),
-  source: z.string(), // e.g., 'Epidemic Sound', 'YouTube Audio Library', 'TikTok Commercial Sounds'
-  genre: z.array(z.string()).optional(),
-  mood: z.array(z.string()).optional(),
-  tempo: z.number().optional(),
-  relevanceScore: z.number().min(0).max(1),
-  previewUrl: z.string().url().optional(),
-  licensingInfo: z.string().optional(), // e.g., 'royalty-free', 'requires attribution'
-  reasoning: z.string().optional(), // Why this track is recommended
-});
-export type RecommendedAudioTrack = z.infer<typeof RecommendedAudioTrackSchema>;
-
-export interface AudioRecommendationResult {
-  recommendations: RecommendedAudioTrack[];
-  diversificationSuggestions?: string[]; // e.g., "Consider a track with a contrasting mood for section B"
-}
-
-// --- Feature Enhancement: Detailed Social Media Analytics ---
+// --- Audience and Platform Analytics Types (New or Enhanced) ---
 export const AudienceDemographicsSchema = z.object({
   ageGroups: z.record(z.string(), z.number().min(0).max(1)).optional(), // e.g., {"18-24": 0.4, "25-34": 0.3}
   genderDistribution: z.record(z.string(), z.number().min(0).max(1)).optional(), // e.g., {"male": 0.5, "female": 0.45, "other": 0.05}
@@ -304,7 +273,6 @@ export interface VideoOptimizationAnalysisData {
   trendingHashtags: TrendingHashtag[];
   audioViralityAnalysis: AudioVirality[];
   realTimeSentiment?: SentimentAnalysisResult; // NEW: Integrated for sentiment insights
-  audioRecommendations?: AudioRecommendationResult; // NEW: Integrated for audio suggestions
   detailedPlatformAnalytics?: DetailedPlatformMetrics; // NEW: Integrated for richer analytics
 }
 

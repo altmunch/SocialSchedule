@@ -4,6 +4,9 @@ import { lazy, Suspense, ComponentType } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
+import { BulkOperationsPanelProps } from '../team-dashboard/BulkOperationsPanel';
+import { AdvancedClientFiltersProps } from '../team-dashboard/AdvancedClientFilters';
+import { ClientDetailViewProps } from '../team-dashboard/ClientDetailView';
 
 // Generic loading skeleton
 function GenericSkeleton({ title = 'Loading...', rows = 3 }: { title?: string; rows?: number }) {
@@ -59,21 +62,25 @@ function DashboardSkeleton() {
 }
 
 // Lazy component wrapper with error boundary
-function withLazyLoading<T extends Record<string, any>>(
-  importFn: () => Promise<{ default: ComponentType<T> }>,
+function withLazyLoading<C extends React.ComponentType<any>>(
+  importFn: () => Promise<{ default: C }>,
   fallback?: React.ReactNode,
   displayName?: string
 ) {
   const LazyComponent = lazy(importFn);
-  LazyComponent.displayName = displayName || 'LazyComponent';
 
-  return function LazyWrapper(props: T) {
+  type ComponentProps = React.ComponentProps<C>;
+
+  function LazyWrapper(props: ComponentProps) {
     return (
       <Suspense fallback={fallback || <GenericSkeleton />}>
         <LazyComponent {...props} />
       </Suspense>
     );
-  };
+  }
+
+  LazyWrapper.displayName = displayName || 'LazyComponent';
+  return LazyWrapper;
 }
 
 // Lazy-loaded components
@@ -128,22 +135,30 @@ export const LazyWorkflowScheduler = withLazyLoading(
 // Chart components (heavy dependencies)
 export const LazyRechartsComponents = {
   LineChart: withLazyLoading(
-    () => import('recharts').then(m => ({ default: m.LineChart })),
+    () => import('recharts').then(m => ({
+      default: m.LineChart
+    })),
     <ChartSkeleton />,
     'LazyLineChart'
   ),
   BarChart: withLazyLoading(
-    () => import('recharts').then(m => ({ default: m.BarChart })),
+    () => import('recharts').then(m => ({
+      default: m.BarChart
+    })),
     <ChartSkeleton />,
     'LazyBarChart'
   ),
   PieChart: withLazyLoading(
-    () => import('recharts').then(m => ({ default: m.PieChart })),
+    () => import('recharts').then(m => ({
+      default: m.PieChart
+    })),
     <ChartSkeleton />,
     'LazyPieChart'
   ),
   AreaChart: withLazyLoading(
-    () => import('recharts').then(m => ({ default: m.AreaChart })),
+    () => import('recharts').then(m => ({
+      default: m.AreaChart
+    })),
     <ChartSkeleton />,
     'LazyAreaChart'
   ),
@@ -152,12 +167,16 @@ export const LazyRechartsComponents = {
 // Motion components (framer-motion is heavy)
 export const LazyMotionComponents = {
   motion: withLazyLoading(
-    () => import('framer-motion').then(m => ({ default: m.motion })),
+    () => import('framer-motion').then(m => ({
+      default: m.motion
+    })),
     <div>Loading animation...</div>,
     'LazyMotion'
   ),
   AnimatePresence: withLazyLoading(
-    () => import('framer-motion').then(m => ({ default: m.AnimatePresence })),
+    () => import('framer-motion').then(m => ({
+      default: m.AnimatePresence
+    })),
     <div>Loading animation...</div>,
     'LazyAnimatePresence'
   ),

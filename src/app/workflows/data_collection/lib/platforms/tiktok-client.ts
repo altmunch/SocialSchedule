@@ -2,7 +2,7 @@
 // Ensure proper error handling for rate limits and token refreshes
 
 import { BasePlatformClient, HeaderValue } from './base-platform'; // Added HeaderValue
-import { ApiConfig, ApiResponse, PlatformPostMetrics, PlatformUserActivity, PlatformPost } from './types'; // Consolidated imports
+import { ApiConfig, ApiResponse, PlatformPostMetrics, PlatformUserActivity, PlatformPost, PlatformComment } from './types'; // Consolidated imports, Added PlatformComment
 import { IAuthTokenManager } from '../auth.types';
 import { Platform } from '../../../deliverables/types/deliverables_types';
 import { ApiError, PlatformError, RateLimitError } from '../utils/errors'; // Corrected error imports path
@@ -544,4 +544,21 @@ export class TikTokClient extends BasePlatformClient {
       };
     }
   } // End getUserVideos method
+
+  async getVideoComments(
+    postId: string,
+    options?: { cursor?: string; limit?: number }
+  ): Promise<ApiResponse<{ comments: PlatformComment[]; nextPageCursor?: string; hasMore?: boolean }>> {
+    this.log('warn', 'getVideoComments is not yet implemented for TikTokClient (./tiktok-client.ts). Returning stubbed response.', { postId, options });
+    // Placeholder: Implement actual API call to TikTok for comments
+    // For now, return an empty list with no pagination
+    return Promise.resolve({
+      data: {
+        comments: [],
+        nextPageCursor: undefined,
+        hasMore: false,
+      },
+      rateLimit: this.rateLimit || undefined,
+    });
+  }
 }

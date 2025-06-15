@@ -314,7 +314,7 @@ export class DataCollectionAgent {
    */
   private async analyzeNichePlatformGap(niche: ContentNiche, platform: Platform): Promise<DataGap | null> {
     const nicheCharacteristics = getNicheCharacteristics(niche);
-    const requiredSamples = nicheCharacteristics.finetuningData?.minSamples || 10000;
+    const requiredSamples = 10000; // Default required samples for data collection
     
     // Simulate current sample count
     const currentSamples = Math.floor(Math.random() * requiredSamples * 1.5);
@@ -608,7 +608,7 @@ export class DataCollectionAgent {
   private async discoverKeywords(niche: ContentNiche, nicheCharacteristics: any): Promise<string[]> {
     // Simulate keyword discovery
     const baseKeywords = nicheCharacteristics.keyTopics || [];
-    const emergingKeywords = baseKeywords.map(keyword => 
+    const emergingKeywords = baseKeywords.map((keyword: string) => 
       keyword + '_2024'
     ).slice(0, 3);
     

@@ -1,440 +1,540 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTeamMode } from '@/providers/TeamModeProvider';
-import { useAuth } from '@/providers/AuthProvider';
-import { AdvancedClientFilters } from '@/components/team-dashboard/AdvancedClientFilters';
-import { BulkOperationsPanel } from '@/components/team-dashboard/BulkOperationsPanel';
-import { ClientDetailView } from '@/components/team-dashboard/ClientDetailView';
-import { TeamSidebar } from '@/components/team-dashboard/TeamSidebar';
-import { TeamHeader } from '@/components/team-dashboard/TeamHeader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { 
-  Users, 
-  Search, 
-  Filter, 
-  Download, 
   Upload, 
-  RefreshCw,
-  MoreHorizontal,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  CheckCircle,
-  AlertCircle,
+  Play, 
+  Pause, 
+  Settings, 
+  Users, 
+  Calendar, 
+  BarChart3,
+  Sparkles,
+  Rocket,
+  CheckCircle2,
   Clock,
-  Zap
+  AlertTriangle,
+  FileVideo,
+  Hash,
+  MessageSquare,
+  Mail,
+  Globe,
+  Filter,
+  Search,
+  Plus,
+  Download,
+  RefreshCw,
+  Eye,
+  Edit,
+  Trash2,
+  ArrowRight,
+  Zap,
+  Target,
+  TrendingUp,
+  Workflow
 } from 'lucide-react';
 
-// Mock client data for demonstration
-interface Client {
+interface ContentAutomationJob {
   id: string;
   name: string;
-  email: string;
-  platform: 'tiktok' | 'instagram' | 'youtube';
-  status: 'active' | 'paused' | 'pending' | 'error';
-  engagement: number;
-  followers: number;
-  revenue: number;
-  lastActivity: Date;
-  workflowsActive: number;
-  tags: string[];
+  type: 'video_processing' | 'auto_posting' | 'report_generation';
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  progress: number;
+  videosTotal: number;
+  videosProcessed: number;
+  clientsAffected: number;
+  startedAt: Date;
+  estimatedCompletion?: Date;
+  results?: {
+    descriptionsGenerated: number;
+    hashtagsGenerated: number;
+    postsScheduled: number;
+    reportsGenerated: number;
+    emailsSent: number;
+  };
 }
 
-const mockClients: Client[] = [
-  {
-    id: '1',
-    name: 'Sarah Johnson',
-    email: 'sarah@example.com',
-    platform: 'tiktok',
-    status: 'active',
-    engagement: 8.5,
-    followers: 125000,
-    revenue: 15420,
-    lastActivity: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    workflowsActive: 3,
-    tags: ['high-performer', 'fashion']
-  },
-  {
-    id: '2',
-    name: 'Mike Chen',
-    email: 'mike@example.com',
-    platform: 'instagram',
-    status: 'active',
-    engagement: 6.2,
-    followers: 89000,
-    revenue: 8750,
-    lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    workflowsActive: 2,
-    tags: ['tech', 'gaming']
-  },
-  {
-    id: '3',
-    name: 'Emma Davis',
-    email: 'emma@example.com',
-    platform: 'youtube',
-    status: 'paused',
-    engagement: 4.1,
-    followers: 45000,
-    revenue: 3200,
-    lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    workflowsActive: 0,
-    tags: ['lifestyle', 'wellness']
-  },
-  {
-    id: '4',
-    name: 'Alex Rodriguez',
-    email: 'alex@example.com',
-    platform: 'tiktok',
-    status: 'error',
-    engagement: 2.8,
-    followers: 67000,
-    revenue: 1850,
-    lastActivity: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
-    workflowsActive: 1,
-    tags: ['food', 'cooking']
-  },
-  {
-    id: '5',
-    name: 'Lisa Wang',
-    email: 'lisa@example.com',
-    platform: 'instagram',
-    status: 'active',
-    engagement: 9.2,
-    followers: 156000,
-    revenue: 22100,
-    lastActivity: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-    workflowsActive: 4,
-    tags: ['high-performer', 'beauty', 'skincare']
-  }
-];
+export default function OperationsPage() {
+  const { totalClientCount } = useTeamMode();
+  const [activeTab, setActiveTab] = useState('content-automation');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [automationJobs, setAutomationJobs] = useState<ContentAutomationJob[]>([]);
 
-export default function TeamOperationsPage() {
-  const { user } = useAuth();
-  const { 
-    totalClientCount, 
-    selectedClients, 
-    setCurrentTab,
-    searchQuery,
-    setSearchQuery,
-    refreshClients,
-    clearSelection
-  } = useTeamMode();
-
-  const [clients, setClients] = useState<Client[]>(mockClients);
-  const [filteredClients, setFilteredClients] = useState<Client[]>(mockClients);
-  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [filters, setFilters] = useState({
-    status: '',
-    platform: '',
-    engagement: '',
-    tags: [] as string[]
-  });
-
+  // Mock automation jobs
   useEffect(() => {
-    setCurrentTab('operations');
-  }, [setCurrentTab]);
-
-  useEffect(() => {
-    // Apply filters
-    let filtered = clients;
-
-    if (searchQuery) {
-      filtered = filtered.filter(client => 
-        client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        client.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    if (filters.status) {
-      filtered = filtered.filter(client => client.status === filters.status);
-    }
-
-    if (filters.platform) {
-      filtered = filtered.filter(client => client.platform === filters.platform);
-    }
-
-    if (filters.engagement) {
-      const [min, max] = filters.engagement.split('-').map(Number);
-      filtered = filtered.filter(client => 
-        client.engagement >= min && (max ? client.engagement <= max : true)
-      );
-    }
-
-    if (filters.tags.length > 0) {
-      filtered = filtered.filter(client => 
-        filters.tags.some(tag => client.tags.includes(tag))
-      );
-    }
-
-    setFilteredClients(filtered);
-  }, [clients, searchQuery, filters]);
-
-  const handleFiltersChange = (newFilters: any) => {
-    setFilters(newFilters);
-  };
-
-  const handleClientSelect = (clientId: string) => {
-    setSelectedClientIds(prev => 
-      prev.includes(clientId) 
-        ? prev.filter(id => id !== clientId)
-        : [...prev, clientId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedClientIds.length === filteredClients.length) {
-      setSelectedClientIds([]);
-    } else {
-      setSelectedClientIds(filteredClients.map(client => client.id));
-    }
-  };
-
-  const handleBulkAction = async (action: string) => {
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      switch (action) {
-        case 'activate':
-          setClients(prev => prev.map(client => 
-            selectedClientIds.includes(client.id) 
-              ? { ...client, status: 'active' as const }
-              : client
-          ));
-          break;
-        case 'pause':
-          setClients(prev => prev.map(client => 
-            selectedClientIds.includes(client.id) 
-              ? { ...client, status: 'paused' as const }
-              : client
-          ));
-          break;
-        case 'delete':
-          setClients(prev => prev.filter(client => !selectedClientIds.includes(client.id)));
-          break;
+    setAutomationJobs([
+      {
+        id: 'job-1',
+        name: 'Fashion & Beauty Batch Processing',
+        type: 'video_processing',
+        status: 'processing',
+        progress: 78,
+        videosTotal: 2847,
+        videosProcessed: 2221,
+        clientsAffected: 234,
+        startedAt: new Date(Date.now() - 1000 * 60 * 45),
+        estimatedCompletion: new Date(Date.now() + 1000 * 60 * 15),
+        results: {
+          descriptionsGenerated: 2221,
+          hashtagsGenerated: 2221,
+          postsScheduled: 0,
+          reportsGenerated: 0,
+          emailsSent: 0
+        }
+      },
+      {
+        id: 'job-2',
+        name: 'Weekly Auto-Posting Schedule',
+        type: 'auto_posting',
+        status: 'completed',
+        progress: 100,
+        videosTotal: 15670,
+        videosProcessed: 15670,
+        clientsAffected: 1247,
+        startedAt: new Date(Date.now() - 1000 * 60 * 120),
+        results: {
+          descriptionsGenerated: 0,
+          hashtagsGenerated: 0,
+          postsScheduled: 15670,
+          reportsGenerated: 0,
+          emailsSent: 0
+        }
+      },
+      {
+        id: 'job-3',
+        name: 'Client Performance Reports',
+        type: 'report_generation',
+        status: 'processing',
+        progress: 65,
+        videosTotal: 0,
+        videosProcessed: 0,
+        clientsAffected: 3420,
+        startedAt: new Date(Date.now() - 1000 * 60 * 30),
+        estimatedCompletion: new Date(Date.now() + 1000 * 60 * 20),
+        results: {
+          descriptionsGenerated: 0,
+          hashtagsGenerated: 0,
+          postsScheduled: 0,
+          reportsGenerated: 2223,
+          emailsSent: 2223
+        }
       }
-      
-      setSelectedClientIds([]);
-    } catch (error) {
-      console.error('Bulk action failed:', error);
-    } finally {
-      setIsLoading(false);
+    ]);
+  }, []);
+
+  const getJobIcon = (type: string) => {
+    switch (type) {
+      case 'video_processing': return Sparkles;
+      case 'auto_posting': return Calendar;
+      case 'report_generation': return BarChart3;
+      default: return Zap;
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return <CheckCircle className="h-4 w-4 text-mint" />;
-      case 'paused': return <Clock className="h-4 w-4 text-yellow-500" />;
-      case 'pending': return <Clock className="h-4 w-4 text-blue-500" />;
-      case 'error': return <AlertCircle className="h-4 w-4 text-red-500" />;
-      default: return <Minus className="h-4 w-4 text-muted-foreground" />;
+      case 'completed': return 'text-mint bg-mint/10 border-mint/20';
+      case 'processing': return 'text-info bg-info/10 border-info/20';
+      case 'queued': return 'text-warning bg-warning/10 border-warning/20';
+      case 'failed': return 'text-coral bg-coral/10 border-coral/20';
+      default: return 'text-secondaryText bg-muted/10 border-border';
     }
-  };
-
-  const getEngagementTrend = (engagement: number) => {
-    if (engagement >= 8) return <TrendingUp className="h-4 w-4 text-mint" />;
-    if (engagement <= 3) return <TrendingDown className="h-4 w-4 text-red-500" />;
-    return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
   const formatTimeAgo = (date: Date) => {
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  };
 
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${diffDays}d ago`;
+  const formatETA = (date?: Date) => {
+    if (!date) return 'Unknown';
+    const now = new Date();
+    const diffInMinutes = Math.floor((date.getTime() - now.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 60) return `${diffInMinutes}m remaining`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h remaining`;
+    return `${Math.floor(diffInMinutes / 1440)}d remaining`;
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num.toString();
+  };
+
+  // Mock stats
+  const operationsStats = {
+    videosInQueue: 45680,
+    activeJobs: 12,
+    completedToday: 23456,
+    clientsProcessed: 8934,
+    postsScheduled: 67890,
+    reportsGenerated: 3420,
+    emailsSent: 12340,
+    avgProcessingTime: '2.3m'
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <TeamSidebar />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <TeamHeader />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Enhanced Header */}
+      <div className="relative overflow-hidden border-b border-white/10">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10" />
         
-        <main className="flex-1 overflow-auto p-6">
-          <div className="space-y-6">
-            {/* Page Header */}
+        <div className="relative px-6 py-8">
+          <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-creative">Client Operations</h1>
-                <p className="text-muted-foreground">
-                  Manage {totalClientCount.toLocaleString()} clients across all platforms
-                </p>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-4">
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/30 backdrop-blur-sm">
+                    <Workflow className="h-8 w-8 text-blue-300" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent">
+                      Operations Center
+                    </h1>
+                    <p className="text-gray-300">
+                      Managing content automation for {formatNumber(totalClientCount)} clients
+                    </p>
+                  </div>
+                </div>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" onClick={refreshClients}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </Button>
-                <Button variant="outline" size="sm">
+              <div className="flex items-center space-x-3">
+                <Button variant="outline" className="border-white/20 text-gray-300 hover:bg-white/10 backdrop-blur-sm">
                   <Download className="h-4 w-4 mr-2" />
-                  Export
+                  Export Logs
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Import
+                <Button className="bg-gradient-to-r from-mint to-lavender text-black font-semibold">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Workflow
                 </Button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Filters */}
-            <AdvancedClientFilters
-              onFiltersChange={handleFiltersChange}
-              clientCount={clients.length}
-              filteredCount={filteredClients.length}
-            />
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <CardContent className="p-4 text-center">
+            <FileVideo className="h-6 w-6 mx-auto mb-2 text-mint" />
+            <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.videosInQueue)}</div>
+            <div className="text-xs text-secondaryText">Videos in Queue</div>
+          </CardContent>
+        </Card>
 
-            {/* Bulk Operations Panel */}
-            {selectedClientIds.length > 0 && (
-              <BulkOperationsPanel
-                isVisible={selectedClientIds.length > 0}
-                onClose={() => setSelectedClientIds([])}
-              />
-            )}
+        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <CardContent className="p-4 text-center">
+            <Zap className="h-6 w-6 mx-auto mb-2 text-info" />
+            <div className="text-xl font-bold text-creative">{operationsStats.activeJobs}</div>
+            <div className="text-xs text-secondaryText">Active Jobs</div>
+          </CardContent>
+        </Card>
 
-            {/* Client List */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center space-x-2">
-                    <Users className="h-5 w-5" />
-                    <span>Clients ({filteredClients.length})</span>
-                  </CardTitle>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSelectAll}
-                    >
-                      {selectedClientIds.length === filteredClients.length ? 'Deselect All' : 'Select All'}
-                    </Button>
-                  </div>
+        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <CardContent className="p-4 text-center">
+            <CheckCircle2 className="h-6 w-6 mx-auto mb-2 text-mint" />
+            <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.completedToday)}</div>
+            <div className="text-xs text-secondaryText">Completed Today</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <CardContent className="p-4 text-center">
+            <Users className="h-6 w-6 mx-auto mb-2 text-lavender" />
+            <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.clientsProcessed)}</div>
+            <div className="text-xs text-secondaryText">Clients Processed</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <CardContent className="p-4 text-center">
+            <Calendar className="h-6 w-6 mx-auto mb-2 text-coral" />
+            <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.postsScheduled)}</div>
+            <div className="text-xs text-secondaryText">Posts Scheduled</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <CardContent className="p-4 text-center">
+            <BarChart3 className="h-6 w-6 mx-auto mb-2 text-info" />
+            <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.reportsGenerated)}</div>
+            <div className="text-xs text-secondaryText">Reports Generated</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <CardContent className="p-4 text-center">
+            <Mail className="h-6 w-6 mx-auto mb-2 text-warning" />
+            <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.emailsSent)}</div>
+            <div className="text-xs text-secondaryText">Emails Sent</div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <CardContent className="p-4 text-center">
+            <Clock className="h-6 w-6 mx-auto mb-2 text-mint" />
+            <div className="text-xl font-bold text-creative">{operationsStats.avgProcessingTime}</div>
+            <div className="text-xs text-secondaryText">Avg Processing</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="content-automation">Content Automation</TabsTrigger>
+          <TabsTrigger value="content-ideation">Content Ideation</TabsTrigger>
+          <TabsTrigger value="performance-tracking">Performance Tracking</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="content-automation" className="space-y-6">
+          {/* Content Automation Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold text-creative">Content Automation</h2>
+              <p className="text-secondaryText">Process thousands of videos with AI-powered descriptions and hashtags</p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-secondaryText" />
+                <Input
+                  placeholder="Search jobs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 w-64"
+                />
+              </div>
+              <Button variant="outline">
+                <Filter className="h-4 w-4 mr-2" />
+                Filter
+              </Button>
+            </div>
+          </div>
+
+          {/* Bulk Upload Section */}
+          <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-creative">
+                <Upload className="h-5 w-5" />
+                <span>Bulk Video Upload</span>
+              </CardTitle>
+              <CardDescription className="text-secondaryText">
+                Upload thousands of videos for automated processing
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="border-2 border-dashed border-border/50 rounded-lg p-8 text-center hover:border-mint/50 transition-colors">
+                <Upload className="h-12 w-12 mx-auto mb-4 text-secondaryText" />
+                <h3 className="text-lg font-medium text-creative mb-2">Drop videos here or click to upload</h3>
+                <p className="text-secondaryText mb-4">
+                  Supports MP4, MOV, AVI files. Maximum 10GB per batch.
+                </p>
+                <div className="flex items-center justify-center space-x-4">
+                  <Button className="bg-mint/20 text-mint hover:bg-mint/30">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose Files
+                  </Button>
+                  <Button variant="outline">
+                    <Globe className="h-4 w-4 mr-2" />
+                    Import from URL
+                  </Button>
                 </div>
-              </CardHeader>
+              </div>
               
-              <CardContent>
-                <div className="space-y-4">
-                  {filteredClients.map((client) => (
-                    <div
-                      key={client.id}
-                      className={`p-4 border rounded-lg transition-colors cursor-pointer hover:bg-muted/50 ${
-                        selectedClientIds.includes(client.id) ? 'bg-mint/10 border-mint' : 'border-border'
-                      }`}
-                      onClick={() => handleClientSelect(client.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <input
-                            type="checkbox"
-                            checked={selectedClientIds.includes(client.id)}
-                            onChange={() => handleClientSelect(client.id)}
-                            className="rounded border-border"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-1">
-                              <h3 className="font-semibold">{client.name}</h3>
-                              {getStatusIcon(client.status)}
-                              <Badge variant="outline" className="text-xs">
-                                {client.platform}
-                              </Badge>
-                            </div>
-                            
-                            <p className="text-sm text-muted-foreground">{client.email}</p>
-                            
-                            <div className="flex items-center space-x-4 mt-2 text-xs text-muted-foreground">
-                              <span className="flex items-center space-x-1">
-                                {getEngagementTrend(client.engagement)}
-                                <span>{client.engagement}% engagement</span>
-                              </span>
-                              <span>{client.followers.toLocaleString()} followers</span>
-                              <span>${client.revenue.toLocaleString()} revenue</span>
-                              <span>{formatTimeAgo(client.lastActivity)}</span>
-                            </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="space-y-1">
+                  <p className="font-medium text-creative">Auto-Generated Content</p>
+                  <ul className="text-secondaryText space-y-1">
+                    <li>• AI-powered descriptions</li>
+                    <li>• Trending hashtags</li>
+                    <li>• Platform optimization</li>
+                  </ul>
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium text-creative">Brand Voice Matching</p>
+                  <ul className="text-secondaryText space-y-1">
+                    <li>• Client-specific tone</li>
+                    <li>• Industry keywords</li>
+                    <li>• Custom templates</li>
+                  </ul>
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium text-creative">Automated Scheduling</p>
+                  <ul className="text-secondaryText space-y-1">
+                    <li>• Optimal posting times</li>
+                    <li>• Platform-specific formats</li>
+                    <li>• Client preferences</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Active Jobs */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-creative">Active Automation Jobs</h3>
+            <div className="space-y-4">
+              {automationJobs.map((job) => {
+                const IconComponent = getJobIcon(job.type);
+                return (
+                  <Card key={job.id} className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 rounded-lg bg-mint/10 border border-mint/20">
+                            <IconComponent className="h-5 w-5 text-mint" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-creative">{job.name}</h4>
+                            <p className="text-sm text-secondaryText">
+                              {job.clientsAffected} clients • Started {formatTimeAgo(job.startedAt)}
+                            </p>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center space-x-4">
-                          <div className="text-right">
-                            <div className="flex items-center space-x-1 text-sm">
-                              <Zap className="h-4 w-4 text-lavender" />
-                              <span>{client.workflowsActive} active</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {client.tags.slice(0, 2).map(tag => (
-                                <Badge key={tag} variant="secondary" className="text-xs mr-1">
-                                  {tag}
-                                </Badge>
-                              ))}
-                              {client.tags.length > 2 && (
-                                <span className="text-muted-foreground">+{client.tags.length - 2}</span>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedClient(client);
-                            }}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
+                        <div className="flex items-center space-x-3">
+                          <Badge className={getStatusColor(job.status)}>
+                            {job.status}
+                          </Badge>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
                           </Button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  
-                  {filteredClients.length === 0 && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No clients found matching your filters</p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={() => {
-                          setFilters({ status: '', platform: '', engagement: '', tags: [] });
-                          setSearchQuery('');
-                        }}
-                      >
-                        Clear Filters
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </main>
-      </div>
 
-      {/* Client Detail Modal */}
-      {selectedClient && (
-        <ClientDetailView
-          clientId={selectedClient.id}
-          onBack={() => setSelectedClient(null)}
-        />
-      )}
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-secondaryText">Progress</span>
+                            <span className="font-medium text-creative">
+                              {job.progress}% • {job.estimatedCompletion ? formatETA(job.estimatedCompletion) : 'Completed'}
+                            </span>
+                          </div>
+                          <Progress value={job.progress} className="h-2" />
+                        </div>
+
+                        {job.type === 'video_processing' && (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <p className="text-secondaryText">Videos Processed</p>
+                              <p className="font-semibold text-creative">
+                                {formatNumber(job.videosProcessed)} / {formatNumber(job.videosTotal)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-secondaryText">Descriptions</p>
+                              <p className="font-semibold text-creative">
+                                {formatNumber(job.results?.descriptionsGenerated || 0)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-secondaryText">Hashtags</p>
+                              <p className="font-semibold text-creative">
+                                {formatNumber(job.results?.hashtagsGenerated || 0)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-secondaryText">Clients</p>
+                              <p className="font-semibold text-creative">
+                                {formatNumber(job.clientsAffected)}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {job.type === 'auto_posting' && (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <p className="text-secondaryText">Posts Scheduled</p>
+                              <p className="font-semibold text-creative">
+                                {formatNumber(job.results?.postsScheduled || 0)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-secondaryText">Platforms</p>
+                              <p className="font-semibold text-creative">5 platforms</p>
+                            </div>
+                            <div>
+                              <p className="text-secondaryText">Clients</p>
+                              <p className="font-semibold text-creative">
+                                {formatNumber(job.clientsAffected)}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {job.type === 'report_generation' && (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <p className="text-secondaryText">Reports Generated</p>
+                              <p className="font-semibold text-creative">
+                                {formatNumber(job.results?.reportsGenerated || 0)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-secondaryText">Emails Sent</p>
+                              <p className="font-semibold text-creative">
+                                {formatNumber(job.results?.emailsSent || 0)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-secondaryText">Clients</p>
+                              <p className="font-semibold text-creative">
+                                {formatNumber(job.clientsAffected)}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="content-ideation" className="space-y-6">
+          <div className="text-center py-12">
+            <Rocket className="h-16 w-16 mx-auto mb-4 text-secondaryText" />
+            <h3 className="text-xl font-semibold text-creative mb-2">Content Ideation Module</h3>
+            <p className="text-secondaryText mb-6">
+              Generate personalized reports and content ideas for thousands of clients
+            </p>
+            <Button className="bg-gradient-to-r from-lavender to-coral text-black">
+              <Plus className="h-4 w-4 mr-2" />
+              Configure Ideation Workflow
+            </Button>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="performance-tracking" className="space-y-6">
+          <div className="text-center py-12">
+            <TrendingUp className="h-16 w-16 mx-auto mb-4 text-secondaryText" />
+            <h3 className="text-xl font-semibold text-creative mb-2">Performance Tracking Module</h3>
+            <p className="text-secondaryText mb-6">
+              Monitor client performance and generate AI-powered improvement recommendations
+            </p>
+            <Button className="bg-gradient-to-r from-coral to-info text-black">
+              <Plus className="h-4 w-4 mr-2" />
+              Configure Tracking Workflow
+            </Button>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 } 

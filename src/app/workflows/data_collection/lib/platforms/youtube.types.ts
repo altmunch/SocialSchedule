@@ -50,6 +50,26 @@ export const YouTubeVideoStatusSchema = z.object({
 });
 export type YouTubeVideoStatus = z.infer<typeof YouTubeVideoStatusSchema>;
 
+// Video Statistics Schema
+export const YouTubeVideoStatisticsSchema = z.object({
+  viewCount: z.string().optional(),
+  likeCount: z.string().optional(),
+  favoriteCount: z.string().optional(), // YouTube often uses 'favoriteCount' for public likes shown
+  commentCount: z.string().optional(),
+});
+export type YouTubeVideoStatistics = z.infer<typeof YouTubeVideoStatisticsSchema>;
+
+// Video ContentDetails Schema
+export const YouTubeVideoContentDetailsSchema = z.object({
+  duration: z.string().optional(), // ISO 8601 duration, e.g., PT1M30S
+  dimension: z.string().optional(),
+  definition: z.string().optional(), // e.g., "hd", "sd"
+  caption: z.string().optional(), // e.g., "true", "false"
+  licensedContent: z.boolean().optional(),
+  projection: z.string().optional(), // e.g., "rectangular", "360"
+});
+export type YouTubeVideoContentDetails = z.infer<typeof YouTubeVideoContentDetailsSchema>;
+
 // Video Resource Schema (Simplified)
 export const YouTubeVideoSchema = z.object({
   kind: z.literal('youtube#video'),
@@ -57,6 +77,8 @@ export const YouTubeVideoSchema = z.object({
   id: z.string(), // Video ID
   snippet: YouTubeVideoSnippetSchema.optional(),
   status: YouTubeVideoStatusSchema.optional(),
+  statistics: YouTubeVideoStatisticsSchema.optional(), // Added statistics
+  contentDetails: YouTubeVideoContentDetailsSchema.optional(), // Added contentDetails
   // Add other parts like contentDetails, statistics as needed
 });
 export type YouTubeVideo = z.infer<typeof YouTubeVideoSchema>;
@@ -112,6 +134,12 @@ export const YouTubeCommentThreadSnippetSchema = z.object({
   isPublic: z.boolean().optional(),
 });
 export type YouTubeCommentThreadSnippet = z.infer<typeof YouTubeCommentThreadSnippetSchema>;
+
+// Schema for the 'replies' object within a CommentThread
+export const YouTubeCommentRepliesSchema = z.object({
+  comments: z.array(YouTubeTopLevelCommentSchema).optional(), // Array of reply comments
+});
+export type YouTubeCommentReplies = z.infer<typeof YouTubeCommentRepliesSchema>;
 
 // Channel Snippet Schema
 export const YouTubeChannelSnippetSchema = z.object({
@@ -188,7 +216,7 @@ export const YouTubeCommentThreadSchema = z.object({
   etag: z.string(),
   id: z.string(), // CommentThread ID
   snippet: YouTubeCommentThreadSnippetSchema.optional(),
-  // replies: CommentRepliesSchema.optional(), // Define if needed
+  replies: YouTubeCommentRepliesSchema.optional(), // Define if needed - Now defined and uncommented
 });
 export type YouTubeCommentThread = z.infer<typeof YouTubeCommentThreadSchema>;
 

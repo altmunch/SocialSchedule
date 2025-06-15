@@ -8,8 +8,7 @@ export class AIImprovementEngine {
     request: BaseAnalysisRequest
   ): Promise<AnalysisResult<AIImprovementAnalysisData>> {
     console.log(`AIImprovementEngine: Generating AI improvement insights for userId: ${request.userId}`);
-    // TODO: Implement logic to analyze top-performing posts and suggest improvements for other workflows.
-    // This is a more complex engine that might synthesize findings from other engines or perform its own deep content analysis.
+    // MVP implementation: returns mocked insights until full ML pipeline is integrated.
 
     const placeholderData: AIImprovementAnalysisData = {
       topPerformingContentInsights: [

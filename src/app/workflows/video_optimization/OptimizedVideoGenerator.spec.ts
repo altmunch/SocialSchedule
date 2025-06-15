@@ -1,6 +1,6 @@
 import OpenAI, { APIError } from 'openai';
 import { OptimizedVideoGenerator, UserPreferences, ProductLink, OptimizedVideoContent } from './OptimizedVideoGenerator';
-import { VideoOptimizationAnalysisData, TrendingHashtag, AudioVirality, SentimentAnalysisResult, AudioRecommendationResult, DetailedPlatformMetrics, Platform } from '../data_analysis/types/analysis_types';
+import { VideoOptimizationAnalysisData, TrendingHashtag, AudioVirality, SentimentAnalysisResult, DetailedPlatformMetrics, Platform } from '../data_analysis/types/analysis_types';
 
 // Mock OpenAI
 jest.mock('openai', () => {
@@ -65,9 +65,6 @@ describe('OptimizedVideoGenerator', () => {
         overallScores: { positive: 0.8, neutral: 0.1, negative: 0.1 },
         dominantEmotion: 'joy',
       } as SentimentAnalysisResult,
-      audioRecommendations: {
-        recommendations: [{ title: 'Cool Beat', artist: 'DJ Test', genre: ['electronic'], mood: ['upbeat'] }],
-      } as AudioRecommendationResult,
       detailedPlatformAnalytics: {
         audienceDemographics: {
           ageGroups: { '18-24': 0.6 },

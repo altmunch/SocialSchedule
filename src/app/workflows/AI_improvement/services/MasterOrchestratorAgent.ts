@@ -3,7 +3,7 @@ import { ContentNiche } from '../types/niche_types';
 import { AIImprovementService } from './AIImprovementService';
 import { DataCollectionAgent, DataGap } from './agents/DataCollectionAgent';
 import { ContentOptimizationAgent } from './agents/ContentOptimizationAgent';
-import { EngagementPredictionAgent } from './agents/EngagementPredictionAgent';
+import { EngagementPredictionAgent } from '../../reports/services/EngagementPredictionAgent';
 import { ABTestingAgent } from './agents/ABTestingAgent';
 import { NicheSpecializationAgent } from './agents/NicheSpecializationAgent';
 import { UIAgent } from './agents/UIAgent';
@@ -66,6 +66,20 @@ export interface MasterOrchestratorDecision {
   alertsAndNotifications: string[];
 }
 
+// --- PID Controller for resource allocation (T5.1) ---
+class PIDController {
+  private integral = 0;
+  private previousError = 0;
+  constructor(private kp: number, private ki: number, private kd: number) {}
+  update(setpoint: number, measured: number, dt: number): number {
+    const error = setpoint - measured;
+    this.integral += error * dt;
+    const derivative = (error - this.previousError) / dt;
+    this.previousError = error;
+    return this.kp * error + this.ki * this.integral + this.kd * derivative;
+  }
+}
+
 /**
  * Master Orchestrator Agent - The primary coordinator for all AI improvement activities
  * 
@@ -104,7 +118,7 @@ export class MasterOrchestratorAgent {
     // Initialize core agents
     this.agents.set('data_collector', new DataCollectionAgent());
     this.agents.set('content_optimizer', new ContentOptimizationAgent());
-    this.agents.set('engagement_predictor', new EngagementPredictionAgent());
+    this.agents.set('engagement_predictor', new EngagementPredictionAgent({} as any));
     this.agents.set('ab_tester', new ABTestingAgent());
     this.agents.set('ui_agent', new UIAgent());
 
@@ -194,6 +208,8 @@ export class MasterOrchestratorAgent {
    * Main orchestration cycle - runs every 30 seconds
    */
   private async runOrchestrationCycle(): Promise<void> {
+    // Feedback loop for objectives
+    this.updateObjectiveWeights();
     try {
       console.log('🔄 Running orchestration cycle...');
 
@@ -302,7 +318,6 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
     }
 
     // Schedule engagement model training based on refined criteria
-    const engagementObjective = this.activeObjectives.find(obj => obj.type === 'engagement');
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     let shouldTrainEngagementModel = false;
 
@@ -310,7 +325,7 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
       decision.alertsAndNotifications.push("Engagement model accuracy below threshold, scheduling training.");
       shouldTrainEngagementModel = true;
     }
-    if (engagementObjective && this.systemMetrics.averageEngagementRate < engagementObjective.target) {
+    if (this.systemMetrics.averageEngagementRate < 0.05) {
       decision.alertsAndNotifications.push("Average engagement rate below target, scheduling engagement model training.");
       shouldTrainEngagementModel = true;
     }
@@ -367,12 +382,10 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
     }
 
     // Prioritize A/B tests for low-performing areas or specific objectives
-    const engagementObjective = this.activeObjectives.find(obj => obj.type === 'engagement');
     const viralityObjective = this.activeObjectives.find(obj => obj.type === 'virality');
     let abTestDirectives: Record<string, boolean> = {};
 
-    if (this.systemMetrics.averageEngagementRate < 0.05 || 
-        (engagementObjective && this.systemMetrics.averageEngagementRate < engagementObjective.target)) {
+    if (this.systemMetrics.averageEngagementRate < 0.05) {
       decision.alertsAndNotifications.push("Low engagement detected, prioritizing engagement-focused A/B tests.");
       abTestDirectives.engagement_focus = true;
     }
@@ -668,34 +681,24 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
    * Optimize resource allocations based on agent performance
    */
   private optimizeResourceAllocations(agentStatuses: AgentStatus[]): ResourceAllocation[] {
-    return agentStatuses.map(status => ({
-      agentId: status.agentId,
-      cpuAllocation: this.calculateCPUAllocation(status),
-      memoryAllocation: this.calculateMemoryAllocation(status),
-      priority: this.calculatePriority(status, this.systemMetrics, this.activeObjectives),
-    }));
-  }
-
-  /**
-   * Calculate CPU allocation for agent
-   */
-  private calculateCPUAllocation(status: AgentStatus): number {
-    const baseAllocation = 0.1; // 10% base
-    const performanceBonus = (1 - status.performance) * 0.2; // Up to 20% more for poor performance
-    const utilizationAdjustment = status.resourceUtilization * 0.3; // Up to 30% more for high utilization
-    
-    return Math.min(0.8, baseAllocation + performanceBonus + utilizationAdjustment);
-  }
-
-  /**
-   * Calculate memory allocation for agent
-   */
-  private calculateMemoryAllocation(status: AgentStatus): number {
-    const baseMemory = 512; // 512MB base
-    const typeMultiplier = status.agentType.includes('Prediction') ? 2 : 1;
-    const performanceMultiplier = status.performance < 0.5 ? 1.5 : 1;
-    
-    return baseMemory * typeMultiplier * performanceMultiplier;
+    // PID controller for CPU allocation
+    const pid = new PIDController(0.5, 0.1, 0.05);
+    const allocations: ResourceAllocation[] = [];
+    for (const status of agentStatuses) {
+      // Target utilization: 0.7 (70%)
+      const setpoint = 0.7;
+      const measured = status.resourceUtilization;
+      // Assume dt = 1 for simplicity
+      const cpu = Math.max(0.1, Math.min(2, 1 + pid.update(setpoint, measured, 1)));
+      allocations.push({
+        agentId: status.agentId,
+        cpuAllocation: cpu,
+        memoryAllocation: 1024,
+        gpuAllocation: 0,
+        priority: this.calculatePriority(status, this.systemMetrics, this.activeObjectives),
+      });
+    }
+    return allocations;
   }
 
   /**
@@ -856,6 +859,19 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
     }
     
     await this.runOrchestrationCycle();
+  }
+
+  // T5.2: Feedback loop for objective weights
+  private updateObjectiveWeights(): void {
+    // Example: if system efficiency drops, increase weight on efficiency
+    const eff = this.systemMetrics.systemEfficiency;
+    for (const obj of this.activeObjectives) {
+      if (obj.type === 'efficiency') {
+        if (eff < 0.8) obj.priority = 'high';
+        else if (eff < 0.9) obj.priority = 'medium';
+        else obj.priority = 'low';
+      }
+    }
   }
 }
 

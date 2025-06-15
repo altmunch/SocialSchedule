@@ -5,7 +5,8 @@ import React from 'react';
 // Simple placeholder chart components for demonstration purposes
 // In a real app, these would be implemented with a charting library like recharts or chart.js
 
-export function BarChart() {
+export function BarChart({ data }: { data: any[] }) {
+  // console.log('BarChart data:', data); // Placeholder for using data
   return (
     <div className="w-full h-full flex items-center justify-center">
       <svg width="100%" height="100%" viewBox="0 0 300 200">
@@ -29,45 +30,45 @@ export function PieChart() {
     <div className="w-full h-full flex items-center justify-center">
       <svg width="200" height="200" viewBox="0 0 200 200">
         <circle cx="100" cy="100" r="80" fill="transparent" stroke="#e5e7eb" strokeWidth="40" />
-        <circle 
-          cx="100" 
-          cy="100" 
-          r="80" 
-          fill="transparent" 
-          stroke="#3b82f6" 
-          strokeWidth="40" 
-          strokeDasharray="251.2 502.4" 
-          strokeDashoffset="0" 
+        <circle
+          cx="100"
+          cy="100"
+          r="80"
+          fill="transparent"
+          stroke="#3b82f6"
+          strokeWidth="40"
+          strokeDasharray="251.2 502.4"
+          strokeDashoffset="0"
         />
-        <circle 
-          cx="100" 
-          cy="100" 
-          r="80" 
-          fill="transparent" 
-          stroke="#8b5cf6" 
-          strokeWidth="40" 
-          strokeDasharray="125.6 502.4" 
-          strokeDashoffset="-251.2" 
+        <circle
+          cx="100"
+          cy="100"
+          r="80"
+          fill="transparent"
+          stroke="#8b5cf6"
+          strokeWidth="40"
+          strokeDasharray="125.6 502.4"
+          strokeDashoffset="-251.2"
         />
-        <circle 
-          cx="100" 
-          cy="100" 
-          r="80" 
-          fill="transparent" 
-          stroke="#10b981" 
-          strokeWidth="40" 
-          strokeDasharray="75.4 502.4" 
-          strokeDashoffset="-376.8" 
+        <circle
+          cx="100"
+          cy="100"
+          r="80"
+          fill="transparent"
+          stroke="#10b981"
+          strokeWidth="40"
+          strokeDasharray="75.4 502.4"
+          strokeDashoffset="-376.8"
         />
-        <circle 
-          cx="100" 
-          cy="100" 
-          r="80" 
-          fill="transparent" 
-          stroke="#f59e0b" 
-          strokeWidth="40" 
-          strokeDasharray="50.2 502.4" 
-          strokeDashoffset="-452.2" 
+        <circle
+          cx="100"
+          cy="100"
+          r="80"
+          fill="transparent"
+          stroke="#f59e0b"
+          strokeWidth="40"
+          strokeDasharray="50.2 502.4"
+          strokeDashoffset="-452.2"
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
@@ -94,21 +95,22 @@ export function PieChart() {
   );
 }
 
-export function LineChart() {
+export function LineChart({ data }: { data: any[] }) {
+  // console.log('LineChart data:', data); // Placeholder for using data
   return (
     <div className="w-full h-full flex items-end">
       <svg width="100%" height="100%" viewBox="0 0 300 80">
-        <polyline 
-          points="0,70 50,60 100,50 150,30 200,20 250,10 300,15" 
-          fill="none" 
-          stroke="#3b82f6" 
-          strokeWidth="2" 
+        <polyline
+          points="0,70 50,60 100,50 150,30 200,20 250,10 300,15"
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth="2"
         />
-        <polyline 
-          points="0,70 50,60 100,50 150,30 200,20 250,10 300,15" 
-          fill="url(#gradient)" 
-          strokeWidth="0" 
-          opacity="0.2" 
+        <polyline
+          points="0,70 50,60 100,50 150,30 200,20 250,10 300,15"
+          fill="url(#gradient)"
+          strokeWidth="0"
+          opacity="0.2"
         />
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -125,7 +127,7 @@ export function HotspotGeneration() {
   // Create a weekly heatmap showing best times to post
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const hours = ['9am', '12pm', '3pm', '6pm', '9pm'];
-  
+
   // Generate some random hotspots
   const hotspots = [
     { day: 'Mon', hour: '3pm', value: 0.8 },
@@ -136,7 +138,7 @@ export function HotspotGeneration() {
     { day: 'Sat', hour: '12pm', value: 0.75 },
     { day: 'Sun', hour: '9pm', value: 0.9 },
   ];
-  
+
   const getIntensity = (day: string, hour: string) => {
     const hotspot = hotspots.find(h => h.day === day && h.hour === hour);
     // Use deterministic values based on day and hour to prevent hydration mismatch
@@ -145,7 +147,7 @@ export function HotspotGeneration() {
     const baseIntensity = ((dayIndex + hourIndex * 2) % 10) / 20; // Creates values 0-0.5
     return hotspot ? hotspot.value : baseIntensity;
   };
-  
+
   const getColor = (intensity: number) => {
     if (intensity > 0.8) return 'bg-red-500';
     if (intensity > 0.6) return 'bg-orange-400';
@@ -153,7 +155,7 @@ export function HotspotGeneration() {
     if (intensity > 0.2) return 'bg-green-200';
     return 'bg-blue-100';
   };
-  
+
   return (
     <div className="w-full h-full p-4">
       <div className="grid grid-cols-8 gap-2">
@@ -163,7 +165,7 @@ export function HotspotGeneration() {
             {hour}
           </div>
         ))}
-        
+
         {days.map(day => (
           <React.Fragment key={day}>
             <div className="col-span-1 text-xs text-gray-500 flex items-center">
@@ -173,7 +175,7 @@ export function HotspotGeneration() {
               const intensity = getIntensity(day, hour);
               return (
                 <div key={`${day}-${hour}`} className="col-span-1 aspect-square relative">
-                  <div 
+                  <div
                     className={`absolute inset-0 rounded-md ${getColor(intensity)} flex items-center justify-center`}
                     style={{ opacity: intensity }}
                   >

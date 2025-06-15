@@ -9,8 +9,7 @@ export class AudienceReachEngine {
     niche: string
   ): Promise<AnalysisResult<AutopostingAnalysisData>> {
     console.log(`AudienceReachEngine: Analyzing reach for userId: ${request.userId}, niche: ${niche}`);
-    // TODO: Implement logic to analyze audience reach based on time of posting for a specific niche.
-    // This might involve analyzing historical data for similar content/niches or using platform insights if available.
+    // MVP implementation: returns mocked optimal posting times. Replace with statistical analysis in full version.
 
     const placeholderData: AutopostingAnalysisData = {
       optimalPostingTimes: [

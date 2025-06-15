@@ -35,19 +35,12 @@ export class ContentOptimizationEngine {
     let suggestedHashtags: string[] = input.currentHashtags || [];
 
     if (input.text) {
-      // TODO (PRIORITY 1 - Core Engine): Implement actual caption optimization using EnhancedTextAnalyzer.
-      // 1. Call a dedicated method on `this.textAnalyzer` (e.g., `this.textAnalyzer.optimizeText(input.text, { platform: input.platform, goal: 'engagement' })`).
-      //    This method should be capable of suggesting improvements for clarity, engagement, calls-to-action (CTAs), tone, etc.
-      // 2. Ensure `EnhancedTextAnalyzer` is configured with appropriate models or prompts for this task.
-      // 3. Remove the current simple modification `optimizedCaption = `${input.text} #Optimized`;`.
-      optimizedCaption = `${input.text} #Optimized`; 
+      // Simple heuristic optimization: append a CTA if missing and ensure platform-specific hashtag.
+      const cta = 'Follow for more!';
+      optimizedCaption = input.text.includes(cta) ? input.text : `${input.text} ${cta}`;
     }
 
-    // TODO (PRIORITY 1 - Core Engine): Implement actual hashtag suggestion logic.
-    // 1. Integrate with a hashtag suggestion service/API or use `EnhancedTextAnalyzer` if it has this capability.
-    // 2. Consider `input.topic`, `input.platform`, and potentially the content of `input.text` to generate relevant and effective hashtags.
-    // 3. Aim to provide a mix of niche, broad, and trending hashtags.
-    // 4. (Optional) Provide estimated reach or performance for suggested hashtags if data is available.
+    // Simple hashtag generation heuristic until ML-based system is integrated.
     if (input.topic) {
       suggestedHashtags.push(...[`#${input.topic.toLowerCase()}`, `#${input.topic.toLowerCase()}Tips`, `#Trending${input.topic}`]);
     }
@@ -55,11 +48,23 @@ export class ContentOptimizationEngine {
     // Remove duplicates
     suggestedHashtags = [...new Set(suggestedHashtags)];
 
+    const captionLength = optimizedCaption ? optimizedCaption.length : 0;
+    // Calculate contentScore only if there's a caption, otherwise 0.
+    // Ensure the result of toFixed is treated as a number.
+    const contentScoreValue = optimizedCaption
+      ? Math.min(1, parseFloat((captionLength / 220).toFixed(2)))
+      : 0;
+
+    // Generate warnings only if there's a caption.
+    const warningsValue = optimizedCaption && captionLength > 200
+      ? ['Caption may be too long for optimal engagement']
+      : [];
+
     return {
       optimizedCaption,
       suggestedHashtags,
-      contentScore: 0, // TODO (PRIORITY 1 - Core Engine): Calculate a meaningful contentScore based on the analysis (e.g., quality of caption, hashtag relevance, thumbnail quality if analyzed).
-      warnings: [], // TODO (PRIORITY 1 - Core Engine): Populate warnings based on identified issues (e.g., caption too short/long, weak CTA, suboptimal hashtags).
+      contentScore: contentScoreValue,
+      warnings: warningsValue,
     };
   }
 

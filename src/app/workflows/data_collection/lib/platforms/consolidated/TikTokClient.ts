@@ -93,8 +93,49 @@ export class TikTokClient extends BasePlatformClient {
       hasMore?: boolean;
     }>
   > {
-    // TODO: Implement actual TikTok API call logic here
-    return { data: { posts: [], nextPageCursor: undefined, hasMore: false } };
+    const { userId = this.userId || 'me', cursor, limit = 20 } = options || {};
+    const response = await this.request<any>({
+      method: 'GET',
+      url: '/video/list/',
+      params: {
+        open_id: userId,
+        cursor: cursor ?? 0,
+        max_count: limit,
+      },
+      useAuth: true,
+    });
+
+    const videos: any[] = response.data?.data?.videos || [];
+    const posts: PlatformPost[] = videos.map((v) => ({
+      id: v.id,
+      platform: Platform.TIKTOK,
+      userId: userId,
+      title: v.desc,
+      description: v.desc,
+      mediaUrl: v.video_url,
+      thumbnailUrl: v.cover_url || undefined,
+      publishedAt: new Date(v.create_time * 1000).toISOString(),
+      createdAt: new Date(v.create_time * 1000).toISOString(),
+      type: 'video',
+      metrics: {
+        id: v.id,
+        views: v.stats?.play_count ?? 0,
+        likes: v.stats?.digg_count ?? 0,
+        comments: v.stats?.comment_count ?? 0,
+        shares: v.stats?.share_count ?? 0,
+        timestamp: new Date(v.create_time * 1000).toISOString(),
+      },
+      sourceData: v,
+    }));
+
+    return {
+      data: {
+        posts,
+        nextPageCursor: response.data?.cursor,
+        hasMore: response.data?.has_more ?? false,
+      },
+      rateLimit: this.rateLimit || undefined,
+    };
   }
   async getVideoComments(
     postId: string,
@@ -106,9 +147,37 @@ export class TikTokClient extends BasePlatformClient {
       hasMore?: boolean;
     }>
   > {
-    // TODO: Implement actual TikTok API call logic here
+    const { cursor, limit = 20 } = options || {};
+    const response = await this.request<any>({
+      method: 'GET',
+      url: '/video/comment/list/',
+      params: {
+        video_id: postId,
+        cursor: cursor ?? 0,
+        count: limit,
+      },
+      useAuth: true,
+    });
+
+    const returnedComments: any[] = response.data?.data?.comments || [];
+    const comments: PlatformComment[] = returnedComments.map((c) => ({
+      id: c.id,
+      postId,
+      userId: c.user_id,
+      text: c.text,
+      likeCount: c.digg_count,
+      publishedAt: new Date(c.create_time * 1000).toISOString(),
+      platform: Platform.TIKTOK,
+      sourceData: c,
+    }));
+
     return {
-      data: { comments: [], nextPageCursor: undefined, hasMore: false },
+      data: {
+        comments,
+        nextPageCursor: response.data?.cursor,
+        hasMore: response.data?.has_more ?? false,
+      },
+      rateLimit: this.rateLimit || undefined,
     };
   }
 

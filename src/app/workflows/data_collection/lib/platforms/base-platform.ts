@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
 import { EventEmitter } from 'events';
-import { PlatformError, RateLimitError, ApiError, withRetry } from '../utils/errors';
+import { PlatformError, RateLimitError, ApiError } from '../utils/errors';
+import { retryWithBackoff } from '../../../../shared_infra';
 import { Platform } from '../../../deliverables/types/deliverables_types';
 import { ApiRateLimit as ImportedApiRateLimit, ApiConfig } from './types'; // Import the specific type
 import {
@@ -223,7 +224,7 @@ export abstract class BasePlatformClient extends EventEmitter {
     try {
       logRequest();
       
-      const response = await withRetry<AxiosResponse<T>>(
+      const response = await retryWithBackoff<AxiosResponse<T>>(
         async () => {
           try {
             const response = await this.client.request<T>({
@@ -257,7 +258,15 @@ export abstract class BasePlatformClient extends EventEmitter {
         },
         {
           maxRetries: config.retryCount ?? this.config.maxRetries,
-          backoffMs: this.config.retryDelay
+          initialDelayMs: this.config.retryDelay,
+          maxDelayMs: this.config.maxRetryDelay,
+          onError: (error, attempt) => {
+            this.log(
+              'error',
+              `API call failed. Retrying attempt ${attempt} for ${this.platform}: ${error?.message || 'Unknown error'}`,
+              { error, platform: this.platform, attempt }
+            );
+          }
         }
       );
       

@@ -13,4 +13,4 @@ export { DataIngestionService } from './services/DataIngestionService';
 export * from './types/EngagementTypes';
 
 // Example usage and initialization helper
-export { initializeEngagementPredictionAgent } from './utils/initialization'; 
+export { initializeEngagementPredictionAgent, quickSetup, productionSetup } from './utils/initialization'; 

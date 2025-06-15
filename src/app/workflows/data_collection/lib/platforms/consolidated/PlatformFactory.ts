@@ -1,6 +1,7 @@
 // import { ApiCredentials } from '../base-platform'; // Not used or not exported, comment out for now
 import InstagramClient from './InstagramClient';
 import TikTokClient from './TikTokClient';
+import { YouTubeClient } from '../YouTubeClient';
 import { ApiConfig, ApiCredentials, Platform } from '../types';
 
 /**
@@ -22,8 +23,17 @@ class PlatformFactory {
         return new InstagramClient(authTokenManager, userId, config);
       case Platform.TIKTOK:
         return new TikTokClient(authTokenManager, userId, config);
-      case 'youtube':
-        throw new Error('YouTube client is not yet implemented');
+      case Platform.YOUTUBE:
+        return new YouTubeClient(
+          {
+            version: 'v3',
+            rateLimit: { requests: 10, perSeconds: 1 }, // Default rateLimit
+            ...config, // Spread config after defaults so it can override
+            baseUrl: 'https://www.googleapis.com/youtube/v3',
+          },
+          authTokenManager,
+          userId
+        );
       default:
         throw new Error(`Unsupported platform: ${platform}`);
     }

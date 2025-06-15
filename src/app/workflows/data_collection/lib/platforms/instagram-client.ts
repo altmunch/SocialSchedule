@@ -1,7 +1,7 @@
 // difficult: Instagram's Graph API requires long-lived tokens and has complex permissions
 // Pay special attention to token expiration and permission scopes
 
-import { BasePlatformClient } from './base-platform';
+import { BasePlatformClient, HeaderValue } from './base-platform';
 import { ApiConfig, ApiResponse, PlatformPostMetrics, PlatformUserActivity } from './types';
 import { Platform } from '../../../deliverables/types/deliverables_types';
 import { IAuthTokenManager } from '../auth.types';
@@ -21,20 +21,12 @@ export class InstagramClient extends BasePlatformClient {
     super({ ...InstagramClient.DEFAULT_CONFIG, ...config }, authTokenManager, userId);
   }
 
-  protected async getAuthHeaders(): Promise<Record<string, string>> {
-    // Ensure this.credentials is accessed after it's set by BasePlatformClient constructor
-    if (!this.credentials?.accessToken) {
-      throw new Error('Access token not available.');
-    }
-    return {
-      'Authorization': `Bearer ${this.credentials.accessToken}`,
-      'Content-Type': 'application/json'
-    };
-  }
+  protected handleRateLimit(headers: Record<string, HeaderValue>): void {
+    // HTTP headers are case-insensitive, so try lowercase
+    const usageHeader = headers['x-app-usage'] || headers['X-App-Usage'];
+    const usage = Array.isArray(usageHeader) ? usageHeader[0] : usageHeader;
 
-  protected handleRateLimit(headers: Headers): void {
-    const usage = headers.get('X-App-Usage');
-    if (!usage) return;
+    if (typeof usage !== 'string') return;
 
     try {
       const { call_count, total_cputime, total_time } = JSON.parse(usage);
@@ -43,7 +35,7 @@ export class InstagramClient extends BasePlatformClient {
       // If any metric is above threshold, add a delay
       if (call_count > threshold || total_cputime > threshold || total_time > threshold) {
         const waitTime = 60000; // 1 minute
-        this.rateLimitQueue.unshift(() => 
+        this.requestQueue.unshift(() => 
           new Promise(resolve => setTimeout(resolve, waitTime))
         );
       }

@@ -193,7 +193,7 @@ export class AIImprovementService {
     const { name, description, platform, baseContent, variationType, targetMetric, duration, userId } = request;
 
     // Generate content variations
-    const variants = generateContentVariations(baseContent, variationType);
+    const variants = generateContentVariations({ ...baseContent, platform }, variationType);
 
     // Create experiment
     const experiment = createExperiment({
@@ -298,7 +298,12 @@ export class AIImprovementService {
     const improvementTrend = Math.random() * 20 - 5; // -5% to +15%
 
     // Get content insights
-    const contentInsights = analyzeContentPerformancePatterns();
+    const rawInsights = analyzeContentPerformancePatterns();
+    const contentInsights = {
+      topPerformingWords: rawInsights.topPerformingWords,
+      optimalCaptionLength: rawInsights.optimalCaptionLength,
+      bestHashtags: rawInsights.highEngagementHashtags,
+    };
 
     // Get user-specific recommendations
     const recommendations = featureStore.aiSuggestions

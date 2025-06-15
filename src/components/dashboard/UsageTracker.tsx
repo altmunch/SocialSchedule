@@ -278,14 +278,13 @@ export default function UsageTracker() {
             </div>
             
             <div className="flex items-center space-x-3">
-              <div className={`p-2 rounded-lg ${usageStats.tier.limits.analyticsAccess !== 'none' ? 'bg-[#5afcc0]/20' : 'bg-neutral-700'}`}>
-                <TrendingUp className={`h-4 w-4 ${usageStats.tier.limits.analyticsAccess !== 'none' ? 'text-[#5afcc0]' : 'text-neutral-400'}`} />
+              <div className="p-2 rounded-lg bg-[#5afcc0]/20">
+                <TrendingUp className="h-4 w-4 text-[#5afcc0]" />
               </div>
               <div>
                 <p className="font-medium text-white">Analytics</p>
                 <p className="text-xs text-neutral-400">
-                  {usageStats.tier.limits.analyticsAccess === 'none' ? 'Not available' : 
-                   usageStats.tier.limits.analyticsAccess === 'basic' ? 'Basic access' : 'Advanced access'}
+                  {usageStats.tier.limits.analyticsAccess === 'basic' ? 'Basic access' : 'Advanced access'}
                 </p>
               </div>
             </div>

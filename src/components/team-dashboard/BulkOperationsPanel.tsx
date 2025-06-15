@@ -21,11 +21,21 @@ import {
   RefreshCw,
   Users,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Video,
+  Brain,
+  Mail,
+  Lightbulb,
+  BarChart3,
+  Clock,
+  Target,
+  Layers
 } from 'lucide-react';
 import { useTeamMode } from '@/providers/TeamModeProvider';
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-interface BulkOperationsPanelProps {
+export interface BulkOperationsPanelProps {
   isVisible: boolean;
   onClose: () => void;
 }
@@ -35,6 +45,7 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
   const [selectedOperation, setSelectedOperation] = useState<string>('');
+  const [operationCategory, setOperationCategory] = useState<'standard' | 'automation' | 'analytics'>('automation');
   
   if (!isVisible || selectedClients.length === 0) {
     return null;
@@ -42,43 +53,113 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
 
   const selectedClientsData = clients.filter(client => selectedClients.includes(client.id));
 
-  const bulkOperations = [
-    {
-      id: 'accelerate',
-      name: 'Run Accelerate Workflow',
-      description: 'Optimize content for all selected clients',
-      icon: Zap,
-      color: 'text-mint'
-    },
-    {
-      id: 'blitz',
-      name: 'Schedule Bulk Posts',
-      description: 'Create posting schedule for selected clients',
-      icon: Calendar,
-      color: 'text-lavender'
-    },
-    {
-      id: 'cycle',
-      name: 'Generate Analytics Reports',
-      description: 'Create performance reports for selected clients',
-      icon: RefreshCw,
-      color: 'text-coral'
-    },
-    {
-      id: 'pause',
-      name: 'Pause All Workflows',
-      description: 'Temporarily pause all active workflows',
-      icon: Pause,
-      color: 'text-info'
-    },
-    {
-      id: 'export',
-      name: 'Export Client Data',
-      description: 'Download client information and metrics',
-      icon: Download,
-      color: 'text-muted-foreground'
-    }
-  ];
+  const bulkOperations = {
+    automation: [
+      {
+        id: 'bulk_video_processing',
+        name: 'Bulk Video Processing',
+        description: `Process thousands of videos with brand voice for ${selectedClients.length} clients`,
+        icon: Video,
+        color: 'text-mint',
+        estimatedTime: `${Math.ceil(selectedClients.length * 0.5)} hours`,
+        scale: 'Enterprise'
+      },
+      {
+        id: 'auto_posting_schedule',
+        name: 'Auto Posting Scheduler',
+        description: 'Generate optimal posting schedules across all platforms',
+        icon: Calendar,
+        color: 'text-lavender',
+        estimatedTime: `${Math.ceil(selectedClients.length * 0.1)} hours`,
+        scale: 'Enterprise'
+      },
+      {
+        id: 'feedback_automation',
+        name: 'Automated Feedback Reports',
+        description: 'Generate and send personalized feedback reports to all clients',
+        icon: Mail,
+        color: 'text-coral',
+        estimatedTime: `${Math.ceil(selectedClients.length * 0.2)} hours`,
+        scale: 'Enterprise'
+      },
+      {
+        id: 'content_ideation',
+        name: 'Content Ideation Engine',
+        description: 'Generate content ideas and send ideation reports',
+        icon: Lightbulb,
+        color: 'text-info',
+        estimatedTime: `${Math.ceil(selectedClients.length * 0.15)} hours`,
+        scale: 'Enterprise'
+      },
+      {
+        id: 'brand_voice_setup',
+        name: 'Brand Voice Configuration',
+        description: 'Set up brand voice profiles for all selected clients',
+        icon: Brain,
+        color: 'text-warning',
+        estimatedTime: `${Math.ceil(selectedClients.length * 0.05)} hours`,
+        scale: 'Enterprise'
+      }
+    ],
+    standard: [
+      {
+        id: 'accelerate',
+        name: 'Run Accelerate Workflow',
+        description: 'Optimize content for all selected clients',
+        icon: Zap,
+        color: 'text-mint',
+        estimatedTime: '30 min',
+        scale: 'Standard'
+      },
+      {
+        id: 'blitz',
+        name: 'Schedule Bulk Posts',
+        description: 'Create posting schedule for selected clients',
+        icon: Calendar,
+        color: 'text-lavender',
+        estimatedTime: '15 min',
+        scale: 'Standard'
+      },
+      {
+        id: 'cycle',
+        name: 'Generate Analytics Reports',
+        description: 'Create performance reports for selected clients',
+        icon: RefreshCw,
+        color: 'text-coral',
+        estimatedTime: '20 min',
+        scale: 'Standard'
+      }
+    ],
+    analytics: [
+      {
+        id: 'performance_analysis',
+        name: 'Deep Performance Analysis',
+        description: 'Comprehensive performance analysis across all metrics',
+        icon: BarChart3,
+        color: 'text-mint',
+        estimatedTime: `${Math.ceil(selectedClients.length * 0.1)} hours`,
+        scale: 'Analytics'
+      },
+      {
+        id: 'trend_analysis',
+        name: 'Trend Analysis & Predictions',
+        description: 'Analyze trends and generate predictive insights',
+        icon: Target,
+        color: 'text-lavender',
+        estimatedTime: `${Math.ceil(selectedClients.length * 0.2)} hours`,
+        scale: 'Analytics'
+      },
+      {
+        id: 'competitive_analysis',
+        name: 'Competitive Analysis',
+        description: 'Compare performance against industry benchmarks',
+        icon: Layers,
+        color: 'text-coral',
+        estimatedTime: `${Math.ceil(selectedClients.length * 0.3)} hours`,
+        scale: 'Analytics'
+      }
+    ]
+  };
 
   const handleBulkOperation = async (operationId: string) => {
     if (!operationId) return;
@@ -86,10 +167,14 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
     setIsProcessing(true);
     setProcessingProgress(0);
     
-    // Simulate processing
-    const totalSteps = selectedClients.length;
+    // Simulate processing with different speeds based on operation type
+    const operation = Object.values(bulkOperations).flat().find(op => op.id === operationId);
+    const isEnterpriseOperation = operation?.scale === 'Enterprise';
+    const totalSteps = isEnterpriseOperation ? selectedClients.length * 10 : selectedClients.length;
+    const stepDelay = isEnterpriseOperation ? 100 : 200;
+    
     for (let i = 0; i < totalSteps; i++) {
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, stepDelay));
       setProcessingProgress(((i + 1) / totalSteps) * 100);
     }
     
@@ -116,6 +201,7 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
   };
 
   const statusCounts = getClientStatusCounts();
+  const currentOperations = bulkOperations[operationCategory];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg">
@@ -147,9 +233,24 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
                 </Badge>
               )}
             </div>
+
+            {/* Scale indicator */}
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary">
+              {selectedClients.length >= 100 ? '1000x Scale' : selectedClients.length >= 10 ? 'Enterprise' : 'Standard'}
+            </Badge>
           </div>
           
           <div className="flex items-center space-x-2">
+            <Select value={operationCategory} onValueChange={(value: any) => setOperationCategory(value)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="automation">Automation</SelectItem>
+                <SelectItem value="standard">Standard</SelectItem>
+                <SelectItem value="analytics">Analytics</SelectItem>
+              </SelectContent>
+            </Select>
             <Button
               variant="outline"
               size="sm"
@@ -176,11 +277,15 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
               <span className="text-sm text-muted-foreground">{Math.round(processingProgress)}%</span>
             </div>
             <Progress value={processingProgress} className="h-2" />
+            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>Processing {selectedClients.length} clients with enterprise-scale automation</span>
+            </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-          {bulkOperations.map((operation) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+          {currentOperations.map((operation) => {
             const IconComponent = operation.icon;
             const isSelected = selectedOperation === operation.id;
             
@@ -204,8 +309,16 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
                   <div className="flex items-center space-x-2 mb-2">
                     <IconComponent className={`h-4 w-4 ${operation.color}`} />
                     <span className="font-medium text-sm">{operation.name}</span>
+                    <Badge variant="outline" className="text-xs ml-auto">
+                      {operation.scale}
+                    </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">{operation.description}</p>
+                  <p className="text-xs text-muted-foreground mb-2">{operation.description}</p>
+                  
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    <span>~{operation.estimatedTime}</span>
+                  </div>
                   
                   {isSelected && (
                     <div className="mt-3 pt-2 border-t border-border">
@@ -230,11 +343,12 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
               <AlertTriangle className="h-4 w-4 text-info mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-info">
-                  Ready to execute bulk operation
+                  Ready to execute {operationCategory} operation
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   This action will affect {selectedClients.length} selected client{selectedClients.length !== 1 ? 's' : ''}. 
-                  Click the operation card again to proceed.
+                  {selectedClients.length >= 100 && ' This is a 1000x scale operation that will process thousands of items.'}
+                  {' '}Click the operation card again to proceed.
                 </p>
               </div>
             </div>
@@ -252,6 +366,20 @@ export function BulkOperationsPanel({ isVisible, onClose }: BulkOperationsPanelP
                 </Badge>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Scale Information */}
+        {selectedClients.length >= 100 && (
+          <div className="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
+            <div className="flex items-center gap-2 text-sm">
+              <Layers className="h-4 w-4 text-primary" />
+              <span className="font-medium text-primary">1000x Scale Operations Available</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              With {selectedClients.length} clients selected, you can now use enterprise-scale automation 
+              modules for bulk video processing, automated reporting, and content generation.
+            </p>
           </div>
         )}
       </div>

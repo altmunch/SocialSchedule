@@ -1,4 +1,5 @@
 import { Platform } from '../../../deliverables/types/deliverables_types';
+import { retryWithBackoff } from '../../../../shared_infra';
 
 export class PlatformError extends Error {
   constructor(
@@ -73,22 +74,5 @@ export function withRetry<T>(
   options: { maxRetries?: number; backoffMs?: number } = {}
 ): Promise<T> {
   const { maxRetries = 3, backoffMs = 1000 } = options;
-  let attempts = 0;
-
-  const execute = async (): Promise<T> => {
-    try {
-      return await fn();
-    } catch (error) {
-      if (!isRetryableError(error) || attempts >= maxRetries) {
-        throw error;
-      }
-      
-      attempts++;
-      const delay = backoffMs * Math.pow(2, attempts - 1);
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return execute();
-    }
-  };
-
-  return execute();
+  return retryWithBackoff(fn, { maxRetries, initialDelayMs: backoffMs });
 }

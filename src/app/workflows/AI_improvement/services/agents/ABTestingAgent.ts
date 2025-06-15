@@ -1,6 +1,6 @@
 import { aiImprovementService } from '../AIImprovementService';
 import { Experiment, ExperimentAnalysis, Platform } from '../../../AI_improvement/functions/abTesting'; // Adjusted path
-import { ContentNiche } from '../../../types/niche_types';
+import { ContentNiche } from '../../types/niche_types';
 
 export interface ABTestingTask {
   type: 'create_experiment' | 'analyze_experiment' | 'prioritize_experiments' | 'manage_experiment_lifecycle';

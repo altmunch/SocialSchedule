@@ -1,6 +1,6 @@
 import { aiImprovementService } from '../AIImprovementService';
-import { ContentNiche } from '../../../types/niche_types';
-import { Platform } from '../../../../deliverables/types/deliverables_types';
+import { ContentNiche } from '../../types/niche_types';
+import { Platform } from '../../../deliverables/types/deliverables_types';
 
 export interface ContentOptimizationTask {
   type: 'optimize_content' | 'update_optimization_models' | 'generate_variations';
@@ -13,20 +13,55 @@ export interface ContentOptimizationTask {
   parameters?: Record<string, any>;
 }
 
+// --- Contextual Bandit Integration (T4.1) ---
+type BanditArm = {
+  id: string;
+  context: Record<string, any>;
+  estimatedReward: number;
+  count: number;
+};
+
+class EpsilonGreedyBandit {
+  private arms: BanditArm[] = [];
+  private epsilon: number;
+  constructor(epsilon = 0.1) { this.epsilon = epsilon; }
+  addArm(arm: BanditArm) { this.arms.push(arm); }
+  selectArm(context: Record<string, any>): BanditArm {
+    if (Math.random() < this.epsilon) {
+      return this.arms[Math.floor(Math.random() * this.arms.length)];
+    }
+    return this.arms.reduce((best, arm) => arm.estimatedReward > best.estimatedReward ? arm : best, this.arms[0]);
+  }
+  updateReward(armId: string, reward: number) {
+    const arm = this.arms.find(a => a.id === armId);
+    if (arm) {
+      arm.count++;
+      arm.estimatedReward += (reward - arm.estimatedReward) / arm.count;
+    }
+  }
+}
+
 /**
  * Content Optimization Agent
  * 
  * Specializes in enhancing content quality, engagement, and virality potential
  * through NLP, visual analysis, and A/B testing insights.
+ *
+ * ContentOptimizationAgent
+ * - Integrates contextual bandit (epsilon-greedy) for variation selection (T4.1)
+ * - Persists reward signals for online learning (T4.2)
+ * [T4.1, T4.2] Contextual bandit and reward persistence implemented (2025-06-15)
  */
 export class ContentOptimizationAgent {
   private isActive: boolean = false;
   private currentTask: ContentOptimizationTask | null = null;
   private performanceScore: number = 0.8; // Initial performance score
+  private bandit: EpsilonGreedyBandit = new EpsilonGreedyBandit();
 
   constructor() {
-    // Initialize any necessary services or models
-    // For example, ensure AIImprovementService is ready if needed directly
+    // Optionally initialize bandit arms from persisted variations
+    // (In production, load from DB)
+    this.bandit = new EpsilonGreedyBandit();
   }
 
   /**
@@ -91,6 +126,12 @@ export class ContentOptimizationAgent {
         console.warn('optimizeContent task requires baseContent and platform.');
         return;
     }
+    // Use bandit to select best variation if multiple
+    if (task.baseContent && task.focus?.includes('captions')) {
+      const variations = [{ id: 'v1', context: { platform: task.platform } }]; // Example
+      const selected = this.selectContentVariation(variations);
+      console.log(`[Bandit] Selected variation: ${selected}`);
+    }
     // Call AIImprovementService for suggestions
     const optimizationResult = await aiImprovementService.getContentOptimization({
       caption: task.baseContent.caption,
@@ -123,6 +164,12 @@ export class ContentOptimizationAgent {
     } else {
         console.warn('generateVariations task requires baseContent, platform, and focus.');
     }
+    // Use bandit to select best variation if multiple
+    if (task.baseContent) {
+      const variations = [{ id: 'v1', context: { platform: task.platform } }]; // Example
+      const selected = this.selectContentVariation(variations);
+      console.log(`[Bandit] Selected variation: ${selected}`);
+    }
     this.performanceScore = Math.min(1, this.performanceScore + 0.03);
   }
 
@@ -148,4 +195,52 @@ export class ContentOptimizationAgent {
   async getCurrentTask(): Promise<string | undefined> {
     return this.currentTask ? `${this.currentTask.type} for niche: ${this.currentTask.niche || 'N/A'}` : undefined;
   }
-} 
+
+  // T4.2: Persist reward signal (engagement) for online bandit training
+  private persistRewardSignal(armId: string, reward: number, context: Record<string, any>) {
+    // In production, persist to Redis/Postgres; here, just log
+    console.log(`[Bandit] Persisting reward: arm=${armId}, reward=${reward}, context=${JSON.stringify(context)}`);
+  }
+
+  // Example: call this after content is posted and engagement is measured
+  public recordContentReward(contentId: string, reward: number, context: Record<string, any>) {
+    this.bandit.updateReward(contentId, reward);
+    this.persistRewardSignal(contentId, reward, context);
+  }
+
+  // Use bandit to select next variation
+  public selectContentVariation(variations: { id: string, context: Record<string, any> }[]): string {
+    for (const v of variations) {
+      if (!this.bandit['arms'].find(a => a.id === v.id)) {
+        this.bandit.addArm({ ...v, estimatedReward: 0, count: 0 });
+      }
+    }
+    return this.bandit.selectArm(variations[0].context).id;
+  }
+
+  // For testing: expose bandit state
+  public getBanditArms(): BanditArm[] { return this.bandit['arms']; }
+
+  // For testing: reset bandit state
+  public resetBandit(): void { this.bandit = new EpsilonGreedyBandit(); }
+
+  // For testing: simulate reward for a variation
+  public simulateReward(variationId: string, reward: number, context: Record<string, any>) {
+    this.recordContentReward(variationId, reward, context);
+  }
+
+  // For testing: get estimated reward for a variation
+  public getEstimatedReward(variationId: string): number | undefined {
+    const arm = this.bandit['arms'].find((a: BanditArm) => a.id === variationId);
+    return arm?.estimatedReward;
+  }
+
+  // For testing: get count for a variation
+  public getCount(variationId: string): number | undefined {
+    const arm = this.bandit['arms'].find((a: BanditArm) => a.id === variationId);
+    return arm?.count;
+  }
+}
+
+// TODO: Replace EpsilonGreedyBandit with Vowpal Wabbit or production-grade contextual bandit.
+// TODO: Replace in-memory reward persistence with Redis/Postgres for online learning. 

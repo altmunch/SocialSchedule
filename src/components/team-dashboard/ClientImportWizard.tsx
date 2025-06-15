@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ import {
   Link as LinkIcon,
   Loader2
 } from 'lucide-react';
+import { AccessibilityHelpers } from '@/lib/accessibility/accessibilityAuditor';
 
 interface ImportSource {
   id: string;
@@ -76,6 +77,7 @@ export function ClientImportWizard() {
   const [processingProgress, setProcessingProgress] = useState(0);
   const [importResults, setImportResults] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const wizardRef = useRef<HTMLDivElement>(null);
 
   const importSources: ImportSource[] = [
     {
@@ -251,54 +253,69 @@ export function ClientImportWizard() {
     setImportData('');
     setParsedClients([]);
     setValidation(null);
-    setImportResults(null);
     setIsProcessing(false);
     setProcessingProgress(0);
+    setImportResults(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      resetWizard();
+    }
+  }, [resetWizard]);
+
+  useEffect(() => {
+    if (wizardRef.current) {
+      const cleanupFocusTrap = AccessibilityHelpers.createFocusTrap(wizardRef.current);
+      document.addEventListener('keydown', handleKeyDown);
+
+      return () => {
+        cleanupFocusTrap();
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [handleKeyDown]);
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Progress Steps */}
-      <div className="flex items-center justify-between mb-8">
-        {steps.map((step, index) => (
-          <div key={step.id} className="flex items-center">
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-              currentStep >= step.id 
-                ? 'bg-primary border-primary text-primary-foreground' 
-                : 'border-muted text-muted-foreground'
-            }`}>
-              {currentStep > step.id ? (
-                <CheckCircle2 className="h-4 w-4" />
-              ) : (
-                <span className="text-sm font-medium">{step.id}</span>
+    <div
+      ref={wizardRef}
+      className="min-h-screen bg-background text-foreground p-4 md:p-6 space-y-6 flex flex-col items-center justify-center"
+    >
+      <Card className="w-full max-w-4xl shadow-lg border-border">
+        {/* Progress Steps */}
+        <div className="flex items-center justify-between mb-8">
+          {steps.map((step, index) => (
+            <div key={step.id} className="flex items-center">
+              <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+                currentStep >= step.id 
+                  ? 'bg-primary border-primary text-primary-foreground' 
+                  : 'border-muted text-muted-foreground'
+              }`}>
+                {currentStep > step.id ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  <span className="text-sm font-medium">{step.id}</span>
+                )}
+              </div>
+              <div className="ml-3 hidden sm:block">
+                <p className={`text-sm font-medium ${
+                  currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'
+                }`}>
+                  {step.name}
+                </p>
+                <p className="text-xs text-muted-foreground">{step.description}</p>
+              </div>
+              {index < steps.length - 1 && (
+                <ArrowRight className="h-4 w-4 mx-4 text-muted-foreground" />
               )}
             </div>
-            <div className="ml-3 hidden sm:block">
-              <p className={`text-sm font-medium ${
-                currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'
-              }`}>
-                {step.name}
-              </p>
-              <p className="text-xs text-muted-foreground">{step.description}</p>
-            </div>
-            {index < steps.length - 1 && (
-              <ArrowRight className="h-4 w-4 mx-4 text-muted-foreground" />
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Step Content */}
-      <Card className="border-border">
-        <CardHeader>
-          <CardTitle>
-            {steps.find(s => s.id === currentStep)?.name}
-          </CardTitle>
-          <CardDescription>
-            {steps.find(s => s.id === currentStep)?.description}
-          </CardDescription>
-        </CardHeader>
-        
+        {/* Step Content */}
         <CardContent className="space-y-6">
           {/* Step 1: Source Selection */}
           {currentStep === 1 && (

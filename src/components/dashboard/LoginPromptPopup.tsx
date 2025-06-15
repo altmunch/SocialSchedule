@@ -8,9 +8,10 @@ import { useRouter } from 'next/navigation';
 interface LoginPromptPopupProps {
   isOpen: boolean;
   onClose: () => void;
+  feature: string;
 }
 
-export function LoginPromptPopup({ isOpen, onClose }: LoginPromptPopupProps) {
+export function LoginPromptPopup({ isOpen, onClose, feature }: LoginPromptPopupProps) {
   const router = useRouter();
 
   const handleLogin = () => {

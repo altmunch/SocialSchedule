@@ -104,7 +104,51 @@ export class InstagramClient extends BasePlatformClient {
     params?: Record<string, any>,
     options: Record<string, any> = {}
   ): Promise<ApiResponse<T>> {
-    return { data: undefined };
+    try {
+      const axiosResponse = await this.client.get<T>(endpoint, { params, ...options });
+      return { data: axiosResponse.data };
+    } catch (error) {
+      let apiResponseError: ApiResponse<T>['error'];
+      const operationDescription = `InstagramClient.get for endpoint '${endpoint}'`;
+
+      if (axios.isAxiosError(error)) {
+        const axiosErr = error as AxiosError<InstagramApiErrorResponse>;
+        if (axiosErr.response?.data?.error) {
+          const igError = axiosErr.response.data.error;
+          apiResponseError = {
+            code: igError.code,
+            message: igError.message,
+            details: igError,
+          };
+        } else if (axiosErr.response) {
+          apiResponseError = {
+            code: axiosErr.response.status,
+            message: axiosErr.response.statusText || 'HTTP error',
+            details: axiosErr.response.data,
+          };
+        } else {
+          apiResponseError = {
+            code: axiosErr.code || 'NETWORK_ERROR',
+            message: axiosErr.message,
+          };
+        }
+      } else {
+        apiResponseError = {
+          code: 'UNKNOWN_CLIENT_ERROR',
+          message: (error as Error).message || 'An unknown error occurred',
+        };
+      }
+
+      this.log('error', `Error in ${operationDescription}: ${apiResponseError.message}`, {
+          endpoint,
+          params,
+          errorCode: apiResponseError.code,
+          errorDetails: apiResponseError.details,
+          platform: this.platform
+      });
+
+      return { error: apiResponseError };
+    }
   }
 
   /**
@@ -200,12 +244,110 @@ export class InstagramClient extends BasePlatformClient {
     return { data: undefined };
   }
   async getUserVideos(options?: { userId?: string; cursor?: string; limit?: number; }): Promise<ApiResponse<{ posts: PlatformPost[]; nextPageCursor?: string; hasMore?: boolean }>> {
-    // TODO: Implement actual Instagram API call logic here
-    return { data: { posts: [], nextPageCursor: undefined, hasMore: false } };
+    const { userId = this.userId || 'me', cursor, limit = 25 } = options || {};
+    
+    const response = await this.get<{ data: InstagramApiMediaNode[]; paging?: any }>(
+      `/${userId}/media`,
+      {
+        fields:
+          'id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,username,like_count,comments_count',
+        limit,
+        after: cursor,
+      },
+    );
+
+    if (response.error) {
+      return { error: response.error };
+    }
+
+    if (!response.data) {
+        this.log('warn', `InstagramClient.getUserVideos: No data object in response from get() for user ${userId}.`, { userId, cursor, limit });
+        return {
+            error: {
+                code: 'NO_DATA_OBJECT',
+                message: 'No data object in API response for user videos and no specific error was reported.'
+            }
+        };
+    }
+
+    const mediaItemsArray = response.data.data || [];
+    const validMediaItems = mediaItemsArray.filter(
+      (m): m is InstagramApiMediaNode & { timestamp: string } => typeof m.timestamp === 'string'
+    );
+    
+    const posts: PlatformPost[] = validMediaItems.map((m) => ({
+      id: m.id,
+      platform: Platform.INSTAGRAM,
+      userId: userId,
+      description: m.caption,
+      mediaUrl: m.media_url,
+      thumbnailUrl: m.thumbnail_url,
+      publishedAt: m.timestamp,
+      createdAt: m.timestamp,
+      type:
+        m.media_type === 'VIDEO'
+          ? 'video'
+          : m.media_type === 'IMAGE'
+          ? 'image'
+          : m.media_type === 'CAROUSEL_ALBUM'
+          ? 'carousel'
+          : 'unknown',
+      shareUrl: m.permalink,
+      metrics: {
+        id: m.id,
+        views: 0,
+        likes: m.like_count ?? 0,
+        comments: m.comments_count ?? 0,
+        shares: 0,
+        timestamp: m.timestamp,
+      },
+      sourceData: m,
+    }));
+
+    const paging = response.data.paging || {};
+    return {
+      data: {
+        posts,
+        nextPageCursor: paging?.cursors?.after,
+        hasMore: !!paging?.next,
+      },
+    };
   }
   async getVideoComments(postId: string, options?: { cursor?: string; limit?: number; }): Promise<ApiResponse<{ comments: PlatformComment[]; nextPageCursor?: string; hasMore?: boolean }>> {
-    // TODO: Implement actual Instagram API call logic here
-    return { data: { comments: [], nextPageCursor: undefined, hasMore: false } };
+    const { cursor, limit = 25 } = options || {};
+    try {
+      const response = await this.get<{ data: any[]; paging?: any }>(
+        `/${postId}/comments`,
+        {
+          fields: 'id,text,username,timestamp,like_count',
+          limit,
+          after: cursor,
+        },
+      );
+
+      const commentsArray = response.data?.data || [];
+      const comments: PlatformComment[] = commentsArray.map((c: any) => ({
+        id: c.id,
+        postId,
+        userName: c.username,
+        text: c.text,
+        likeCount: c.like_count,
+        publishedAt: c.timestamp,
+        platform: Platform.INSTAGRAM,
+        sourceData: c,
+      }));
+
+      const paging = (response as any)?.paging || {};
+      return {
+        data: {
+          comments,
+          nextPageCursor: paging?.cursors?.after,
+          hasMore: !!paging?.next,
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }
 

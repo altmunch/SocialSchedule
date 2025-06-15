@@ -56,3 +56,6 @@ lead_gen/
 
 # jest cache
 .jest-cache/
+
+# workflow tuning data
+src/app/workflow_tuning_data/

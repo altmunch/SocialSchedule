@@ -14,9 +14,10 @@ import {
 interface TeamHeaderProps {
   title?: string;
   subtitle?: string;
+  breadcrumb?: React.ReactNode;
 }
 
-export function TeamHeader({ title = "Team Dashboard", subtitle }: TeamHeaderProps) {
+export function TeamHeader({ title = "Team Dashboard", subtitle, breadcrumb }: TeamHeaderProps) {
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -35,6 +36,7 @@ export function TeamHeader({ title = "Team Dashboard", subtitle }: TeamHeaderPro
           {subtitle && (
             <p className="text-sm text-neutral-400 mt-1">{subtitle}</p>
           )}
+          {breadcrumb && <div className="mt-2">{breadcrumb}</div>}
         </div>
         
         <div className="flex items-center space-x-4">

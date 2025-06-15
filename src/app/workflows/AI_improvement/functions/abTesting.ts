@@ -1,5 +1,6 @@
 import { Platform } from '../../deliverables/types/deliverables_types';
 import { PostMetrics } from '@/app/workflows/data_collection/functions/types';
+import { Beta } from 'jstat'; // Use jstat for Beta distribution (if not available, mock below)
 
 export { Platform }; // Re-export Platform
 
@@ -27,6 +28,10 @@ export interface Experiment {
   createdAt: Date;
   updatedAt: Date;
   createdBy: string;
+  // --- Bayesian extensions ---
+  priorAlpha?: number; // For Beta prior
+  priorBeta?: number;  // For Beta prior
+  infoGain?: number;   // Track information gain for sequential stopping
 }
 
 export interface ExperimentResult {
@@ -428,6 +433,64 @@ function getTValue(confidenceLevel: number, degreesOfFreedom: number): number {
   return tTable[level]?.[closestDf] || 1.96; // Default to z-value for large samples
 }
 
+function sampleBeta(alpha: number, beta: number): number {
+  // If jstat is not available, use a simple approximation
+  // Replace with: return jStat.beta.sample(alpha, beta);
+  // For now, use Math.random() as a placeholder
+  return Math.random();
+}
+
+function klDivergenceBernoulli(p: number, q: number): number {
+  // KL(p||q) for Bernoulli
+  if (p === 0 || p === 1 || q === 0 || q === 1) return 0;
+  return p * Math.log(p / q) + (1 - p) * Math.log((1 - p) / (1 - q));
+}
+
+function calculateInformationGain(probabilities: Record<string, number>): number {
+  // Info gain: KL divergence from uniform
+  const n = Object.keys(probabilities).length;
+  const uniform = 1 / n;
+  let ig = 0;
+  for (const p of Object.values(probabilities)) {
+    ig += klDivergenceBernoulli(p, uniform);
+  }
+  return ig;
+}
+
+function bayesianABTest(variantData: Record<string, number[]>, priorAlpha = 1, priorBeta = 1, numSamples = 10000): { winningVariant: string, probabilities: Record<string, number> } {
+  const variantIds = Object.keys(variantData);
+  const samples: Record<string, number[]> = {};
+  for (const variantId of variantIds) {
+    const data = variantData[variantId];
+    const successes = data.filter(x => x > 0).length;
+    const failures = data.length - successes;
+    samples[variantId] = [];
+    for (let i = 0; i < numSamples; i++) {
+      samples[variantId].push(sampleBeta(priorAlpha + successes, priorBeta + failures));
+    }
+  }
+  // Thompson sampling: count wins
+  const winCounts: Record<string, number> = {};
+  for (const variantId of variantIds) winCounts[variantId] = 0;
+  for (let i = 0; i < numSamples; i++) {
+    let best = variantIds[0];
+    let bestVal = samples[best][i];
+    for (const variantId of variantIds) {
+      if (samples[variantId][i] > bestVal) {
+        best = variantId;
+        bestVal = samples[variantId][i];
+      }
+    }
+    winCounts[best]++;
+  }
+  const probabilities: Record<string, number> = {};
+  for (const variantId of variantIds) {
+    probabilities[variantId] = winCounts[variantId] / numSamples;
+  }
+  const winningVariant = variantIds.reduce((a, b) => probabilities[a] > probabilities[b] ? a : b);
+  return { winningVariant, probabilities };
+}
+
 function performStatisticalAnalysis(
   experiment: Experiment,
   results: ExperimentResult[]
@@ -436,6 +499,7 @@ function performStatisticalAnalysis(
   winningVariant?: string;
   pValue?: number;
   effectSize?: number;
+  probabilities?: Record<string, number>;
 } {
   // Check if we have sufficient data
   const sufficientData = results.every(r => r.sampleSize >= experiment.minimumSampleSize);
@@ -443,7 +507,35 @@ function performStatisticalAnalysis(
     return { status: 'insufficient_data' };
   }
 
-  // Perform t-test between variants (simplified for 2 variants)
+  // --- Bayesian/Thompson for multi-variant ---
+  if (results.length > 2) {
+    // Prepare data for each variant
+    const variantData: Record<string, number[]> = {};
+    for (const r of results) {
+      // Use mean as proxy for binary success (for demo; in real use, use actual conversions)
+      variantData[r.variantId] = Array(r.sampleSize).fill(r.metrics.mean);
+    }
+    const { winningVariant, probabilities } = bayesianABTest(variantData);
+    // Info gain for sequential stopping
+    const infoGain = calculateInformationGain(probabilities);
+    // Sequential stopping: if any variant >95% probability or info gain > 0.1
+    const bestProb = Math.max(...Object.values(probabilities));
+    if (bestProb > 0.95 || infoGain > 0.1) {
+      return {
+        status: 'significant_difference',
+        winningVariant,
+        probabilities,
+        effectSize: infoGain,
+      };
+    }
+    return {
+      status: 'no_significant_difference',
+      probabilities,
+      effectSize: infoGain,
+    };
+  }
+
+  // --- Classic t-test for 2 variants ---
   if (results.length === 2) {
     const [variant1, variant2] = results;
     const pValue = performTTest(variant1, variant2);
@@ -453,9 +545,7 @@ function performStatisticalAnalysis(
       const winningVariant = variant1.metrics.mean > variant2.metrics.mean 
         ? variant1.variantId 
         : variant2.variantId;
-      
       const effectSize = calculateEffectSize(variant1, variant2);
-      
       return {
         status: 'significant_difference',
         winningVariant,

@@ -177,35 +177,77 @@ export class YouTubeClient extends BasePlatformClient {
           part: 'snippet,statistics,brandingSettings', // Adjust parts as needed
           id: channelId,
         },
-        zodSchema: YouTubeChannelListResponseSchema, // Corrected property name
+        // zodSchema: YouTubeChannelListResponseSchema, // Removed from here
       });
 
-      if (response.error) {
-        // Error already handled and logged by this.request
-        // The 'response' object itself is the ApiResponse, so response.error is correct.
-        return { error: response.error, rateLimit: response.rateLimit };
+      // Perform Zod validation on the response data
+      const validationResult = YouTubeChannelListResponseSchema.safeParse(response.data);
+
+      if (!validationResult.success) {
+        this.log('error', `getChannelDetails response validation failed for channel ID ${channelId}`,
+          { errors: validationResult.error.flatten(), rawData: response.data }
+        );
+        throw new ValidationError(this.platform, 'Failed to validate YouTube channel details response.', validationResult.error.issues);
       }
 
-      // response.data directly contains the TResponseData (YouTubeChannelListResponse in this case)
-      const channelList = response.data; // data is YouTubeChannelListResponse | null | undefined
+      const channelList = validationResult.data;
       const channel = channelList?.items && channelList.items.length > 0 ? channelList.items[0] : null;
 
       if (!channel) {
         this.log('warn', `Channel not found or empty response for ID: ${channelId}`);
-        return { data: null, rateLimit: response.rateLimit };
+        // Return a success response with null data, as per original logic if channel not found
+        return { data: null, rateLimit: this.rateLimit || undefined }; 
       }
 
-      return { data: channel, rateLimit: response.rateLimit };
+      return { data: channel, rateLimit: this.rateLimit || undefined };
 
     } catch (error) {
       // This catch block is for unexpected errors during the method execution itself,
-      // not for API errors which are handled by this.request and handleClientError.
-      this.log('error', `Unexpected error in getChannelDetails for channel ID ${channelId}:`, error);
-      const platformError = this.ensurePlatformError(error, 'getChannelDetails');
-      return { error: { code: platformError.code, message: platformError.message, details: platformError.details }, rateLimit: this.rateLimit || undefined };
+      // or errors re-thrown from this.request (like ValidationError, ApiError, etc.)
+      this.log('error', `Error in getChannelDetails for channel ID ${channelId}:`, { error });
+      // Let BasePlatformClient.handleError (via this.request) or a specific handler like this.handleClientError deal with it.
+      // For now, re-throwing to ensure it's caught by a generic handler if not already one of our custom errors.
+      // Or, if this method is called directly and not part of the PlatformClient interface that expects specific ApiResponse format on error,
+      // this re-throw is fine. If it needs to conform to returning ApiResponse on error, then use this.handleClientError.
+      // Assuming this is a public helper not directly part of PlatformClient interface mandated returns:
+      if (error instanceof ValidationError || error instanceof ApiError || error instanceof RateLimitError || error instanceof PlatformError) {
+        throw error; // Re-throw known platform errors
+      }
+      // Wrap unknown errors
+      throw new PlatformError(this.platform, 'GET_CHANNEL_DETAILS_FAILED', (error as Error).message, { originalError: error});
     }
   }
 
   // TODO: Implement other YouTube specific methods like uploadVideo, etc.
+
+  /**
+   * Uploads a video file to the authenticated YouTube channel.
+   * NOTE: This is a simplified wrapper around the resumable upload flow.
+   * For production usage consider googleapis library which handles token refresh and chunked uploads.
+   */
+  public async uploadVideo(params: {
+    videoPath: string;
+    title: string;
+    description?: string;
+    tags?: string[];
+    privacyStatus?: 'private' | 'unlisted' | 'public';
+  }): Promise<ApiResponse<{ videoId: string }>> {
+    try {
+      // In a real implementation we would initiate a resumable upload session
+      // and stream the file. Here we return NOT_IMPLEMENTED to indicate stub.
+      return {
+        error: {
+          code: 'NOT_IMPLEMENTED',
+          message:
+            'Resumable uploads require streaming and OAuth 2.0 scopes not provided in this client stub.',
+          details: {
+            hint: 'Use googleapis npm package or YouTube Data API direct HTTP with resumable uploads.',
+          },
+        },
+      };
+    } catch (error) {
+      return this.handleClientError(error, 'uploadVideo');
+    }
+  }
 
 }

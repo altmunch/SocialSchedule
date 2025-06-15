@@ -2,14 +2,17 @@
  * Enhanced scanner service with advanced caching, monitoring, and resilience patterns
  */
 import { Platform, ScanResult, ScanOptions, PostMetrics, ScanStatus } from './types';
-import { TikTokClient } from './platforms/TikTokClient';
-import { InstagramClient } from './platforms/InstagramClient';
-import { YouTubeClient } from './platforms/YouTubeClient';
 import { OptimizedPostAnalyzer } from './analysis/PostAnalyzer';
 import { CacheSystem } from './cache/CacheSystem';
 import { MonitoringSystem } from './monitoring/MonitoringSystem';
 import EventEmitter from 'events';
 import { Platform as DeliverablePlatform } from '../../deliverables/types/deliverables_types';
+import { retryWithBackoff } from '../../../shared_infra';
+import PlatformFactory from '../lib/platforms/consolidated/PlatformFactory';
+import { TikTokClient } from '../lib/platforms/TikTokClient';
+import { InstagramClient } from '../lib/platforms/InstagramClient';
+import { ApiConfig } from '../lib/platforms/types';
+import { IAuthTokenManager, PlatformCredentials, PlatformClientIdentifier, AuthStrategy } from '../lib/auth.types';
 
 // Circuit breaker states
 export enum CircuitBreakerState {
@@ -20,7 +23,7 @@ export enum CircuitBreakerState {
 
 // Enhanced scanner service with improved caching, monitoring, and resilience
 export class EnhancedScannerService {
-  private readonly platformClients: Map<Platform, TikTokClient | InstagramClient | YouTubeClient> = new Map();
+  private readonly platformClients: Map<Platform, any> = new Map();
   private readonly scanResults: Map<string, ScanResult> = new Map();
   private readonly SCAN_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 24 hours
   private readonly SCAN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
@@ -239,47 +242,14 @@ export class EnhancedScannerService {
     baseDelay: number = 1000,
     maxDelay: number = 10000
   ): Promise<T> {
-    let retries = 0;
-    let lastError: Error;
-    
-    while (retries <= maxRetries) {
-      try {
-        return await fn();
-      } catch (error) {
-        // If the error is a circuit breaker open error, do not retry
-        if (error && (error as any).code === 'CIRCUIT_BREAKER_OPEN') {
-          throw error;
-        }
-        lastError = error as Error;
-        
-        if (retries >= maxRetries) {
-          this.logStructured('error', `Operation failed after ${retries} retries`, {
-            error: lastError.message,
-            maxRetries
-          });
-          break;
-        }
-        
-        retries++;
-        
-        // Calculate exponential backoff with jitter
-        const delay = Math.min(
-          maxDelay,
-          baseDelay * Math.pow(2, retries - 1) * (0.8 + Math.random() * 0.4)
-        );
-        
-        this.logStructured('warn', `Retrying operation after failure (${retries}/${maxRetries})`, {
-          error: lastError.message,
-          retryCount: retries,
-          maxRetries,
-          delayMs: delay
-        });
-        
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-    
-    throw lastError!;
+    return retryWithBackoff(fn, {
+      maxRetries,
+      initialDelayMs: baseDelay,
+      maxDelayMs: maxDelay,
+      backoffFactor: 2,
+      jitter: true,
+      onError: (err, attempt) => this.logStructured('warn', 'Retry attempt', { attempt, err: err.message })
+    });
   }
   
   /**
@@ -372,33 +342,63 @@ export class EnhancedScannerService {
    * Initialize platform clients with access tokens
    * @param platforms Platform configurations with access tokens
    */
-  async initializePlatforms(platforms: { platform: Platform; accessToken: string }[]): Promise<void> {
-    await this.monitoringSystem.monitor('initializePlatforms', async () => {
-      for (const { platform, accessToken } of platforms) {
-        try {
-          switch (platform) {
-            case 'tiktok':
-              this.platformClients.set(platform, new TikTokClient(accessToken));
-              break;
-            case 'instagram':
-              this.platformClients.set(platform, new InstagramClient(accessToken));
-              break;
-            case 'youtube':
-              this.platformClients.set(platform, new YouTubeClient(accessToken));
-              break;
-            default:
-              throw new Error(`Unsupported platform: ${platform}`);
-          }
-          
-          this.logStructured('info', `Initialized ${platform} client`);
-        } catch (error) {
-          this.logStructured('error', `Failed to initialize ${platform} client`, {
-            error: (error as Error).message
-          });
-          throw error;
-        }
+  async initializePlatforms(platforms: { platform: Platform; accessToken: string, userId?: string }[]): Promise<void> {
+    for (const p of platforms) {
+      const { platform, accessToken, userId } = p;
+
+      // Create a default ApiConfig
+      let defaultConfig: ApiConfig = {
+        baseUrl: '', // Will be set per platform
+        version: '', // Will be set per platform
+        rateLimit: { requests: 10, perSeconds: 1 }, // Default placeholder
+        timeout: 20000,
+        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
+      };
+
+      if (platform === 'tiktok') {
+        defaultConfig.baseUrl = 'https://open.tiktokapis.com/v2';
+        defaultConfig.version = 'v2';
+      } else if (platform === 'instagram') {
+        defaultConfig.baseUrl = 'https://graph.instagram.com'; // Common base
+        defaultConfig.version = 'v19.0'; // Example version, adjust as needed
       }
-    });
+      // Add other platforms as needed
+
+      // Create a simple AuthTokenManager for the given accessToken
+      const authTokenManager: IAuthTokenManager = {
+        getValidCredentials: async (id: PlatformClientIdentifier): Promise<PlatformCredentials | null> => {
+          if (id.platform === platform && (!id.userId || id.userId === userId)) {
+            return {
+              strategy: AuthStrategy.OAUTH2,
+              accessToken: accessToken,
+              lastRefreshedAt: new Date().toISOString(),
+            };
+          }
+          return null;
+        },
+        storeCredentials: async (id: PlatformClientIdentifier, credentials: PlatformCredentials) => { /* no-op for this simple case */ },
+        clearCredentials: async (id: PlatformClientIdentifier) => { /* no-op for this simple case */ },
+      };
+
+      try {
+        switch (platform) {
+          case 'tiktok':
+            this.platformClients.set(platform, new TikTokClient(defaultConfig, authTokenManager, userId));
+            break;
+          case 'instagram':
+            this.platformClients.set(platform, new InstagramClient(defaultConfig, authTokenManager, userId));
+            break;
+          // Add other platform initializations here
+          default:
+            this.logStructured('warn', `Platform client initialization not implemented for ${platform}`, { platform });
+            continue; // Skip if platform client is not implemented
+        }
+        this.logStructured('info', `Successfully initialized ${platform} client directly with token.`, { platform, userId });
+      } catch (error) {
+        this.logStructured('error', `Failed to initialize ${platform} client directly with token.`, { platform, userId, error });
+        // Optionally, re-throw or handle specific errors
+      }
+    }
   }
   
   /**
@@ -885,5 +885,19 @@ export class EnhancedScannerService {
     this.eventEmitter.removeAllListeners();
     
     this.logStructured('info', 'Scanner service destroyed');
+  }
+  
+  // Example: initialize platform clients (should be called during service setup)
+  public initializePlatformClients(authTokenManager: any, userId?: string) {
+    for (const platform of [
+      'tiktok',
+      'instagram',
+      'youtube',
+    ] as Platform[]) {
+      if (PlatformFactory.isPlatformSupported(platform)) {
+        const client = PlatformFactory.createClient(platform, authTokenManager, userId);
+        this.platformClients.set(platform, client);
+      }
+    }
   }
 }

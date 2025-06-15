@@ -320,7 +320,7 @@ export default function CycleComponent() {
                   +14.5% from previous period
                 </p>
                 <div className="h-[80px] mt-2">
-                  <ChartWrapper><LineChart /></ChartWrapper>
+                  <ChartWrapper><LineChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} /></ChartWrapper>
                 </div>
               </CardContent>
             </Card>
@@ -336,7 +336,7 @@ export default function CycleComponent() {
                   +5.3% from previous period
                 </p>
                 <div className="h-[80px] mt-2">
-                  <ChartWrapper><LineChart /></ChartWrapper>
+                  <ChartWrapper><LineChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} /></ChartWrapper>
                 </div>
               </CardContent>
             </Card>
@@ -352,7 +352,7 @@ export default function CycleComponent() {
                   +0.4% from previous period
                 </p>
                 <div className="h-[80px] mt-2">
-                  <ChartWrapper><LineChart /></ChartWrapper>
+                  <ChartWrapper><LineChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} /></ChartWrapper>
                 </div>
               </CardContent>
             </Card>
@@ -365,7 +365,7 @@ export default function CycleComponent() {
                 <CardDescription>Where your content performs best</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px]">
-                <ChartWrapper><BarChart /></ChartWrapper>
+                <ChartWrapper><BarChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} /></ChartWrapper>
               </CardContent>
             </Card>
             
@@ -375,7 +375,7 @@ export default function CycleComponent() {
                 <CardDescription>Follower growth over time</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px]">
-                <ChartWrapper><LineChart /></ChartWrapper>
+                <ChartWrapper><LineChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} /></ChartWrapper>
               </CardContent>
             </Card>
           </div>
@@ -389,7 +389,7 @@ export default function CycleComponent() {
                 <CardDescription>Popular content themes this week</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px]">
-                <ChartWrapper><BarChart /></ChartWrapper>
+                <ChartWrapper><BarChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} /></ChartWrapper>
               </CardContent>
             </Card>
             
@@ -399,7 +399,7 @@ export default function CycleComponent() {
                 <CardDescription>Content performance over time</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px]">
-                <ChartWrapper><LineChart /></ChartWrapper>
+                <ChartWrapper><LineChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} /></ChartWrapper>
               </CardContent>
             </Card>
           </div>
@@ -410,7 +410,7 @@ export default function CycleComponent() {
               <CardDescription>How you compare to similar accounts</CardDescription>
             </CardHeader>
             <CardContent className="h-[300px]">
-              <ChartWrapper><BarChart /></ChartWrapper>
+              <ChartWrapper><BarChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} /></ChartWrapper>
             </CardContent>
           </Card>
         </TabsContent>

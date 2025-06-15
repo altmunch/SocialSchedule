@@ -40,7 +40,6 @@ describe('EnhancedContentOptimizationAgent', () => {
     audioViralityAnalysis: [{ audioId: 'audio1', viralityScore: 0.9, suitabilityScore: 0.8, title: 'Test Audio' }],
     detailedPlatformAnalytics: {} as any, // Add minimal required fields if needed
     realTimeSentiment: {} as any,
-    audioRecommendations: {} as any,
   };
 
   const mockContentRecommendations: ContentRecommendations = {

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle2, XCircle, Users, ShoppingCart, Music2, Instagram, Youtube, Twitter, Linkedin, Store, Package, Globe } from "lucide-react";
+import { useAuth } from "@/providers/AuthProvider";
+import { SubscriptionPromptPopup } from "@/components/dashboard/SubscriptionPromptPopup";
 
 const socialPlatforms = [
   { name: "TikTok", id: "tiktok", icon: Music2 },
@@ -25,8 +27,14 @@ export default function ConnectPage() {
   const [connections, setConnections] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
+  const { user } = useAuth();
 
   const handleConnect = async (platform: string) => {
+    if (user?.user_metadata?.tier === 'lite' && commercePlatforms.some(p => p.id === platform)) {
+      setShowSubscriptionPrompt(true);
+      return;
+    }
     setLoading(platform);
     setError(null);
     try {
@@ -65,6 +73,10 @@ export default function ConnectPage() {
       <CardContent className="space-y-4">
         {platforms.map((platform) => {
           const PlatformIcon = platform.icon;
+          const isCommercePlatform = commercePlatforms.some(p => p.id === platform.id);
+          const isLiteTier = user?.user_metadata?.tier === 'lite';
+          const isDisabledForLite = isCommercePlatform && isLiteTier;
+
           return (
             <div key={platform.id} className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-3">
@@ -72,17 +84,30 @@ export default function ConnectPage() {
                 <span className="font-medium">{platform.name}</span>
               </div>
               <div className="flex items-center gap-2">
+                {isDisabledForLite && (
+                  <span className="text-sm text-yellow-500">Pro Feature</span>
+                )}
                 {connections[platform.id] ? (
                   <>
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    <Button variant="outline" size="sm" onClick={() => handleDisconnect(platform.id)} disabled={loading === platform.id}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDisconnect(platform.id)} 
+                      disabled={loading === platform.id || isDisabledForLite}
+                    >
                       {loading === platform.id ? <Loader2 className="animate-spin h-4 w-4" /> : "Disconnect"}
                     </Button>
                   </>
                 ) : (
                   <>
                     <XCircle className="h-5 w-5 text-gray-400" />
-                    <Button variant="outline" size="sm" onClick={() => handleConnect(platform.id)} disabled={loading === platform.id}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleConnect(platform.id)} 
+                      disabled={loading === platform.id || isDisabledForLite}
+                    >
                       {loading === platform.id ? <Loader2 className="animate-spin h-4 w-4" /> : "Connect"}
                     </Button>
                   </>
@@ -121,6 +146,11 @@ export default function ConnectPage() {
       </div>
 
       {error && <div className="text-red-500 text-center max-w-2xl mx-auto">{error}</div>}
+      <SubscriptionPromptPopup 
+        isOpen={showSubscriptionPrompt}
+        onClose={() => setShowSubscriptionPrompt(false)}
+        featureName="E-commerce Integrations"
+      />
     </div>
   );
 } 

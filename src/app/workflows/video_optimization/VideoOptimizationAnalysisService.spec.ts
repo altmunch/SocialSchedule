@@ -3,7 +3,6 @@ import { VideoOptimizationAnalysisService } from './VideoOptimizationAnalysisSer
 import { ContentInsightsEngine } from '../data_analysis/engines/ContentInsightsEngine';
 import { ViralityEngine } from '../data_analysis/engines/ViralityEngine';
 import { SentimentAnalysisEngine } from './engines/SentimentAnalysisEngine';
-import { AudioRecommendationEngine } from './engines/AudioRecommendationEngine';
 import { OptimizedVideoGenerator, ProductLink, OptimizedVideoContent, UserPreferences } from './OptimizedVideoGenerator';
 import { 
   AnalysisResult, 
@@ -12,11 +11,9 @@ import {
   TimeRange,
   Platform,
   AudioVirality,
-  AudioFeaturesInput,
   TopPerformingContent,
   DetailedPlatformMetrics,
-  SentimentAnalysisResult,
-  AudioRecommendationResult
+  SentimentAnalysisResult
 } from '../data_analysis/types/analysis_types';
 import * as HashtagAnalysis from '../data_analysis/functions/hashtag_analysis'; // For spying
 
@@ -24,7 +21,6 @@ import * as HashtagAnalysis from '../data_analysis/functions/hashtag_analysis'; 
 jest.mock('../data_analysis/engines/ContentInsightsEngine');
 jest.mock('../data_analysis/engines/ViralityEngine');
 jest.mock('./engines/SentimentAnalysisEngine');
-jest.mock('./engines/AudioRecommendationEngine');
 jest.mock('./OptimizedVideoGenerator');
 jest.mock('../data_analysis/functions/hashtag_analysis');
 
@@ -34,7 +30,6 @@ describe('VideoOptimizationAnalysisService', () => {
   let mockContentInsightsEngine: jest.Mocked<ContentInsightsEngine>;
   let mockViralityEngine: jest.Mocked<ViralityEngine>;
   let mockSentimentAnalysisEngine: jest.Mocked<SentimentAnalysisEngine>;
-  let mockAudioRecommendationEngine: jest.Mocked<AudioRecommendationEngine>;
   let mockOptimizedVideoGenerator: jest.Mocked<OptimizedVideoGenerator>;
   let mockAnalyzeHashtags: jest.SpyInstance;
 
@@ -46,7 +41,6 @@ describe('VideoOptimizationAnalysisService', () => {
     mockContentInsightsEngine = new (ContentInsightsEngine as any)() as jest.Mocked<ContentInsightsEngine>;
     mockViralityEngine = new (ViralityEngine as any)() as jest.Mocked<ViralityEngine>;
     mockSentimentAnalysisEngine = new (SentimentAnalysisEngine as any)(MOCK_API_KEY) as jest.Mocked<SentimentAnalysisEngine>;
-    mockAudioRecommendationEngine = new (AudioRecommendationEngine as any)(MOCK_API_KEY) as jest.Mocked<AudioRecommendationEngine>;
     
     mockOptimizedVideoGenerator = new (OptimizedVideoGenerator as any)(MOCK_API_KEY) as jest.Mocked<OptimizedVideoGenerator>;
     (OptimizedVideoGenerator as jest.MockedClass<typeof OptimizedVideoGenerator>).mockImplementation(() => mockOptimizedVideoGenerator);
@@ -56,8 +50,7 @@ describe('VideoOptimizationAnalysisService', () => {
       MOCK_API_KEY,
       mockContentInsightsEngine,
       mockViralityEngine,
-      mockSentimentAnalysisEngine,
-      mockAudioRecommendationEngine
+      mockSentimentAnalysisEngine
     );
     
     mockAnalyzeHashtags = jest.spyOn(HashtagAnalysis, 'analyzeHashtags');
@@ -79,10 +72,6 @@ describe('VideoOptimizationAnalysisService', () => {
       success: true, data: { overallSentiment: 'neutral' } as SentimentAnalysisResult,
       metadata: { generatedAt: new Date(), source: 'mock' }
     });
-    mockAudioRecommendationEngine.recommendAudio.mockResolvedValue({
-      success: true, data: { recommendations: [] } as AudioRecommendationResult,
-      metadata: { generatedAt: new Date(), source: 'mock' }
-    });
     mockOptimizedVideoGenerator.generateOptimizedContent.mockResolvedValue({
       captions: { main: 'Optimized Main Caption', alternatives: ['Alt 1', 'Alt 2'] },
       hashtags: ['#test'],
@@ -93,10 +82,10 @@ describe('VideoOptimizationAnalysisService', () => {
 
   describe('constructor', () => {
     it('should throw error if no API key is provided', () => {
-      expect(() => new VideoOptimizationAnalysisService('', mockContentInsightsEngine, mockViralityEngine, mockSentimentAnalysisEngine, mockAudioRecommendationEngine)).toThrow('OpenAI API key is required');
+      expect(() => new VideoOptimizationAnalysisService('', mockContentInsightsEngine, mockViralityEngine, mockSentimentAnalysisEngine)).toThrow('OpenAI API key is required');
     });
     it('should instantiate OptimizedVideoGenerator with the API key', () => {
-        service = new VideoOptimizationAnalysisService(MOCK_API_KEY, mockContentInsightsEngine, mockViralityEngine, mockSentimentAnalysisEngine, mockAudioRecommendationEngine); // Re-instantiate to trigger constructor logic for this test
+        service = new VideoOptimizationAnalysisService(MOCK_API_KEY, mockContentInsightsEngine, mockViralityEngine, mockSentimentAnalysisEngine); // Re-instantiate to trigger constructor logic for this test
         expect(OptimizedVideoGenerator).toHaveBeenCalledWith(MOCK_API_KEY);
     });
   });
@@ -116,8 +105,6 @@ describe('VideoOptimizationAnalysisService', () => {
       expect(mockContentInsightsEngine.getDetailedPlatformAnalytics).toHaveBeenCalledWith(baseRequest);
       expect(mockViralityEngine.analyzeAudioVirality).toHaveBeenCalledWith(expect.objectContaining({ userId: baseRequest.userId }), undefined); // No audioIds in baseRequest
       expect(mockSentimentAnalysisEngine.analyzeTextSentiment).toHaveBeenCalledWith('caption1 hashtag #cool', baseRequest.correlationId);
-      expect(mockAudioRecommendationEngine.recommendAudio).toHaveBeenCalled();
-      expect(mockAnalyzeHashtags).toHaveBeenCalledWith(['caption1', 'hashtag #cool']);
       
       expect(result.success).toBe(true);
       expect(result.data).toBeDefined();
@@ -125,7 +112,6 @@ describe('VideoOptimizationAnalysisService', () => {
       expect(result.data?.trendingHashtags).toEqual([{ tag: '#cool' }]);
       expect(result.data?.detailedPlatformAnalytics).toBeDefined();
       expect(result.data?.realTimeSentiment).toBeDefined();
-      expect(result.data?.audioRecommendations).toBeDefined();
     });
 
     it('should handle failure in ContentInsightsEngine gracefully', async () => {
@@ -177,23 +163,6 @@ describe('VideoOptimizationAnalysisService', () => {
       });
       expect(result.success).toBe(true);
       expect(result.data?.realTimeSentiment).toBeUndefined();
-    });
-
-    it('should handle failure in AudioRecommendationEngine gracefully', async () => {
-      mockAudioRecommendationEngine.recommendAudio.mockResolvedValueOnce({
-        success: false,
-        error: { code: 'ENGINE_ERROR', message: 'Failed to recommend audio' },
-        data: undefined,
-        metadata: { generatedAt: new Date(), source: 'mock' }
-      });
-      const result = await service.getVideoOptimizationInsights({
-        userId: 'testUser',
-        platform: 'Instagram' as Platform,
-        timeRange: { start: '', end: '' },
-        correlationId: 'fail-audio',
-      });
-      expect(result.success).toBe(true);
-      expect(result.data?.audioRecommendations).toBeUndefined();
     });
 
     it('should handle no captions found gracefully', async () => {

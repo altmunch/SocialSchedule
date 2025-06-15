@@ -1,5 +1,7 @@
 // Common utilities for the Accelerate module
 
+import { retryWithBackoff } from '../../../shared_infra';
+
 /**
  * Calculate cosine similarity between two vectors
  */
@@ -165,31 +167,13 @@ export async function withRetry<T>(
     backoffFactor = 2,
     onError,
   } = options;
-
-  let lastError: Error | null = null;
-  
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error as Error;
-      
-      if (onError) {
-        onError(error as Error, attempt);
-      }
-      
-      if (attempt === maxRetries) break;
-      
-      const delay = Math.min(
-        initialDelay * (backoffFactor ** attempt),
-        maxDelay
-      );
-      
-      await sleep(delay);
-    }
-  }
-  
-  throw lastError || new Error('Unknown error in withRetry');
+  return retryWithBackoff(fn, {
+    maxRetries,
+    initialDelayMs: initialDelay,
+    maxDelayMs: maxDelay,
+    backoffFactor,
+    onError,
+  });
 }
 
 export * from './cacheService';

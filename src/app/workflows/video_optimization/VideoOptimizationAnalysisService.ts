@@ -6,14 +6,15 @@ import {
   TimeRange,
   Platform,
   AudioVirality,
-  AudioFeaturesInput // Added for AudioRecommendationEngine
+  // AudioFeaturesInput // Removed for AudioRecommendationEngine
 } from '../data_analysis/types/analysis_types';
 import { ContentInsightsEngine } from '../data_analysis/engines/ContentInsightsEngine';
 import { ViralityEngine } from '../data_analysis/engines/ViralityEngine';
 import { SentimentAnalysisEngine } from './engines/SentimentAnalysisEngine'; // Added new engine
-import { AudioRecommendationEngine } from './engines/AudioRecommendationEngine'; // Added new engine
+// import { AudioRecommendationEngine } from './engines/AudioRecommendationEngine'; // REMOVED
 import { analyzeHashtags, analyzeHashtagsWithTrends } from '../data_analysis/functions/hashtag_analysis';
-import { OptimizedVideoGenerator, ProductLink, OptimizedVideoContent, UserPreferences, OptimizedVideoGeneratorConfig } from './OptimizedVideoGenerator';
+import { OptimizedVideoGenerator, ProductLink, OptimizedVideoContent, UserPreferences } from './OptimizedVideoGenerator';
+import type { OptimizedVideoGeneratorConfig } from './OptimizedVideoGenerator'; // Changed to import type
 
 type OptimizationMode = 'fast' | 'thorough';
 
@@ -36,7 +37,7 @@ export class VideoOptimizationAnalysisService {
     private readonly viralityEngine: ViralityEngine = new ViralityEngine(),
     // Pass openAIApiKey to the new engines
     private readonly sentimentAnalysisEngine: SentimentAnalysisEngine = new SentimentAnalysisEngine(openAIApiKey),
-    private readonly audioRecommendationEngine: AudioRecommendationEngine = new AudioRecommendationEngine(openAIApiKey),
+    // private readonly audioRecommendationEngine: AudioRecommendationEngine = new AudioRecommendationEngine(openAIApiKey), // REMOVED
     private readonly optimizedVideoGeneratorConfig?: OptimizedVideoGeneratorConfig
   ) {
     if (!openAIApiKey) {
@@ -129,7 +130,7 @@ export class VideoOptimizationAnalysisService {
         trendingHashtags,
         audioViralityAnalysis,
         realTimeSentiment: undefined,
-        audioRecommendations: undefined,
+        // audioRecommendations: undefined, // REMOVED
         detailedPlatformAnalytics,
       };
 
@@ -179,27 +180,27 @@ export class VideoOptimizationAnalysisService {
         console.warn('VideoOptimizationAnalysisService: Detailed platform analytics failed or returned no data:', detailedAnalyticsResult.error);
       }
 
-      // Step 4: Perform Audio Recommendation (skip if mode is 'fast')
-      if (mode !== 'fast') {
-        console.log('VideoOptimizationAnalysisService: Requesting audio recommendations.');
-        const audioFeatures: AudioFeaturesInput = {
-          videoContentSummary: combinedData.topPerformingVideoCaptions.length > 0 
-                               ? combinedData.topPerformingVideoCaptions.join(' \n\n ')
-                               : undefined,
-          existingAudioContext: combinedData.audioViralityAnalysis,
-        };
-        const audioRecommendationResult = await this.audioRecommendationEngine.recommendAudio(
-          audioFeatures,
-          request.correlationId
-        );
-        if (audioRecommendationResult.success && audioRecommendationResult.data) {
-          combinedData.audioRecommendations = audioRecommendationResult.data;
-          console.log('VideoOptimizationAnalysisService: Audio recommendation successful.');
-        } else {
-          // Do not set audioRecommendations, but still return success: true
-          console.warn('VideoOptimizationAnalysisService: Audio recommendation failed or returned no data:', audioRecommendationResult.error);
-        }
-      }
+      // Step 4: Perform Audio Recommendation (skip if mode is 'fast') // REMOVED THIS ENTIRE BLOCK
+      // if (mode !== 'fast') {
+      //   console.log('VideoOptimizationAnalysisService: Requesting audio recommendations.');
+      //   const audioFeatures: AudioFeaturesInput = {
+      //     videoContentSummary: combinedData.topPerformingVideoCaptions.length > 0 
+      //                          ? combinedData.topPerformingVideoCaptions.join(' \\n\\n ')
+      //                          : undefined,
+      //     existingAudioContext: combinedData.audioViralityAnalysis,
+      //   };
+      //   const audioRecommendationResult = await this.audioRecommendationEngine.recommendAudio(
+      //     audioFeatures,
+      //     request.correlationId
+      //   );
+      //   if (audioRecommendationResult.success && audioRecommendationResult.data) {
+      //     combinedData.audioRecommendations = audioRecommendationResult.data;
+      //     console.log('VideoOptimizationAnalysisService: Audio recommendation successful.');
+      //   } else {
+      //     // Do not set audioRecommendations, but still return success: true
+      //     console.warn('VideoOptimizationAnalysisService: Audio recommendation failed or returned no data:', audioRecommendationResult.error);
+      //   }
+      // }
 
       return {
         success: true,

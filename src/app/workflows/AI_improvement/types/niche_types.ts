@@ -165,7 +165,7 @@ export const NICHE_DEFINITIONS: Record<ContentNiche, NicheCharacteristics> = {
     ],
     contentStyle: {
       tone: ['professional', 'educational', 'inspirational'],
-      visualStyle: ['minimal', 'professional', 'bold']
+      visualStyle: ['minimal', 'bold']
     },
     competitionLevel: 'high',
     averageEngagementRate: 0.06,
@@ -391,7 +391,7 @@ export const NICHE_DEFINITIONS: Record<ContentNiche, NicheCharacteristics> = {
     engagementPatterns: { peakHours: [8, 9, 12, 13, 17, 18], peakDays: [1, 2, 3, 4, 5], seasonality: 'low' },
     keyTopics: ['investing', 'financial planning', 'money tips', 'budgeting'],
     commonHashtags: ['#finance', '#investing', '#money', '#financialtips'],
-    contentStyle: { tone: ['educational', 'professional'], visualStyle: ['minimal', 'professional'] },
+    contentStyle: { tone: ['educational', 'professional'], visualStyle: ['minimal'] },
     competitionLevel: 'medium',
     averageEngagementRate: 0.05,
     viralPotential: 0.3
@@ -542,7 +542,7 @@ export const NICHE_DEFINITIONS: Record<ContentNiche, NicheCharacteristics> = {
     engagementPatterns: { peakHours: [9, 10, 12, 13, 17, 18], peakDays: [1, 2, 3, 4, 5, 6], seasonality: 'medium' },
     keyTopics: ['real estate', 'property', 'home buying', 'investment'],
     commonHashtags: ['#realestate', '#property', '#home', '#investment'],
-    contentStyle: { tone: ['professional', 'educational'], visualStyle: ['minimal', 'professional'] },
+    contentStyle: { tone: ['professional', 'educational'], visualStyle: ['minimal'] },
     competitionLevel: 'medium',
     averageEngagementRate: 0.05,
     viralPotential: 0.3

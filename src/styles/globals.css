@@ -165,10 +165,9 @@ html {
   
   /* Gradient Text */
   .gradient-text {
-    background: linear-gradient(45deg, 
-      hsl(183 100% 50%), 
-      hsl(162 100% 50%), 
-      hsl(302 100% 50%));
+    background: linear-gradient(135deg, 
+      hsl(var(--mint)) 0%, 
+      hsl(var(--lavender)) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
