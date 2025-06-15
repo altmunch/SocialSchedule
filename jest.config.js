@@ -38,13 +38,8 @@ module.exports = {
   // Transform configuration
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
-      useESM: true,
-      tsconfig: {
-        jsx: 'react-jsx',
-        esModuleInterop: true,
-        allowSyntheticDefaultImports: true,
-        moduleResolution: 'node',
-      },
+      useESM: false,
+      tsconfig: 'tsconfig.jest.json',
     }],
     '^.+\\.(js|jsx)$': ['babel-jest', {
       presets: [
@@ -89,7 +84,6 @@ module.exports = {
     '<rootDir>/testing/e2e/',
     '<rootDir>/testing/fixtures/',
     '<rootDir>/testing/mocks/',
-    '<rootDir>/testing/utils/',
   ],
 
   // Coverage configuration

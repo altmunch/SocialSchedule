@@ -11,9 +11,12 @@ const nodeFetch = require('node-fetch');
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
-// Mock global fetch if not available
+// Polyfill fetch and its related classes
 if (!global.fetch) {
   global.fetch = nodeFetch;
+  global.Request = nodeFetch.Request;
+  global.Response = nodeFetch.Response;
+  global.Headers = nodeFetch.Headers;
 }
 
 // Add performance API for testing

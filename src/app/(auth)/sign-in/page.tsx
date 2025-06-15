@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useFormStatus } from "react-dom";
+import Image from 'next/image';
 
 interface FormState {
   error: string | null;
@@ -24,7 +26,7 @@ function SubmitButton({
   return (
     <Button 
       type="submit" 
-      className="w-full bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:from-[#8D5AFF]/90 hover:to-[#5afcc0]/90 text-white font-semibold py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-[#8D5AFF]/20 h-12"
+      className="w-full bg-gradient-to-r from-[#8D5AFF] to-[#5AFCC0] hover:from-[#8D5AFF]/90 hover:to-[#5AFCC0]/90 text-white font-semibold py-3 rounded-lg transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-[#8D5AFF]/30 h-12 text-base"
       disabled={loading}
     >
       {loading ? 'Signing in...' : children}
@@ -36,12 +38,13 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const formRef = useRef<HTMLFormElement>(null);
-  const [isLoading, setIsLoading] = useState(true); // Start with true to prevent flash of login
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { pending } = useFormStatus();
+
   const message = searchParams.get('message');
   const type = searchParams.get('type') as 'success' | 'error' | 'info' | 'warning' | null;
 
-  // Check for existing session on component mount
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -84,100 +87,103 @@ export default function SignInPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20 [mask-image:radial-gradient(ellipse_at_center,white,transparent_70%)]"></div>
-      <div className="absolute top-20 left-20 w-72 h-72 bg-[#8D5AFF]/20 rounded-full filter blur-3xl"></div>
-      <div className="absolute bottom-20 right-20 w-96 h-96 bg-[#5afcc0]/10 rounded-full filter blur-3xl"></div>
-      
-      <div className="container mx-auto px-4 py-16 relative z-10">
-        <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-          <div className="w-full max-w-md">
-            {/* Logo/Brand */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] rounded-2xl mb-4">
-                <span className="text-2xl font-bold text-white">CC</span>
-              </div>
-              <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome back</h1>
-              <p className="text-gray-300">Sign in to your ClipsCommerce account</p>
-            </div>
+  if (isLoading && !message && !error && formRef.current === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0F0F0F] to-[#1A1A1A] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8D5AFF]"></div>
+      </div>
+    );
+  }
 
-            <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-8 shadow-2xl">
-              <form action={handleSubmit} ref={formRef} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-300 font-medium">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    required
-                    className="bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400 focus:ring-2 focus:ring-[#8D5AFF] focus:border-transparent rounded-xl h-12 transition-all"
-                    disabled={isLoading}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-gray-300 font-medium">Password</Label>
-                    <Link
-                      href="/forgot-password"
-                      className="text-sm text-[#8D5AFF] hover:text-[#8D5AFF]/80 transition-colors"
-                      tabIndex={isLoading ? -1 : 0}
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    required
-                    className="bg-gray-800/50 border-gray-600/50 text-white placeholder-gray-400 focus:ring-2 focus:ring-[#8D5AFF] focus:border-transparent rounded-xl h-12 transition-all"
-                    disabled={isLoading}
-                  />
-                </div>
-                
-                <SubmitButton loading={isLoading}>
-                  Sign In to Your Account
-                </SubmitButton>
-                
-                {error && (
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                    <div className="text-red-400 text-sm text-center">
-                      {error}
-                    </div>
-                  </div>
-                )}
-                
-                {message && (
-                  <div className={`border rounded-xl p-4 ${
-                    type === 'error' 
-                      ? 'bg-red-500/10 border-red-500/20 text-red-400' 
-                      : 'bg-green-500/10 border-green-500/20 text-green-400'
-                  }`}>
-                    <div className="text-sm text-center">
-                      {message}
-                    </div>
-                  </div>
-                )}
-              </form>
-              
-              <div className="mt-8 pt-6 border-t border-gray-700/50">
-                <p className="text-center text-sm text-gray-400">
-                  Don't have an account?{" "}
-                  <Link
-                    href="/sign-up"
-                    className="font-medium text-[#8D5AFF] hover:text-[#8D5AFF]/80 hover:underline transition-colors"
-                    tabIndex={isLoading ? -1 : 0}
-                  >
-                    Sign up for free
-                  </Link>
-                </p>
-              </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#101014] via-[#0A0A0C] to-[#030304] text-white flex flex-col items-center justify-center p-6 sm:p-8">
+      <div className="w-full max-w-xs space-y-8">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-[70px] h-[70px] bg-gradient-to-br from-[#8D5AFF] to-[#5AFCC0] rounded-xl mb-6 shadow-md overflow-hidden">
+            <Image
+              src="/images/ChatGPT Image Jun 1, 2025, 07_27_54 PM.png"
+              alt="ClipsCommerce Logo"
+              width={48}
+              height={48}
+              className="object-contain p-1 invert"
+              priority
+            />
+          </div>
+          <h1 className="text-[32px] font-bold tracking-tight text-white mb-1.5">Welcome back</h1>
+          <p className="text-gray-400 text-base">Sign in to your ClipsCommerce account</p>
+        </div>
+
+        <form action={handleSubmit} ref={formRef} className="space-y-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-gray-300 font-medium text-sm">Email</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Enter your email"
+              required
+              className="bg-[#1C1C22] border-none text-white placeholder-gray-500 focus:ring-2 focus:ring-[#8D5AFF]/70 focus:border-transparent rounded-lg h-11 transition-all text-sm px-4 py-2.5"
+              disabled={isLoading || pending}
+            />
+          </div>
+          
+          <div className="space-y-1.5">
+            <Label htmlFor="password" className="text-gray-300 font-medium text-sm">Password</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Enter your password"
+              required
+              className="bg-[#1C1C22] border-none text-white placeholder-gray-500 focus:ring-2 focus:ring-[#8D5AFF]/70 focus:border-transparent rounded-lg h-11 transition-all text-sm px-4 py-2.5"
+              disabled={isLoading || pending}
+            />
+          </div>
+          
+          <div className="pt-2">
+            <SubmitButton loading={isLoading || pending}>
+              Sign In To Your Account
+            </SubmitButton>
+          </div>
+          
+          {error && (
+            <div className="bg-red-700/20 border border-red-600/30 rounded-lg p-3 mt-4">
+              <p className="text-red-400 text-sm text-center">{error}</p>
             </div>
+          )}
+          
+          {message && type && (
+            <div className={`border rounded-lg p-3 mt-4 ${
+              type === 'error' 
+                ? 'bg-red-700/20 border-red-600/30 text-red-400' 
+                : 'bg-green-700/20 border-green-600/30 text-green-400'
+            }`}>
+              <p className="text-sm text-center">{message}</p>
+            </div>
+          )}
+        </form>
+        
+        <div className="text-center space-y-3 pt-4">
+          <div>
+            <Link
+              href="/forgot-password"
+              className="text-sm text-[#BF9FFF] hover:text-[#A07EFF] transition-colors font-medium"
+              tabIndex={(isLoading || pending) ? -1 : 0}
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">
+              Don't have an account?{" "}
+              <Link
+                href="/sign-up"
+                className="font-medium text-[#BF9FFF] hover:text-[#A07EFF] hover:underline transition-colors"
+                tabIndex={(isLoading || pending) ? -1 : 0}
+              >
+                Sign up
+              </Link>
+            </p>
           </div>
         </div>
       </div>

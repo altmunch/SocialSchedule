@@ -39,9 +39,9 @@ export default function LandingPage() {
         <div className="absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)] [background-size:60px_60px]"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-[#0A0A0A] opacity-90"></div>
       </div>
-      <div className="relative z-10 h-full overflow-y-auto">
+      <div className="relative z-10">
         <NavigationBar />
-      <main className="bg-gradient-to-b from-black to-[#0A0A0A]">
+      <main className="bg-gradient-to-b from-black to-[#0A0A0A] min-h-screen">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

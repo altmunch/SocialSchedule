@@ -256,80 +256,133 @@ export default function AccelerateComponent() {
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="p-4 md:p-6 space-y-8 bg-background text-text min-h-screen">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-creative">Accelerate: Optimize your content</h1>
-            <p className="text-secondaryText mt-1">
-              Upload your videos and optimize audio, description, and hashtags for best results.
-            </p>
-          </div>
-          <Button onClick={handleAddVideos} className="bg-primary text-black hover:bg-creative hover:text-white">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Add Videos
-          </Button>
-        </div>
-        <input
-          type="file"
-          ref={fileInputRef}
-          multiple
-          accept="video/*"
-          style={{ display: 'none' }}
-          onChange={handleFileSelected}
-        />
-        {/* Add Videos Drop Area */}
-        <div className="w-full flex justify-center">
-          <div className="bg-panel border-2 border-dashed border-highlight rounded-lg p-12 flex flex-col items-center justify-center w-full max-w-xl shadow-md cursor-pointer hover:border-creative transition-all" onClick={handleAddVideos}>
-            <PlusCircle className="h-10 w-10 text-primary mb-2" />
-            <span className="text-lg font-semibold">Add videos</span>
-            <span className="text-secondaryText text-sm mt-2">Click or drag files here to upload</span>
-          </div>
-        </div>
-        {/* Progress Section */}
-        <div className="w-full max-w-xl mx-auto mt-8">
-          <h2 className="text-lg font-bold mb-4 text-creative">Progress</h2>
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <span className="text-secondaryText">Audio</span>
-              <Progress value={40} />
+      <div className="min-h-screen bg-background">
+        {/* Main Content Container - Properly Centered */}
+        <div className="max-w-6xl mx-auto px-4 py-8 space-y-12">
+          
+          {/* Header Section - Centered */}
+          <div className="text-center space-y-4">
+            <div className="space-y-2">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Accelerate: Optimize your content
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Upload your videos and optimize audio, description, and hashtags for best results.
+              </p>
             </div>
-            <div className="space-y-1">
-              <span className="text-secondaryText">Description</span>
-              <Progress value={60} />
-            </div>
-            <div className="space-y-1">
-              <span className="text-secondaryText">Hashtags</span>
-              <Progress value={30} />
-            </div>
+            <Button 
+              onClick={handleAddVideos} 
+              size="lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <PlusCircle className="mr-3 h-6 w-6" />
+              Add Videos
+            </Button>
           </div>
-        </div>
-        {/* Video Kanban Columns (optional, keep for advanced view) */}
-        <div className="flex flex-col md:flex-row gap-4 overflow-x-auto pb-4">
-          {columns.map((column) => (
-            <Card key={column.id} className="w-full md:w-80 lg:w-96 flex-shrink-0 bg-panel border-border shadow-md">
-              <CardHeader className="border-b border-border p-4">
-                <CardTitle className="text-lg font-semibold text-creative flex items-center justify-between">
-                  {column.title}
-                  <span className="text-sm font-normal text-secondaryText bg-hover px-2 py-1 rounded-md">
-                    {getVideosByColumn(column.id).length}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 space-y-3 min-h-[200px]">
-                <SortableContext items={getVideosByColumn(column.id).map(v => v.id)} strategy={verticalListSortingStrategy}>
-                  {getVideosByColumn(column.id).map((video) => (
-                    <SortableVideoCard key={video.id} video={video} />
-                  ))}
-                </SortableContext>
-                {getVideosByColumn(column.id).length === 0 && (
-                  <div className="text-center text-secondaryText py-10">
-                    <p>No videos in this stage.</p>
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            multiple
+            accept="video/*"
+            style={{ display: 'none' }}
+            onChange={handleFileSelected}
+          />
+
+          {/* Upload Drop Zone - Centered and Prominent */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-2xl">
+              <Card 
+                className="border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all duration-300 cursor-pointer group bg-card/50 backdrop-blur-sm"
+                onClick={handleAddVideos}
+              >
+                <CardContent className="p-16 text-center space-y-6">
+                  <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-300">
+                    <PlusCircle className="h-10 w-10 text-primary" />
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-semibold text-foreground">Add videos</h3>
+                    <p className="text-muted-foreground">Click or drag files here to upload</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+          
+          {/* Progress Section - Centered and Enhanced */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-2xl">
+              <Card className="bg-card/80 backdrop-blur-sm border-border/50">
+                <CardHeader className="text-center pb-6">
+                  <CardTitle className="text-2xl font-bold text-foreground flex items-center justify-center gap-3">
+                    <Zap className="h-6 w-6 text-primary" />
+                    Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-8 px-8 pb-8">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-base font-medium text-foreground">Audio</span>
+                      <span className="text-sm text-muted-foreground">40%</span>
+                    </div>
+                    <Progress value={40} className="h-3" />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-base font-medium text-foreground">Description</span>
+                      <span className="text-sm text-muted-foreground">60%</span>
+                    </div>
+                    <Progress value={60} className="h-3" />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-base font-medium text-foreground">Hashtags</span>
+                      <span className="text-sm text-muted-foreground">30%</span>
+                    </div>
+                    <Progress value={30} className="h-3" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Video Workflow Columns - Full Width with Better Spacing */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-center text-foreground">Video Workflow</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+              {columns.map((column) => (
+                <Card key={column.id} className="bg-card/80 backdrop-blur-sm border-border/50 shadow-lg">
+                  <CardHeader className="border-b border-border/30 p-6">
+                    <CardTitle className="text-lg font-semibold text-foreground flex items-center justify-between">
+                      {column.title}
+                      <span className="text-sm font-normal text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                        {getVideosByColumn(column.id).length}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4 min-h-[300px]">
+                    <SortableContext items={getVideosByColumn(column.id).map(v => v.id)} strategy={verticalListSortingStrategy}>
+                      {getVideosByColumn(column.id).map((video) => (
+                        <SortableVideoCard key={video.id} video={video} />
+                      ))}
+                    </SortableContext>
+                    {getVideosByColumn(column.id).length === 0 && (
+                      <div className="text-center text-muted-foreground py-16">
+                        <div className="space-y-2">
+                          <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                            <PlayCircle className="h-6 w-6" />
+                          </div>
+                          <p className="text-sm">No videos in this stage</p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
+
         <DragOverlay>
           {activeVideo ? <SortableVideoCard video={activeVideo} /> : null}
         </DragOverlay>

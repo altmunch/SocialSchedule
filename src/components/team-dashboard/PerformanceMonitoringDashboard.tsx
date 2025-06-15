@@ -27,10 +27,14 @@ import {
   Share2,
   DollarSign,
   Target,
-  Gauge
+  Gauge,
+  Link as LinkIcon,
+  Info
 } from 'lucide-react';
 import { useTeamMode } from '@/providers/TeamModeProvider';
 import { CircularScore } from '@/components/ui/circular-score';
+import Link from 'next/link';
+import { MiniTrendChart } from '@/components/ui/mini-trend-chart';
 
 interface PerformanceMetric {
   id: string;
@@ -41,6 +45,10 @@ interface PerformanceMetric {
   unit: string;
   target?: number;
   status: 'good' | 'warning' | 'critical';
+  category?: 'key' | 'niche' | 'ab_test' | 'predictive' | 'other';
+  detailsLink?: string;
+  icon?: React.ElementType;
+  trendData?: Array<{ name: string; value: number }>;
 }
 
 interface ClientPerformanceData {
@@ -72,6 +80,7 @@ export function PerformanceMonitoringDashboard() {
   const [selectedMetric, setSelectedMetric] = useState('engagement');
   const [refreshInterval, setRefreshInterval] = useState(30);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [selectedOverviewCategory, setSelectedOverviewCategory] = useState<'all' | 'key' | 'niche' | 'ab_test' | 'predictive' | 'other'>('all');
 
   // Mock performance data
   const [metrics, setMetrics] = useState<PerformanceMetric[]>([
@@ -83,7 +92,17 @@ export function PerformanceMonitoringDashboard() {
       changeDirection: 'up',
       unit: '%',
       target: 10,
-      status: 'good'
+      status: 'good',
+      category: 'key',
+      icon: TrendingUp,
+      trendData: [
+        { name: 'W1', value: 7.5 },
+        { name: 'W2', value: 7.8 },
+        { name: 'W3', value: 8.1 },
+        { name: 'W4', value: 8.5 },
+        { name: 'W5', value: 8.3 },
+        { name: 'W6', value: 8.7 },
+      ]
     },
     {
       id: 'avg_reach',
@@ -93,7 +112,17 @@ export function PerformanceMonitoringDashboard() {
       changeDirection: 'down',
       unit: '',
       target: 300000,
-      status: 'warning'
+      status: 'warning',
+      category: 'key',
+      icon: Users,
+      trendData: [
+        { name: 'M1', value: 220000 },
+        { name: 'M2', value: 235000 },
+        { name: 'M3', value: 250000 },
+        { name: 'M4', value: 240000 },
+        { name: 'M5', value: 260000 },
+        { name: 'M6', value: 245600 },
+      ]
     },
     {
       id: 'conversion_rate',
@@ -103,7 +132,9 @@ export function PerformanceMonitoringDashboard() {
       changeDirection: 'up',
       unit: '%',
       target: 5,
-      status: 'good'
+      status: 'good',
+      category: 'key',
+      icon: Zap
     },
     {
       id: 'total_revenue',
@@ -113,7 +144,60 @@ export function PerformanceMonitoringDashboard() {
       changeDirection: 'up',
       unit: '$',
       target: 1500000,
-      status: 'good'
+      status: 'good',
+      category: 'key',
+      icon: DollarSign,
+      trendData: [
+        { name: 'Q1', value: 950000 },
+        { name: 'Q2', value: 1100000 },
+        { name: 'Q3', value: 1050000 },
+        { name: 'Q4', value: 1250000 },
+      ]
+    },
+    {
+      id: 'niche_fashion_conversion',
+      name: 'Fashion Niche Conversion',
+      value: 4.1,
+      change: 5.0,
+      changeDirection: 'up',
+      unit: '%',
+      target: 4.5,
+      status: 'good',
+      category: 'niche',
+      icon: Info,
+      detailsLink: '/dashboard/analytics/niche/fashion',
+      trendData: [
+        { name: 'Jan', value: 3.5 },
+        { name: 'Feb', value: 3.8 },
+        { name: 'Mar', value: 3.9 },
+        { name: 'Apr', value: 4.2 },
+        { name: 'May', value: 4.0 },
+        { name: 'Jun', value: 4.1 },
+      ]
+    },
+    {
+      id: 'ab_test_cta_button',
+      name: 'A/B Test: New CTA Button',
+      value: 15.0,
+      change: 2.5,
+      changeDirection: 'up',
+      unit: '% uplift',
+      status: 'good',
+      category: 'ab_test',
+      icon: BarChart3,
+      detailsLink: '/dashboard/ab-tests/cta-button-test'
+    },
+    {
+      id: 'predictive_churn_risk',
+      name: 'Predicted Churn Risk',
+      value: 7.8,
+      change: -1.2,
+      changeDirection: 'down',
+      unit: '%',
+      status: 'warning',
+      category: 'predictive',
+      icon: AlertTriangle,
+      detailsLink: '/dashboard/analytics/predictive/churn'
     }
   ]);
 
@@ -203,6 +287,18 @@ export function PerformanceMonitoringDashboard() {
     return value.toString();
   };
 
+  const overviewCategories = [
+    { value: 'all', label: 'All' },
+    { value: 'key', label: 'Key Metrics' },
+    { value: 'niche', label: 'Niche Performance' },
+    { value: 'ab_test', label: 'A/B Tests' },
+    { value: 'predictive', label: 'Predictions' },
+  ];
+
+  const filteredMetrics = metrics.filter(metric => 
+    selectedOverviewCategory === 'all' || metric.category === selectedOverviewCategory
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -239,52 +335,84 @@ export function PerformanceMonitoringDashboard() {
         </div>
       </div>
 
-      {/* Key Metrics Overview */}
+      {/* Key Metrics Overview Filter and Title */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-semibold">Performance Overview</h3>
+        <Tabs value={selectedOverviewCategory} onValueChange={(value) => setSelectedOverviewCategory(value as any)} className="w-auto">
+          <TabsList>
+            {overviewCategories.map(cat => (
+              <TabsTrigger key={cat.value} value={cat.value}>{cat.label}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Key Metrics Overview Widgets */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((metric) => (
-          <Card key={metric.id} className="border-border">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  <div className={`p-1 rounded ${getStatusColor(metric.status)}`}>
-                    <Activity className="h-3 w-3" />
+        {filteredMetrics.map((metric) => {
+          const MetricIcon = metric.icon || Activity;
+          return (
+            <Card key={metric.id} className="border-border">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <div className={`p-1 rounded ${getStatusColor(metric.status)}`}>
+                      <MetricIcon className="h-3 w-3" />
+                    </div>
+                    <span className="text-sm font-medium">{metric.name}</span>
                   </div>
-                  <span className="text-sm font-medium">{metric.name}</span>
-                </div>
-                {getTrendIcon(metric.changeDirection)}
-              </div>
-              
-              <div className="space-y-2">
-                <div className="text-2xl font-bold">
-                  {formatValue(metric.value, metric.unit)}
-                  {metric.unit === '%' && '%'}
+                  {getTrendIcon(metric.changeDirection)}
                 </div>
                 
-                <div className="flex items-center justify-between text-sm">
-                  <span className={`flex items-center space-x-1 ${
-                    metric.changeDirection === 'up' ? 'text-mint' : 
-                    metric.changeDirection === 'down' ? 'text-coral' : 'text-muted-foreground'
-                  }`}>
-                    <span>{metric.change > 0 ? '+' : ''}{metric.change}%</span>
-                  </span>
+                <div className="space-y-2">
+                  <div className="text-2xl font-bold">
+                    {formatValue(metric.value, metric.unit)}
+                    {metric.unit === '%' && metric.name !== 'Predicted Churn Risk' && '%'}
+                    {metric.unit === '% uplift' && '% uplift'}
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className={`flex items-center space-x-1 ${
+                      metric.changeDirection === 'up' ? 'text-mint' : 
+                      metric.changeDirection === 'down' ? 'text-coral' : 'text-muted-foreground'
+                    }`}>
+                      <span>{metric.change > 0 ? '+' : ''}{metric.change}{metric.unit === '%' || metric.unit === '% uplift' ? '%' : ''}</span>
+                    </span>
+                    
+                    {metric.target && (
+                      <span className="text-muted-foreground">
+                        Target: {formatValue(metric.target, metric.unit)}{metric.unit === '%' && '%'}
+                      </span>
+                    )}
+                  </div>
                   
                   {metric.target && (
-                    <span className="text-muted-foreground">
-                      Target: {formatValue(metric.target, metric.unit)}{metric.unit === '%' && '%'}
-                    </span>
+                    <Progress 
+                      value={(metric.value / metric.target) * 100} 
+                      className="h-1"
+                    />
+                  )}
+                  {metric.trendData && metric.trendData.length > 0 && (
+                    <MiniTrendChart 
+                      data={metric.trendData} 
+                      color={metric.changeDirection === 'up' ? 'hsl(var(--chart-positive))' : metric.changeDirection === 'down' ? 'hsl(var(--chart-negative))' : 'hsl(var(--muted-foreground))'} 
+                    />
+                  )}
+                  {metric.detailsLink && (
+                    <div className="mt-3 text-right">
+                      <Link href={metric.detailsLink} passHref legacyBehavior>
+                        <Button variant="outline" size="xs" className="text-xs">
+                          <LinkIcon className="h-3 w-3 mr-1" />
+                          View Details
+                        </Button>
+                      </Link>
+                    </div>
                   )}
                 </div>
-                
-                {metric.target && (
-                  <Progress 
-                    value={(metric.value / metric.target) * 100} 
-                    className="h-1"
-                  />
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       <Tabs defaultValue="performance" className="w-full">

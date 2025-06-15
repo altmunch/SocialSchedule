@@ -42,7 +42,7 @@ const MockPricingSection = () => {
       
       <div data-testid="free-plan">
         <h3>Free Plan</h3>
-        <button onClick={() => window.location.href = '/dashboard'}>
+        <button onClick={() => { if(window.location) window.location.href = '/dashboard'; }}>
           Get Started Free
         </button>
       </div>
@@ -68,10 +68,49 @@ const MockPricingSection = () => {
 
 // Mock environment variables
 const originalEnv = process.env;
+const mockLocationHref = jest.fn(); // Global spy for href changes
+let originalLocation: Location;
 
 describe('Payment Flow - Core Functionality', () => {
+  beforeAll(() => {
+    originalLocation = window.location;
+    try {
+      delete (window as any).location;
+    } catch (e) {
+      console.warn("Could not delete window.location in payment-flow-simple.test.tsx, proceeding with assignment", e);
+    }
+    (window as any).location = {
+      _currentHref: 'http://localhost:3000/initial-mock-path',
+      assign: jest.fn(),
+      replace: jest.fn(),
+      reload: jest.fn(),
+      ancestorOrigins: {} as DOMStringList,
+      hash: '',
+      host: 'localhost:3000',
+      hostname: 'localhost',
+      origin: 'http://localhost:3000',
+      pathname: '/initial-mock-path',
+      port: '3000',
+      protocol: 'http:',
+      search: '',
+      get href(): string {
+        return this._currentHref;
+      },
+      set href(value: string) {
+        this._currentHref = value;
+        mockLocationHref(value);
+      },
+      toString: function() { return this._currentHref; },
+      valueOf: function() { return this; }
+    };
+  });
+
+  afterAll(() => {
+    (window as any).location = originalLocation;
+  });
+
   beforeEach(() => {
-    jest.resetModules();
+    jest.resetModules(); // Keep this if it's important for other mocks in this file
     process.env = {
       ...originalEnv,
       NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK: 'https://stripe.com/pro-monthly',
@@ -80,7 +119,6 @@ describe('Payment Flow - Core Functionality', () => {
       NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK: 'https://stripe.com/team-yearly',
     };
     
-    // Mock localStorage
     const localStorageMock = {
       getItem: jest.fn(),
       setItem: jest.fn(),
@@ -89,13 +127,19 @@ describe('Payment Flow - Core Functionality', () => {
     };
     Object.defineProperty(window, 'localStorage', {
       value: localStorageMock,
+      configurable: true, // Make it configurable for multiple test runs
+      writable: true
     });
     
-    // Mock window.location
-    delete (window as any).location;
-    (window as any).location = { href: '' };
-    
-    // Mock for tracking Stripe redirects
+    // Reset window.location.href via the setter to ensure spy is called if needed, and clear mocks
+    if (window.location && typeof (window.location as any)._currentHref === 'string') {
+      (window.location as any)._currentHref = 'http://localhost:3000/initial-mock-path';
+    }
+    mockLocationHref.mockClear();
+    ((window as any).location.assign as jest.Mock).mockClear();
+    ((window as any).location.replace as jest.Mock).mockClear();
+
+    // Mock for tracking Stripe redirects (if still used by MockPricingSection)
     (window as any).mockStripeRedirect = null;
   });
 
@@ -178,17 +222,10 @@ describe('Payment Flow - Core Functionality', () => {
     
     const freeButton = screen.getByText('Get Started Free');
     
-    // Mock the location assignment to avoid JSDOM navigation error
-    const mockLocationAssign = jest.fn();
-    Object.defineProperty(window, 'location', {
-      value: { href: '', assign: mockLocationAssign },
-      writable: true,
-    });
-    
     fireEvent.click(freeButton);
     
-    // Check that location.href was set to dashboard
-    expect(window.location.href).toBe('/dashboard');
+    // Check that location.href was set to dashboard via the global spy
+    expect(mockLocationHref).toHaveBeenCalledWith('/dashboard');
   });
 });
 

@@ -221,7 +221,7 @@ export async function testFormValidation(
  * Mock API response
  */
 export function mockApiResponse(url: string, response: any, status = 200) {
-  global.fetch = jest.fn().mockImplementation((requestUrl) => {
+  global.fetch = jest.fn().mockImplementation((requestUrl: string) => {
     if (requestUrl.includes(url)) {
       return Promise.resolve({
         ok: status >= 200 && status < 300,
@@ -266,17 +266,30 @@ export async function testAnimations(component: ReactElement) {
   const { container } = renderWithProviders(component);
   
   // Mock animation frame
-  let animationFrameCallback: FrameRequestCallback | null = null;
-  global.requestAnimationFrame = jest.fn((callback) => {
-    animationFrameCallback = callback;
-    return 1;
-  });
+  const mockRAF = jest.spyOn(global, 'requestAnimationFrame')
+    .mockImplementation((callback: FrameRequestCallback): number => {
+      // In a real test, you might want to immediately invoke the callback
+      // or store it to invoke manually later after some assertions.
+      // For this general utility, we'll just acknowledge it was called.
+      // If specific animation logic needs testing, the test itself should be more detailed.
+      if (typeof callback === 'function') {
+        // callback(performance.now()); // Optionally call it if needed for specific tests
+      }
+      return Date.now(); // Return a mock ID
+    });
   
-  // Trigger animation
-  if (animationFrameCallback) {
-    animationFrameCallback(performance.now());
-  }
+  // At this point, if the component calls requestAnimationFrame,
+  // our mockImplementation above would be executed.
+  // This utility doesn't trigger the component's rAF call, it just sets up the mock for it.
+
+  // Example of how a real test might use this:
+  // renderWithProviders(component); // Component renders and calls rAF
+  // expect(mockRAF).toHaveBeenCalled();
+  // if (capturedCallback) capturedCallback(performance.now()); // if you captured it
+  // ... assertions ...
   
+  mockRAF.mockRestore(); // Restore the original implementation
+
   return container;
 }
 
@@ -411,7 +424,6 @@ export {
   screen,
   fireEvent,
   waitFor,
-  userEvent,
 };
 
 // Re-export commonly used testing library functions

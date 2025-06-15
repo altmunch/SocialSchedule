@@ -422,6 +422,25 @@ export class AIImprovementService {
     }
   }
 
+  /**
+   * Updates the content optimization patterns by re-analyzing historical data.
+   * This is typically called by the MasterOrchestratorAgent.
+   */
+  async updateContentOptimizationPatterns(): Promise<void> {
+    await this.ensureInitialized();
+    try {
+      console.log('Updating content optimization patterns by calling analyzeContentPerformancePatterns...');
+      const patterns = analyzeContentPerformancePatterns(); // from ../functions/nlp
+      // The patterns are derived from featureStore and used by other functions.
+      // For now, we log the action. If these patterns needed to be stored centrally
+      // beyond the featureStore's implicit use, this is where it would happen.
+      console.log('Content optimization patterns updated successfully. Top performing words count:', patterns.topPerformingWords.length);
+    } catch (error) {
+      console.error('Failed to update content optimization patterns:', error);
+      // Optionally, re-throw or handle as per system design
+    }
+  }
+
   // Private helper methods
 
   private async ensureInitialized(): Promise<void> {

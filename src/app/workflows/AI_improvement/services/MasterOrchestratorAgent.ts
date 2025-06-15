@@ -1,12 +1,13 @@
 import { Platform } from '../../deliverables/types/deliverables_types';
 import { ContentNiche } from '../types/niche_types';
 import { AIImprovementService } from './AIImprovementService';
-import { DataCollectionAgent } from './agents/DataCollectionAgent';
+import { DataCollectionAgent, DataGap } from './agents/DataCollectionAgent';
 import { ContentOptimizationAgent } from './agents/ContentOptimizationAgent';
 import { EngagementPredictionAgent } from './agents/EngagementPredictionAgent';
 import { ABTestingAgent } from './agents/ABTestingAgent';
 import { NicheSpecializationAgent } from './agents/NicheSpecializationAgent';
 import { UIAgent } from './agents/UIAgent';
+import { updateModel, evaluateModel } from '../functions/updateModel';
 
 export interface SystemMetrics {
   averageEngagementRate: number;
@@ -83,6 +84,9 @@ export class MasterOrchestratorAgent {
   private aiImprovementService: AIImprovementService;
   private isRunning: boolean = false;
   private cycleInterval: NodeJS.Timeout | null = null;
+  private lastEngagementModelTrainTime: Date | null = null;
+  private lastContentPatternsUpdateTime: Date | null = null;
+  private lastDataGapCheckTime: Date | null = null;
 
   constructor() {
     this.agents = new Map();
@@ -199,8 +203,27 @@ export class MasterOrchestratorAgent {
       // 2. Monitor agent statuses
       const agentStatuses = await this.getAgentStatuses();
 
+      // 2.5. Get current data gaps from DataCollectionAgent
+      const dataCollector = this.agents.get('data_collector') as DataCollectionAgent;
+      let currentDataGaps: DataGap[] = [];
+      if (dataCollector && typeof dataCollector.getDataGaps === 'function') {
+        currentDataGaps = dataCollector.getDataGaps();
+        // Periodically trigger a data gap analysis by the DataCollectionAgent if it's idle
+        const dcStatus = agentStatuses.find(s => s.agentId === 'data_collector');
+        if (dcStatus && dcStatus.status === 'idle' && (!this.lastDataGapCheckTime || new Date().getTime() - this.lastDataGapCheckTime.getTime() > 6 * 60 * 60 * 1000)) { // e.g. every 6 hours
+          console.log('Triggering periodic data gap monitoring for DataCollectionAgent.');
+          // This task assignment will be handled more formally in makeOrchestrationDecision if needed
+          // For now, let's assume this might prompt the agent internally or through a task.
+          // A more direct way: await dataCollector.executeTask({ type: 'monitor_gaps', niche: ContentNiche.FITNESS, platform: Platform.TIKTOK, priority: 'low', requirements: {} as any });
+          // However, tasking agents should ideally be part of the decision logic.
+          this.lastDataGapCheckTime = new Date(); 
+        }
+      } else {
+        console.warn('DataCollectionAgent not found or getDataGaps method missing.');
+      }
+
       // 3. Make orchestration decision
-      const decision = await this.makeOrchestrationDecision(agentStatuses);
+      const decision = await this.makeOrchestrationDecision(agentStatuses, currentDataGaps);
 
       // 4. Execute decision
       await this.executeDecision(decision);
@@ -216,12 +239,12 @@ export class MasterOrchestratorAgent {
   /**
    * Generate orchestration decision using GPT-4o
    */
-  private async makeOrchestrationDecision(agentStatuses: AgentStatus[]): Promise<MasterOrchestratorDecision> {
+  private async makeOrchestrationDecision(agentStatuses: AgentStatus[], dataGaps: DataGap[]): Promise<MasterOrchestratorDecision> {
     const prompt = this.generateOrchestratorPrompt(agentStatuses);
     
     // In a real implementation, this would call GPT-4o
     // For now, we'll create a mock decision based on current state
-    return this.generateMockDecision(agentStatuses);
+    return this.generateMockDecision(agentStatuses, dataGaps);
   }
 
   /**
@@ -260,7 +283,7 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
   /**
    * Generate a mock decision for demonstration
    */
-  private generateMockDecision(agentStatuses: AgentStatus[]): MasterOrchestratorDecision {
+  private generateMockDecision(agentStatuses: AgentStatus[], dataGaps: DataGap[]): MasterOrchestratorDecision {
     const decision: MasterOrchestratorDecision = {
       timestamp: new Date(),
       agentTasks: {},
@@ -278,14 +301,130 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
       }
     }
 
-    // Schedule model training for underperforming models
+    // Schedule engagement model training based on refined criteria
+    const engagementObjective = this.activeObjectives.find(obj => obj.type === 'engagement');
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    let shouldTrainEngagementModel = false;
+
     if (this.systemMetrics.modelAccuracy < 0.85) {
-      decision.modelTrainingSchedule['engagement_prediction'] = new Date(Date.now() + 3600000); // 1 hour from now
+      decision.alertsAndNotifications.push("Engagement model accuracy below threshold, scheduling training.");
+      shouldTrainEngagementModel = true;
+    }
+    if (engagementObjective && this.systemMetrics.averageEngagementRate < engagementObjective.target) {
+      decision.alertsAndNotifications.push("Average engagement rate below target, scheduling engagement model training.");
+      shouldTrainEngagementModel = true;
+    }
+    if (!this.lastEngagementModelTrainTime || this.lastEngagementModelTrainTime < twentyFourHoursAgo) {
+      decision.alertsAndNotifications.push("Engagement model not trained recently, scheduling training.");
+      shouldTrainEngagementModel = true;
+    }
+    // Placeholder for data drift detection
+    // if (this.checkForSignificantDataDrift()) {
+    //   decision.alertsAndNotifications.push("Significant data drift detected, scheduling engagement model training.");
+    //   shouldTrainEngagementModel = true;
+    // }
+
+    if (shouldTrainEngagementModel) {
+      decision.modelTrainingSchedule['engagement_prediction'] = new Date(Date.now() + 1 * 60 * 1000); // Schedule in 1 minute for quick effect
+    }
+    
+    // Schedule content optimization pattern updates (Task 3.4)
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+    let shouldUpdateContentPatterns = false;
+
+    if (!this.lastContentPatternsUpdateTime || this.lastContentPatternsUpdateTime < twelveHoursAgo) {
+      decision.alertsAndNotifications.push("Content optimization patterns not updated recently, scheduling update.");
+      shouldUpdateContentPatterns = true;
+    }
+    // Placeholder for other triggers like low suggestion performance or large new data volume
+    // if (this.systemMetrics.contentSuggestionEffectiveness < 0.7) { // Assuming such a metric exists
+    //   decision.alertsAndNotifications.push("Content suggestion effectiveness low, scheduling pattern update.");
+    //   shouldUpdateContentPatterns = true;
+    // }
+
+    if (shouldUpdateContentPatterns) {
+      // Check data quality for content optimization before scheduling update
+      const generalDataQualityGood = !dataGaps.some(gap => gap.severity === 'critical' || gap.severity === 'high');
+      if (generalDataQualityGood) {
+        decision.modelTrainingSchedule['content_optimization_patterns'] = new Date(Date.now() + 2 * 60 * 1000); // Schedule in 2 minutes
+      } else {
+        decision.alertsAndNotifications.push("Skipping content optimization pattern update due to critical/high data gaps. Prioritizing data collection.");
+        // Prioritize data collection tasks
+        const dcAgentStatus = agentStatuses.find(s => s.agentType === 'DataCollectionAgent');
+        if (dcAgentStatus && dcAgentStatus.status === 'idle') {
+            const criticalGap = dataGaps.find(g => g.severity === 'critical' || g.severity === 'high');
+            if (criticalGap) {
+                 decision.agentTasks[dcAgentStatus.agentId] = {
+                    type: 'monitor_gaps',
+                    niche: criticalGap.niche, // Focus on the specific gapped niche
+                    platform: criticalGap.platform,
+                    priority: 'high',
+                    requirements: {} // Placeholder for actual requirements
+                };
+            }
+        }
+      }
     }
 
-    // Prioritize A/B tests for low-performing areas
-    if (this.systemMetrics.averageEngagementRate < 0.05) {
-      decision.abTestingPriorities.push('caption_optimization', 'hashtag_testing', 'timing_optimization');
+    // Prioritize A/B tests for low-performing areas or specific objectives
+    const engagementObjective = this.activeObjectives.find(obj => obj.type === 'engagement');
+    const viralityObjective = this.activeObjectives.find(obj => obj.type === 'virality');
+    let abTestDirectives: Record<string, boolean> = {};
+
+    if (this.systemMetrics.averageEngagementRate < 0.05 || 
+        (engagementObjective && this.systemMetrics.averageEngagementRate < engagementObjective.target)) {
+      decision.alertsAndNotifications.push("Low engagement detected, prioritizing engagement-focused A/B tests.");
+      abTestDirectives.engagement_focus = true;
+    }
+
+    if (viralityObjective && this.systemMetrics.viralContentPercentage < viralityObjective.target) {
+      decision.alertsAndNotifications.push("Low virality detected, prioritizing virality-focused A/B tests (e.g., targeting shares/views).");
+      abTestDirectives.virality_focus = true; // ABTestingAgent should interpret this to focus on proxy metrics
+    }
+
+    if (Object.keys(abTestDirectives).length > 0) {
+      // Check if ABTestingAgent is idle or underperforming to assign prioritization task
+      const abAgentStatus = agentStatuses.find(s => s.agentType === 'ABTestingAgent');
+      if (abAgentStatus && (abAgentStatus.status === 'idle' || abAgentStatus.performance < 0.75)) {
+         decision.agentTasks[abAgentStatus.agentId] = { 
+            type: 'prioritize_experiments', 
+            parameters: abTestDirectives 
+        };
+      } else if (abAgentStatus) {
+        // If agent is busy but directives exist, perhaps log or queue?
+        decision.alertsAndNotifications.push("A/B testing directives identified, but agent is currently busy or performing well. Directives will be considered for next suitable task.");
+      }
+    }
+    // Note: The actual generation of experiment opportunities and creation tasks 
+    // will be handled in generateTaskForAgent if ABTestingAgent is idle and no specific directives are pushing prioritization.
+
+    // Task Linkage: If ContentOptimizationAgent is tasked, check data gaps for its target niche/platform
+    for (const agentId in decision.agentTasks) {
+        const task = decision.agentTasks[agentId];
+        const agentStatus = agentStatuses.find(s => s.agentId === agentId);
+
+        if (agentStatus && agentStatus.agentType === 'ContentOptimizationAgent' && task.type === 'optimize_content' && task.niche && task.platform) {
+            const relevantGap = dataGaps.find(gap => gap.niche === task.niche && gap.platform === task.platform && (gap.severity === 'critical' || gap.severity === 'high'));
+            if (relevantGap) {
+                decision.alertsAndNotifications.push(`High severity data gap detected for ${task.niche} on ${task.platform}. Prioritizing data collection.`);
+                // Task DataCollectionAgent to fill this gap
+                const dcAgentStatus = agentStatuses.find(s => s.agentType === 'DataCollectionAgent');
+                if (dcAgentStatus && (dcAgentStatus.status === 'idle' || !decision.agentTasks[dcAgentStatus.agentId])) { // Task if idle or not already tasked
+                    decision.agentTasks[dcAgentStatus.agentId] = {
+                        type: 'optimize_collection', // Or 'monitor_gaps'
+                        niche: task.niche,
+                        platform: task.platform,
+                        priority: 'high',
+                        requirements: { minSamples: relevantGap.requiredSamples, qualityThreshold: 0.9, timeRange: '7d', contentTypes: [] } // Example requirements
+                    };
+                } else if (dcAgentStatus) {
+                    decision.alertsAndNotifications.push(`DataCollectionAgent already tasked or not idle. Gap for ${task.niche} on ${task.platform} needs attention.`);
+                }
+                // Optionally, deprioritize or modify the ContentOptimizationAgent task
+                // task.priority = 'low'; 
+                // task.parameters = { ...task.parameters, dataGapWarning: true };
+            }
+        }
     }
 
     // Generate cross-workflow optimizations
@@ -457,6 +596,36 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
           retraining: status.performance < 0.7,
         };
 
+      case 'ABTestingAgent':
+        // If MasterOrchestrator already decided to send a prioritize_experiments task with directives,
+        // that would have been set in decision.agentTasks[status.agentId] in generateMockDecision.
+        // This part handles other scenarios for an idle or underperforming ABTestingAgent.
+        const engagementObj = this.activeObjectives.find(obj => obj.type === 'engagement');
+        if (engagementObj && this.systemMetrics.averageEngagementRate < engagementObj.target) {
+            // Suggest creating a new experiment if engagement is low
+            // This implicitly covers leveraging generateExperimentOpportunities
+            return {
+                type: 'create_experiment',
+                priority: 'high',
+                experimentDetails: {
+                    name: `EngagementBoost_Exp_${Date.now()}`,
+                    description: 'Experiment to boost low engagement rate.',
+                    platform: Platform.TIKTOK, // Default or determine dynamically
+                    baseContent: { caption: 'Current average caption style', hashtags: ['general'] }, // Placeholder
+                    variationType: 'caption', // Default or determine dynamically
+                    targetMetric: 'engagementRate',
+                    duration: 7, 
+                    userId: 'MasterOrchestrator',
+                },
+                parameters: { engagement_focus: true } // Reinforce focus
+            };
+        }
+        // Default task if no specific action identified by generateMockDecision or above logic
+        return {
+            type: 'manage_experiment_lifecycle', // General check-up/management task
+            priority: 'medium',
+        };
+
       default:
         return {
           type: 'status_check',
@@ -503,7 +672,7 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
       agentId: status.agentId,
       cpuAllocation: this.calculateCPUAllocation(status),
       memoryAllocation: this.calculateMemoryAllocation(status),
-      priority: this.calculatePriority(status),
+      priority: this.calculatePriority(status, this.systemMetrics, this.activeObjectives),
     }));
   }
 
@@ -532,11 +701,51 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
   /**
    * Calculate priority for agent
    */
-  private calculatePriority(status: AgentStatus): number {
-    if (status.status === 'error') return 10; // Highest priority for error recovery
-    if (status.performance < 0.5) return 8; // High priority for poor performance
-    if (status.resourceUtilization > 0.9) return 6; // Medium-high for resource constrained
-    return Math.floor(status.performance * 5) + 1; // 1-5 based on performance
+  private calculatePriority(status: AgentStatus, systemMetrics: SystemMetrics, activeObjectives: OptimizationObjective[]): number {
+    let priority: number;
+
+    if (status.status === 'error') {
+      priority = 10; // Highest priority for error recovery
+    } else if (status.performance < 0.5) {
+      priority = 8; // High priority for poor performance
+    } else if (status.resourceUtilization > 0.9) {
+      priority = 6; // Medium-high for resource constrained
+    } else {
+      priority = Math.floor(status.performance * 5) + 1; // 1-5 based on performance
+    }
+
+    // Boost priority based on system objectives
+    for (const objective of activeObjectives) {
+      if (objective.priority === 'high') {
+        let isCriticalAgentForObjective = false;
+        switch (objective.type) {
+          case 'engagement':
+            if (systemMetrics.averageEngagementRate < objective.target && 
+                (status.agentType === 'EngagementPredictionAgent' || status.agentType === 'ABTestingAgent' || status.agentType === 'ContentOptimizationAgent')) {
+              isCriticalAgentForObjective = true;
+            }
+            break;
+          case 'quality':
+            if (systemMetrics.contentQualityScore < objective.target && 
+                (status.agentType === 'ContentOptimizationAgent' || status.agentType === 'DataCollectionAgent')) {
+              isCriticalAgentForObjective = true;
+            }
+            break;
+          case 'virality':
+            if (systemMetrics.viralContentPercentage < objective.target &&
+                (status.agentType === 'ContentOptimizationAgent' || status.agentType === 'ABTestingAgent')) {
+              isCriticalAgentForObjective = true;
+            }
+            break;
+          // Add cases for other objective types like 'efficiency' if specific agents are critical
+        }
+
+        if (isCriticalAgentForObjective) {
+          priority = Math.min(10, priority + 2); // Boost by 2, capped at 10
+        }
+      }
+    }
+    return priority;
   }
 
   /**
@@ -546,14 +755,25 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
     console.log(`🎯 Training model: ${modelName}`);
     
     try {
-      // In a real implementation, this would trigger actual model training
-      // For now, we'll simulate the training process
-      console.log(`Training ${modelName} model...`);
-      
-      // Simulate training time
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      
-      console.log(`✅ Model ${modelName} training completed`);
+      if (modelName === 'engagement_prediction') {
+        console.log('Initiating engagement prediction model training (updateModel, evaluateModel)...');
+        updateModel();
+        const newMSE = evaluateModel();
+        this.lastEngagementModelTrainTime = new Date();
+        console.log(`✅ Engagement prediction model training completed. New MSE: ${newMSE.toFixed(4)}`);
+
+      } else if (modelName === 'content_optimization_patterns') {
+        console.log('Initiating content optimization patterns update...');
+        await this.aiImprovementService.updateContentOptimizationPatterns();
+        this.lastContentPatternsUpdateTime = new Date();
+        console.log('✅ Content optimization patterns update completed.');
+
+      } else {
+        console.warn(`Unknown model name "${modelName}" passed to trainModel.`);
+        // Simulate training time for other potential models
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log(`✅ Model ${modelName} (simulated) training completed`);
+      }
     } catch (error) {
       console.error(`❌ Model ${modelName} training failed:`, error);
     }
@@ -640,4 +860,4 @@ Respond with structured JSON containing specific actions for each sub-agent.`;
 }
 
 // Export singleton instance
-export const masterOrchestratorAgent = new MasterOrchestratorAgent(); 
+export const masterOrchestratorAgent = new MasterOrchestratorAgent();

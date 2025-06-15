@@ -36,21 +36,21 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
     <SettingsProvider>
-      <div className="flex h-screen bg-gradient-to-br from-background to-charcoal-100 text-foreground">
+      <div className="flex h-screen bg-gradient-to-br from-background to-muted/20 text-foreground overflow-hidden">
         <Sidebar />
         <div className="flex-1 flex flex-col min-h-0">
           <Header breadcrumb={breadcrumb} />
-          <main className="flex-1 p-6 bg-card/30 backdrop-blur-sm overflow-hidden">
-            <div className="h-full overflow-y-auto">
-              <div className="max-w-7xl mx-auto">
+          <main className="flex-1 bg-background/95 backdrop-blur-sm overflow-hidden">
+            <div className="h-full overflow-y-auto scrollbar-dark">
+              <div className="min-h-full">
                 {children}
               </div>
             </div>

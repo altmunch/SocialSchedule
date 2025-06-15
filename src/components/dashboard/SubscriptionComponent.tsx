@@ -33,9 +33,9 @@ export default function SubscriptionComponent() {
       id: 'lite',
       name: 'Lite',
       price: 20,
-      yearlyPrice: 240, // $20 * 12
+      yearlyPrice: 200,
       interval: billingCycle,
-      description: '$20/month',
+      description: 'Essential features to get started.',
       features: [
         'Viral Blitz Cycle Framework (15 uses)',
         'Idea Generator Framework (15 uses)',
@@ -48,9 +48,9 @@ export default function SubscriptionComponent() {
       id: 'pro',
       name: 'Pro',
       price: 70,
-      yearlyPrice: 840, // $70 * 12
+      yearlyPrice: 600,
       interval: billingCycle,
-      description: '$70/month',
+      description: 'Advanced tools for growing businesses.',
       features: [
         'Viral Blitz Cycle Framework',
         'Idea Generator Framework (unlimited)',
@@ -58,15 +58,16 @@ export default function SubscriptionComponent() {
         '1 set of accounts',
         'E-commerce integration'
       ],
+      isPopular: true,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_PRO_LINK'
     },
     {
       id: 'team',
       name: 'Team',
       price: 500,
-      yearlyPrice: 6000, // $500 * 12
+      yearlyPrice: 5000,
       interval: billingCycle,
-      description: '$500/month',
+      description: 'Collaborative features for larger teams.',
       features: [
         'Everything in Pro',
         'Manage unlimited accounts',
@@ -74,7 +75,6 @@ export default function SubscriptionComponent() {
         'Team collaboration mode',
         'Advanced analytics & reporting'
       ],
-      isPopular: true,
       stripeLinkEnv: 'NEXT_PUBLIC_STRIPE_TEAM_LINK'
     }
   ];
@@ -179,8 +179,22 @@ export default function SubscriptionComponent() {
                 className={`rounded-full ${billingCycle === 'yearly' ? 'bg-[#8D5AFF] text-white' : 'text-gray-300 hover:text-white'}`}
               >
                 Yearly
-                <Badge variant="outline" className="ml-2 bg-[#00e5a0]/20 text-[#00e5a0] border-[#00e5a0]/30">
-                  Save 20%
+                <Badge 
+                  className={`ml-2 px-2 py-0.5 rounded-sm text-xs font-medium`}
+                  style={
+                    billingCycle === 'yearly'
+                      ? { background: 'transparent', border: '1px solid rgba(255,255,255,0.7)', color: 'white' }
+                      // Inline styles with !important for inactive state
+                      : { 
+                          backgroundColor: '#202020 !important', 
+                          borderColor: '#353535 !important', 
+                          color: 'rgb(156 163 175 / 1) !important', // gray-400
+                          borderWidth: '1px !important',
+                          borderStyle: 'solid !important'
+                        }
+                  }
+                >
+                  30% off
                 </Badge>
               </Button>
             </div>
@@ -190,28 +204,32 @@ export default function SubscriptionComponent() {
             {plans.map((plan) => (
               <Card 
                 key={plan.id} 
-                className={`relative bg-gradient-to-br from-[#1A1A1A] to-[#0F0F0F] border ${plan.isPopular ? 'border-[#8D5AFF] shadow-lg shadow-[#8D5AFF]/20' : 'border-[#8D5AFF]/20'}`}
+                className={`relative bg-gradient-to-br from-[#1A1A1A] to-[#0F0F0F] border ${plan.isPopular ? 'border-[#8D5AFF] shadow-lg shadow-[#8D5AFF]/20' : 'border-[#8D5AFF]/20'} flex flex-col`}
               >
                 {plan.isPopular && (
                   <div className="absolute top-0 right-0 transform translate-x-2 -translate-y-2">
                     <Badge className="bg-[#8D5AFF] text-white">Popular</Badge>
                   </div>
                 )}
-                <CardHeader>
+                <CardHeader className="flex-grow-0">
                   <CardTitle>{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="mt-2">
-                    <span className="text-3xl font-bold">
-                      {formatPrice(plan)}
-                    </span>
-                    {billingCycle === 'yearly' && plan.yearlyPrice && (
-                      <span className="text-sm text-green-600 ml-2">
-                        Save 20%
+                  <CardDescription className="min-h-[20px]">{plan.description}</CardDescription>
+                  <div className="mt-2 flex flex-col">
+                    <div>
+                      <span className="text-3xl font-bold">
+                        {formatPrice(plan)}
                       </span>
+                    </div>
+                    {billingCycle === 'yearly' && plan.yearlyPrice && (
+                      <div className="mt-1 block">
+                        <span className="text-sm text-muted-foreground">
+                          {plan.id === 'pro' ? '4 months free' : '2 months free'}
+                        </span>
+                      </div>
                     )}
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-grow">
                   <ul className="space-y-2">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start">

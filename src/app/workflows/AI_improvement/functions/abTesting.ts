@@ -1,6 +1,8 @@
 import { Platform } from '../../deliverables/types/deliverables_types';
 import { PostMetrics } from '@/app/workflows/data_collection/functions/types';
 
+export { Platform }; // Re-export Platform
+
 // A/B Testing Types
 export interface ExperimentVariant {
   id: string;
@@ -586,4 +588,12 @@ function shortenCaption(caption: string): string {
 
 function expandCaption(caption: string): string {
   return caption + ' Check out more content like this and don\'t forget to follow for daily updates! What do you think about this? Let me know in the comments below! 👇';
-} 
+}
+
+// Placeholder types, to be defined properly later
+export interface Experiment {}
+export interface ExperimentVariant {}
+export interface ExperimentAnalysis {}
+export interface ExperimentResult {}
+
+// Add other A/B testing related functions and types here 
