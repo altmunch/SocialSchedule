@@ -1,6 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-after i have confirmed to lock a file, do not edit the file further

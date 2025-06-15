@@ -5,4 +5,25 @@ export { predictEngagement, evaluateModel } from './updateModel';
 export { ingestSampleBatchData } from './feedbackLoop';
 export * from './nlp';
 export * from './vision';
-// export * from './abTesting'; // Commented out until abTesting.ts is created
+
+// Explicitly re-export from abTesting to resolve naming conflicts
+export type {
+  Experiment,
+  ExperimentVariant,
+  ExperimentResult,
+  ExperimentAnalysis
+} from './abTesting';
+
+export {
+  createExperiment,
+  updateExperiment,
+  getExperiment,
+  listExperiments,
+  assignVariant,
+  recordExperimentData,
+  analyzeExperiment,
+  generateContentVariations
+} from './abTesting';
+
+// Re-export the renamed type from feedbackLoop
+export type { FeedbackExperimentResult } from './feedbackLoop';

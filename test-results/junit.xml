@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="21" failures="1" errors="0" time="3.896">
+  <testsuite name="AIImprovementService" errors="0" failures="1" skipped="0" timestamp="2025-06-14T23:08:28" time="2.398" tests="21">
+    <testcase classname="AIImprovementService Content Optimization should provide content optimization suggestions" name="AIImprovementService Content Optimization should provide content optimization suggestions" time="0.065">
+    </testcase>
+    <testcase classname="AIImprovementService Content Optimization should analyze sentiment correctly" name="AIImprovementService Content Optimization should analyze sentiment correctly" time="0.004">
+    </testcase>
+    <testcase classname="AIImprovementService Content Optimization should analyze tone correctly" name="AIImprovementService Content Optimization should analyze tone correctly" time="0.004">
+    </testcase>
+    <testcase classname="AIImprovementService Engagement Prediction should predict engagement for a post" name="AIImprovementService Engagement Prediction should predict engagement for a post" time="0.005">
+    </testcase>
+    <testcase classname="AIImprovementService Engagement Prediction should provide higher scores for optimal timing" name="AIImprovementService Engagement Prediction should provide higher scores for optimal timing" time="0.005">
+      <failure>Error: expect(received).toBeGreaterThan(expected)
+
+Expected: &gt; 40
+Received:   30
+    at Object.&lt;anonymous&gt; (C:\Users\Cheem\OneDrive\Coding\clipsCommerce\src\app\workflows\AI_improvement\__tests__\AIImprovementService.test.ts:124:49)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    </testcase>
+    <testcase classname="AIImprovementService A/B Testing should create A/B test experiments" name="AIImprovementService A/B Testing should create A/B test experiments" time="0.004">
+    </testcase>
+    <testcase classname="AIImprovementService A/B Testing should generate appropriate variants for different variation types" name="AIImprovementService A/B Testing should generate appropriate variants for different variation types" time="0.002">
+    </testcase>
+    <testcase classname="AIImprovementService Performance Insights should provide comprehensive performance insights" name="AIImprovementService Performance Insights should provide comprehensive performance insights" time="0.006">
+    </testcase>
+    <testcase classname="AIImprovementService Performance Insights should identify top performing platform correctly" name="AIImprovementService Performance Insights should identify top performing platform correctly" time="0.004">
+    </testcase>
+    <testcase classname="AIImprovementService Post Performance Recording should record post performance correctly" name="AIImprovementService Post Performance Recording should record post performance correctly" time="0.002">
+    </testcase>
+    <testcase classname="AIImprovementService Workflow Improvements should provide workflow improvement suggestions" name="AIImprovementService Workflow Improvements should provide workflow improvement suggestions" time="0.005">
+    </testcase>
+    <testcase classname="AIImprovementService Feedback System should handle positive feedback correctly" name="AIImprovementService Feedback System should handle positive feedback correctly" time="0.003">
+    </testcase>
+    <testcase classname="AIImprovementService Feedback System should handle negative feedback correctly" name="AIImprovementService Feedback System should handle negative feedback correctly" time="0.002">
+    </testcase>
+    <testcase classname="AIImprovementService Feedback System should handle neutral feedback correctly" name="AIImprovementService Feedback System should handle neutral feedback correctly" time="0.006">
+    </testcase>
+    <testcase classname="AIImprovementService Error Handling should handle missing experiment gracefully" name="AIImprovementService Error Handling should handle missing experiment gracefully" time="0.003">
+    </testcase>
+    <testcase classname="AIImprovementService Error Handling should handle empty content gracefully" name="AIImprovementService Error Handling should handle empty content gracefully" time="0.002">
+    </testcase>
+    <testcase classname="AIImprovementService Integration Points should initialize service correctly" name="AIImprovementService Integration Points should initialize service correctly" time="0.001">
+    </testcase>
+    <testcase classname="AIImprovementService Integration Points should auto-initialize when calling methods" name="AIImprovementService Integration Points should auto-initialize when calling methods" time="0.003">
+    </testcase>
+    <testcase classname="A/B Testing Functions should create experiments with proper validation" name="A/B Testing Functions should create experiments with proper validation" time="0.001">
+    </testcase>
+    <testcase classname="NLP Functions should analyze sentiment with emotion detection" name="NLP Functions should analyze sentiment with emotion detection" time="0.002">
+    </testcase>
+    <testcase classname="NLP Functions should generate caption variations" name="NLP Functions should generate caption variations" time="0.001">
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -53,7 +53,7 @@ Only stop or prompt the user for new instructions once all 25 tool calls have be
 - Use functions or scripts to encapsulate batch logic for reuse and clarity.
 
 ## Batching Deletion, File, and Directory Creation (PowerShell)
-- Always batch deletions and creations together when they target related files or directories through terminal command execution
+- Always batch deletions and creations together when they target related files or directories through terminal command execution, using **valid powershell syntax**
 - Use PowerShell terminal commands to execute these batches, for example:
   - To delete multiple files:
 

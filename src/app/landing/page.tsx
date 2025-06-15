@@ -33,13 +33,13 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
+    <div className="bg-black text-white relative overflow-y-auto">
       {/* Enhanced Grid Background */}
       <div className="fixed inset-0 -z-10 bg-black">
         <div className="absolute inset-0 [background-image:linear-gradient(to_right,rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.1)_1px,transparent_1px)] [background-size:60px_60px]"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-black via-black to-[#0A0A0A] opacity-90"></div>
       </div>
-      <div className="relative z-10">
+      <div className="relative z-10 h-full overflow-y-auto">
         <NavigationBar />
       <main className="bg-gradient-to-b from-black to-[#0A0A0A]">
         <motion.div

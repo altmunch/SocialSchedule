@@ -56,9 +56,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased flex flex-col h-screen`}>
         <AuthProvider>
-          {children}
+          <div className="flex-grow overflow-y-auto">
+            {children}
+          </div>
         </AuthProvider>
       </body>
     </html>

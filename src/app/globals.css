@@ -32,11 +32,16 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    min-height: 100vh; /* Ensure body can extend beyond viewport */
+    overflow-y: scroll !important; /* Force vertical scrollbar to be always visible */
   }
 
   /* Smooth scroll behavior */
   html {
     scroll-behavior: smooth;
+    height: 100%;
+    /* Remove overflow-y from html to avoid double scrollbars or conflicts */
   }
   
   /* Selection styling */
@@ -198,7 +203,6 @@
 }
 
 /* Custom scrollbar */
-/*
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -216,7 +220,12 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground)/0.5);
 }
-*/
+
+/* Firefox scrollbar support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground)/0.3) hsl(var(--muted));
+}
 
 /* Animation classes */
 .animate-in {
