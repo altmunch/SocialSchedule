@@ -21,11 +21,12 @@ type Plan = {
   stripeLinkEnv?: string;
 };
 
-export default function SubscriptionComponent() {
+export default function SubscriptionComponent({ navigate }: { navigate?: (url: string) => void } = {}) {
   const { user } = useAuth();
   const [activePlan, setActivePlan] = useState<string>('lite'); // Default to Lite plan
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const nav = navigate || ((url: string) => { window.open(url, '_blank'); });
 
   // Updated pricing structure to match the new schema
   const plans: Plan[] = [
@@ -102,13 +103,25 @@ export default function SubscriptionComponent() {
         } else {
           stripeLink = process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK || '';
         }
-        
         // For team plans, store redirect to team dashboard
-        localStorage.setItem('post_payment_redirect', '/team-dashboard');
+        try {
+          localStorage.setItem('post_payment_redirect', '/team-dashboard');
+        } catch (err) {
+          console.error('Failed to set localStorage:', err);
+          // Continue execution instead of throwing
+        }
       }
       
       if (stripeLink) {
-        window.open(stripeLink, '_blank');
+        try {
+          nav(stripeLink);
+        } catch (err) {
+          console.error('Failed to navigate to Stripe:', err);
+          // Fallback to updating plan locally
+          setActivePlan(planId);
+          setSuccessMessage('Navigation failed, but plan selection recorded.');
+          setTimeout(() => setSuccessMessage(null), 5000);
+        }
       } else {
         // Fallback if env variable not set
         setActivePlan(planId);

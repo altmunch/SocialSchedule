@@ -155,19 +155,15 @@ exports[`PricingSection matches snapshot 1`] = `
               <button
                 class="w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 bg-[#8D5AFF] hover:bg-[#8D5AFF]/90"
               >
-                <a
-                  href="/dashboard"
+                <span
+                  class="relative z-10"
                 >
-                  <span
-                    class="relative z-10"
-                  >
-                    Select Plan
-                  </span>
-                  <svg
-                    class="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1"
-                    data-testid="ChevronRight-icon"
-                  />
-                </a>
+                  Select Plan
+                </span>
+                <svg
+                  class="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1"
+                  data-testid="ChevronRight-icon"
+                />
               </button>
               <div
                 class="flex items-center justify-center text-sm text-white/60 mb-6"
@@ -345,19 +341,15 @@ exports[`PricingSection matches snapshot 1`] = `
               <button
                 class="w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:shadow-lg hover:shadow-[#8D5AFF]/20"
               >
-                <a
-                  href="/dashboard"
+                <span
+                  class="relative z-10"
                 >
-                  <span
-                    class="relative z-10"
-                  >
-                    Get Started
-                  </span>
-                  <svg
-                    class="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1"
-                    data-testid="ChevronRight-icon"
-                  />
-                </a>
+                  Get Started
+                </span>
+                <svg
+                  class="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1"
+                  data-testid="ChevronRight-icon"
+                />
               </button>
               <div
                 class="flex items-center justify-center text-sm text-white/60 mb-6"
@@ -572,19 +564,15 @@ exports[`PricingSection matches snapshot 1`] = `
               <button
                 class="w-full group relative py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 overflow-hidden mb-8 bg-[#8D5AFF] hover:bg-[#8D5AFF]/90"
               >
-                <a
-                  href="/dashboard"
+                <span
+                  class="relative z-10"
                 >
-                  <span
-                    class="relative z-10"
-                  >
-                    Select Plan
-                  </span>
-                  <svg
-                    class="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1"
-                    data-testid="ChevronRight-icon"
-                  />
-                </a>
+                  Select Plan
+                </span>
+                <svg
+                  class="ml-2 h-5 w-5 inline transition-transform group-hover:translate-x-1"
+                  data-testid="ChevronRight-icon"
+                />
               </button>
               <div
                 class="flex items-center justify-center text-sm text-white/60 mb-6"

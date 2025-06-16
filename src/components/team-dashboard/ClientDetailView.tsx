@@ -721,7 +721,6 @@ export function ClientDetailView({ clientId, onBack }: ClientDetailViewProps) {
                         <div>
                           <label htmlFor="feedback-tone" className="text-sm font-medium">Tone</label>
                           <Select 
-                            id="feedback-tone"
                             value={editingData.tone || report.tone}
                             onValueChange={(value) => setEditingData({...editingData, tone: value})}
                           >

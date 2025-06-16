@@ -113,5 +113,8 @@ export class SchedulerService {
 // Export a singleton instance
 export const schedulerService = new SchedulerService();
 
-// Export types for convenience
-export * from '../app/dashboard/types';
+// Export the service as default
+export default SchedulerService;
+
+// Remove invalid export that causes module resolution error
+// export * from '../app/dashboard/types';

@@ -43,12 +43,18 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock window.open and window.location
 const mockWindowOpen = jest.fn();
-const mockLocationHref = jest.fn(); // Restored this mock
+const mockLocationHref = jest.fn();
+const mockLocationAssign = jest.fn();
+const mockLocationReplace = jest.fn();
+const mockLocationReload = jest.fn();
+
+const mockNavigate = (url: string) => mockLocationHref(url);
+const mockNavigateWindowOpen = (url: string) => mockWindowOpen(url, '_blank');
 Object.defineProperty(window, 'open', { value: mockWindowOpen });
 
 describe('Payment Flow Tests', () => {
   let originalLocation: Location;
-  const user = userEvent.setup(); // Setup userEvent once for the suite
+  const user = userEvent.setup();
 
   beforeAll(() => {
     originalLocation = window.location;
@@ -60,9 +66,9 @@ describe('Payment Flow Tests', () => {
 
     (window as any).location = {
       _currentHref: 'http://localhost:3000/initial-mock-path',
-      assign: jest.fn(),
-      replace: jest.fn(),
-      reload: jest.fn(),
+      assign: mockLocationAssign,
+      replace: mockLocationReplace,
+      reload: mockLocationReload,
       ancestorOrigins: {} as DOMStringList,
       hash: '',
       host: 'localhost:3000',
@@ -77,15 +83,14 @@ describe('Payment Flow Tests', () => {
       },
       set href(value: string) {
         this._currentHref = value;
-        mockLocationHref(value); // Use the existing mock
+        mockLocationHref(value);
       },
       toString: function() { return this._currentHref; },
-      valueOf: function() { return this; } // Adjusted valueOf
+      valueOf: function() { return this; }
     };
   });
 
   afterAll(() => {
-    // Restore original window.location by direct assignment
     (window as any).location = originalLocation;
   });
 
@@ -102,6 +107,12 @@ describe('Payment Flow Tests', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLocationHref.mockClear();
+    mockLocationAssign.mockClear();
+    mockLocationReplace.mockClear();
+    mockLocationReload.mockClear();
+    mockWindowOpen.mockClear();
+    
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     (useAuth as jest.Mock).mockReturnValue({
       user: mockUser,
@@ -109,7 +120,6 @@ describe('Payment Flow Tests', () => {
       loading: false,
     });
     localStorageMock.getItem.mockReturnValue(null);
-    mockLocationHref.mockClear(); // Clear the restored mock
 
     // Reset the href on our mock location to a default state before each test
     if (window.location && typeof (window.location as any)._currentHref === 'string') {
@@ -117,12 +127,11 @@ describe('Payment Flow Tests', () => {
     } else if (window.location) { 
         window.location.href = 'http://localhost:3000/initial-mock-path';
     }
-    mockLocationHref.mockClear(); // Clear again after potential set
   });
 
   describe('PricingSection Component', () => {
     it('should render all three pricing plans', () => {
-      render(<PricingSection onGetStarted={jest.fn()} />);
+      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
       expect(screen.getByText('Lite')).toBeInTheDocument();
       expect(screen.getByText('Pro')).toBeInTheDocument();
@@ -130,7 +139,7 @@ describe('Payment Flow Tests', () => {
     });
 
     it('should handle free plan (Lite) selection correctly', async () => {
-      render(<PricingSection onGetStarted={jest.fn()} />);
+      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
       // Lite plan is the first "Select Plan" button
       const liteButton = screen.getAllByText('Select Plan')[0];
@@ -142,7 +151,7 @@ describe('Payment Flow Tests', () => {
     });
 
     it('should handle Pro monthly plan selection', async () => {
-      render(<PricingSection onGetStarted={jest.fn()} />);
+      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
       // Switch to monthly billing
       const monthlyButton = screen.getByText('Monthly');
@@ -158,7 +167,7 @@ describe('Payment Flow Tests', () => {
     });
 
     it('should handle Pro yearly plan selection', async () => {
-      render(<PricingSection onGetStarted={jest.fn()} />);
+      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
       // Annual is default. Pro plan is the "Get Started" button.
       const proButton = screen.getByText('Get Started');
@@ -170,7 +179,7 @@ describe('Payment Flow Tests', () => {
     });
 
     it('should handle Team monthly plan selection and navigate to dashboard', async () => {
-      render(<PricingSection onGetStarted={jest.fn()} />);
+      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
       // Switch to monthly billing
       const monthlyButton = screen.getByText('Monthly');
@@ -189,7 +198,7 @@ describe('Payment Flow Tests', () => {
     });
 
     it('should handle Team yearly plan selection and navigate to dashboard', async () => {
-      render(<PricingSection onGetStarted={jest.fn()} />);
+      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
       // Annual is default. Team plan is the second "Select Plan" button.
       const teamButton = screen.getAllByText('Select Plan')[1];
@@ -215,7 +224,7 @@ describe('Payment Flow Tests', () => {
       delete process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK;
       delete process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK;
 
-      render(<PricingSection onGetStarted={jest.fn()} />);
+      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
       const proButton = screen.getByText('Get Started');
       await user.click(proButton);
@@ -234,7 +243,7 @@ describe('Payment Flow Tests', () => {
 
   describe('SubscriptionComponent', () => {
     it('should render all subscription plans', () => {
-      render(<SubscriptionComponent />);
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
       
       expect(screen.getByText('Lite')).toBeInTheDocument();
       expect(screen.getByText('Pro')).toBeInTheDocument();
@@ -242,7 +251,7 @@ describe('Payment Flow Tests', () => {
     });
 
     it('should handle plan selection with correct billing cycle', async () => {
-      render(<SubscriptionComponent />);
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
       
       // Switch to yearly billing
       const yearlyButton = screen.getByText('Yearly');
@@ -258,7 +267,7 @@ describe('Payment Flow Tests', () => {
     });
 
     it('should handle team plan selection with redirect setup', async () => {
-      render(<SubscriptionComponent />);
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
       
       // Select Team plan (monthly is default, index 1 for Team when Lite is current plan)
       const teamSelectButton = screen.getAllByText('Select Plan')[1];
@@ -324,7 +333,7 @@ describe('Payment Flow Tests', () => {
     });
 
     it('should fallback to dashboard when Stripe links are not configured', async () => {
-      render(<PricingSection onGetStarted={jest.fn()} />);
+      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
       const proButton = screen.getByText('Get Started');
       await user.click(proButton);
@@ -334,24 +343,34 @@ describe('Payment Flow Tests', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle localStorage errors gracefully (i.e., component throws)', async () => {
+    it('should handle localStorage errors gracefully', async () => {
       localStorageMock.setItem.mockImplementation(() => {
         throw new Error('LocalStorage Write Error');
       });
-      render(<SubscriptionComponent />);
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
       const teamButton = screen.getAllByText('Select Plan')[1];
-      // We expect the click handler in the component to throw because it doesn't catch the error from localStorage.setItem
-      await expect(user.click(teamButton)).rejects.toThrow('LocalStorage Write Error');
+      
+      // Should not throw error, should handle gracefully
+      await user.click(teamButton);
+      
+      // Should still attempt to navigate despite localStorage error
+      expect(mockWindowOpen).toHaveBeenCalled();
     });
 
-    it('should handle window.open errors gracefully (i.e., component throws)', async () => {
+    it('should handle window.open errors gracefully', async () => {
       mockWindowOpen.mockImplementation(() => {
         throw new Error('Window Open Error');
       });
-      render(<SubscriptionComponent />);
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
       const proButton = screen.getAllByText('Select Plan')[0]; 
-      // We expect the click handler in the component to throw because it doesn't catch the error from window.open
-      await expect(user.click(proButton)).rejects.toThrow('Window Open Error');
+      
+      // Should not throw error, should handle gracefully
+      await user.click(proButton);
+      
+      // Should show fallback success message
+      await waitFor(() => {
+        expect(screen.getByText('Navigation failed, but plan selection recorded.')).toBeInTheDocument();
+      });
     });
   });
 }); 

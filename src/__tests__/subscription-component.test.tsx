@@ -19,6 +19,8 @@ const mockUser = {
 
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 
+const mockNavigate = jest.fn();
+
 describe('SubscriptionComponent', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({
@@ -30,7 +32,7 @@ describe('SubscriptionComponent', () => {
   });
 
   it('renders subscription management without navigation', () => {
-    render(<SubscriptionComponent />);
+    render(<SubscriptionComponent navigate={mockNavigate} />);
     
     // Should have the subscription title but not navigation
     expect(screen.getByText('Subscription')).toBeInTheDocument();
@@ -42,7 +44,7 @@ describe('SubscriptionComponent', () => {
   });
 
   it('renders the three pricing tiers', () => {
-    render(<SubscriptionComponent />);
+    render(<SubscriptionComponent navigate={mockNavigate} />);
     
     expect(screen.getByText('Lite')).toBeInTheDocument();
     expect(screen.getByText('Pro')).toBeInTheDocument();
@@ -50,14 +52,14 @@ describe('SubscriptionComponent', () => {
   });
 
   it('shows the correct pricing for Pro tier', () => {
-    render(<SubscriptionComponent />);
+    render(<SubscriptionComponent navigate={mockNavigate} />);
     
     // Should show $70/month for Pro tier (check for multiple instances)
     expect(screen.getAllByText('$70/month')).toHaveLength(2);
   });
 
   it('renders the tab navigation for Plans, Billing, and Invoices', () => {
-    render(<SubscriptionComponent />);
+    render(<SubscriptionComponent navigate={mockNavigate} />);
     
     expect(screen.getByText('Plans')).toBeInTheDocument();
     expect(screen.getByText('Billing')).toBeInTheDocument();
@@ -65,7 +67,7 @@ describe('SubscriptionComponent', () => {
   });
 
   it('shows the yearly/monthly toggle', () => {
-    render(<SubscriptionComponent />);
+    render(<SubscriptionComponent navigate={mockNavigate} />);
     
     expect(screen.getByText('Monthly')).toBeInTheDocument();
     expect(screen.getByText('Yearly')).toBeInTheDocument();
@@ -73,13 +75,13 @@ describe('SubscriptionComponent', () => {
   });
 
   it('shows the Team plan as popular', () => {
-    render(<SubscriptionComponent />);
+    render(<SubscriptionComponent navigate={mockNavigate} />);
     
     expect(screen.getByText('Popular')).toBeInTheDocument();
   });
 
   it('displays Pro as current plan by default', () => {
-    render(<SubscriptionComponent />);
+    render(<SubscriptionComponent navigate={mockNavigate} />);
     
     expect(screen.getByText('Current Plan')).toBeInTheDocument();
   });

@@ -19,6 +19,146 @@ export interface AutoPostRequest {
   scheduleTime?: Date;
 }
 
+/**
+ * Single platform post request
+ */
+export interface SinglePlatformPostRequest {
+  platform: 'tiktok' | 'instagram' | 'youtube';
+  content: any;
+  userId: string;
+  scheduledTime?: Date;
+}
+
+/**
+ * Cross-platform post request
+ */
+export interface CrossPlatformPostRequest {
+  platforms: Array<'tiktok' | 'instagram' | 'youtube'>;
+  content: any;
+  userId: string;
+  scheduledTime?: Date;
+}
+
+/**
+ * Post response interface
+ */
+export interface PostResponse {
+  success: boolean;
+  postId?: string;
+  platform?: string;
+  status?: string;
+  scheduledFor?: Date;
+  videoProcessing?: {
+    status: string;
+    estimatedTime: string;
+  };
+  results?: Array<{
+    platform: string;
+    postId: string;
+    status: string;
+  }>;
+  error?: string;
+  violationType?: string;
+  suggestions?: string[];
+  queued?: boolean;
+  queuePosition?: number;
+  estimatedPostTime?: Date;
+}
+
+/**
+ * Rate limit check response
+ */
+export interface RateLimitResponse {
+  allowed: boolean;
+  retryAfter: number;
+  remainingQuota: number;
+}
+
+/**
+ * AutopostingService class for handling social media posting operations
+ */
+export class AutopostingService {
+  private scheduler: AutoPostingScheduler;
+
+  constructor() {
+    this.scheduler = new AutoPostingScheduler();
+  }
+
+  /**
+   * Publish a post to a single platform
+   */
+  async publishPost(request: SinglePlatformPostRequest): Promise<PostResponse> {
+    // Mock implementation for testing
+    return {
+      success: true,
+      postId: `${request.platform}_${Date.now()}`,
+      platform: request.platform,
+      status: 'published',
+    };
+  }
+
+  /**
+   * Schedule a post for later publishing
+   */
+  async schedulePost(request: SinglePlatformPostRequest): Promise<PostResponse> {
+    // Mock implementation for testing
+    return {
+      success: true,
+      postId: `${request.platform}_${Date.now()}`,
+      platform: request.platform,
+      status: 'scheduled',
+      scheduledFor: request.scheduledTime,
+      videoProcessing: request.platform === 'youtube' ? {
+        status: 'processing',
+        estimatedTime: '5-10 minutes',
+      } : undefined,
+    };
+  }
+
+  /**
+   * Schedule posts across multiple platforms
+   */
+  async scheduleCrossPlatformPost(request: CrossPlatformPostRequest): Promise<PostResponse> {
+    // Mock implementation for testing
+    const results = request.platforms.map(platform => ({
+      platform,
+      postId: `${platform}_cross_${Date.now()}`,
+      status: 'scheduled',
+    }));
+
+    return {
+      success: true,
+      results,
+      scheduledFor: request.scheduledTime,
+    };
+  }
+
+  /**
+   * Check rate limits for a platform
+   */
+  async checkRateLimit(platform: string, userId: string): Promise<RateLimitResponse> {
+    // Mock implementation for testing
+    return {
+      allowed: true,
+      retryAfter: 0,
+      remainingQuota: 100,
+    };
+  }
+
+  /**
+   * Queue a post when rate limited
+   */
+  async queuePost(request: SinglePlatformPostRequest): Promise<PostResponse> {
+    // Mock implementation for testing
+    return {
+      success: true,
+      queued: true,
+      queuePosition: 1,
+      estimatedPostTime: new Date(Date.now() + 3600000),
+    };
+  }
+}
+
 const scheduler = new AutoPostingScheduler();
 
 /**

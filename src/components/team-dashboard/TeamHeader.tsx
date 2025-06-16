@@ -29,7 +29,7 @@ export function TeamHeader({ title = "Team Dashboard", subtitle, breadcrumb }: T
   };
 
   return (
-    <header className="bg-neutral-900 border-b border-neutral-800 px-6 py-4">
+    <header className="bg-neutral-900 border-b border-neutral-800 px-6 py-4" role="banner">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-white">{title}</h1>
@@ -45,6 +45,7 @@ export function TeamHeader({ title = "Team Dashboard", subtitle, breadcrumb }: T
             variant="ghost"
             size="sm"
             className="text-neutral-400 hover:text-white"
+            aria-label="View notifications"
           >
             <Bell className="h-5 w-5" />
           </Button>
@@ -54,6 +55,7 @@ export function TeamHeader({ title = "Team Dashboard", subtitle, breadcrumb }: T
             variant="ghost"
             size="sm"
             className="text-neutral-400 hover:text-white"
+            aria-label="Open settings"
           >
             <Settings className="h-5 w-5" />
           </Button>
@@ -61,7 +63,7 @@ export function TeamHeader({ title = "Team Dashboard", subtitle, breadcrumb }: T
           {/* User Menu */}
           <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user?.user_metadata?.avatar_url} />
+              <AvatarImage src={user?.user_metadata?.avatar_url} alt="User avatar" />
               <AvatarFallback className="bg-[#8D5AFF] text-white">
                 {user?.email?.charAt(0).toUpperCase() || <User className="h-4 w-4" />}
               </AvatarFallback>
@@ -79,6 +81,7 @@ export function TeamHeader({ title = "Team Dashboard", subtitle, breadcrumb }: T
               size="sm"
               onClick={handleSignOut}
               className="text-neutral-400 hover:text-white"
+              aria-label="Sign out"
             >
               <LogOut className="h-4 w-4" />
             </Button>

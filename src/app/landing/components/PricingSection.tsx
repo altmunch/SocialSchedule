@@ -7,10 +7,12 @@ import Link from 'next/link';
 
 interface PricingSectionProps {
   onGetStarted: () => void;
+  navigate?: (url: string) => void;
 }
 
-export default function PricingSection({ onGetStarted }: PricingSectionProps) {
+export default function PricingSection({ onGetStarted, navigate }: PricingSectionProps) {
   const [isAnnual, setIsAnnual] = useState(true);
+  const nav = navigate || ((url: string) => { window.location.href = url; });
   
   // Calculate monthly prices (25% more than annual price divided by 12)
   const calculateMonthly = (annualPrice: number) => {
@@ -96,9 +98,9 @@ export default function PricingSection({ onGetStarted }: PricingSectionProps) {
   const handlePlanClick = (plan: any) => {
     // Redirect to Stripe for paid plans, dashboard for free plans
     if (plan.stripePriceId) {
-      window.location.href = `/api/checkout?price_id=${plan.stripePriceId}`;
+      nav(`/api/checkout?price_id=${plan.stripePriceId}`);
     } else {
-      window.location.href = '/dashboard';
+      nav('/dashboard');
     }
   };
 
