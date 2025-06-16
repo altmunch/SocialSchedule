@@ -1,16 +1,16 @@
-import { TikTokClient } from './src/app/data_collection/lib/platforms/TikTokClient';
-import { ApiConfig } from './src/app/data_collection/lib/platforms/types';
-import { 
-  IAuthTokenManager, 
-  PlatformClientIdentifier, 
-  PlatformCredentials, 
+import { TikTokClient } from 'src/app/workflows/data_collection/lib/platforms/TikTokClient';
+import { ApiConfig } from 'src/app/workflows/data_collection/lib/platforms/types';
+import {
+  IAuthTokenManager,
+  PlatformClientIdentifier,
+  PlatformCredentials,
   AuthStrategy,
   OAuth2Credentials as IOAuth2Credentials
-} from './src/app/data_collection/lib/auth.types';
-import { 
-  TikTokUserInfo, 
-  TikTokUserInfoRequest 
-} from './src/app/data_collection/lib/platforms/tiktok.types';
+} from 'src/app/workflows/data_collection/lib/auth.types';
+import {
+  TikTokUserInfo,
+  TikTokUserInfoRequest
+} from 'src/app/workflows/data_collection/lib/platforms/tiktok.types';
 import readline from 'readline';
 
 // Local type that matches the expected OAuth2Credentials interface

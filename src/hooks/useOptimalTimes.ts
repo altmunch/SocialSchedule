@@ -2,6 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { Platform } from '@/types/platform';
 import { Scheduler, OptimalTimeWindow } from '@/lib/ai/scheduling';
 
+interface HistoricalEngagementData {
+  date: string;
+  engagementScore: number;
+}
+
 interface UseOptimalTimesProps {
   platform: Platform;
   timezone?: string;
@@ -25,7 +30,7 @@ export function useOptimalTimes({
       
       // In a real app, you would fetch historical data from your API
       // const historicalData = await api.getHistoricalEngagement(platform);
-      const historicalData = []; // Mock data for now
+      const historicalData: HistoricalEngagementData[] = []; // Mock data for now
       
       const times = await Scheduler.calculateOptimalTimes(
         platform,

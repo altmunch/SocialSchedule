@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, Instagram, Twitter, Facebook, Linkedin, Loader2, CheckCircle2, Video, Image, Type, Star, GripVertical } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Instagram, Twitter, Facebook, Linkedin, Loader2, CheckCircle2, Video, Image, Type, Star, GripVertical, Sparkles, TrendingUp, Zap } from 'lucide-react';
 
 type ScheduledPost = {
   id: string;
@@ -50,21 +50,12 @@ export default function BlitzComponent() {
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
   const [currentWeek, setCurrentWeek] = useState(new Date());
   
+  // TODO: Replace with actual fetching of scheduled posts and calendar data from a database/API.
   // Mock calendar posts data
-  const [calendarPosts, setCalendarPosts] = useState<{ [key: string]: CalendarPost[] }>({
-    '2025-01-13': [
-      { id: '1', content: 'Morning motivation post', type: 'image', platform: 'instagram', time: '09:00', status: 'scheduled', isOptimalTime: true },
-      { id: '2', content: 'Product demo video', type: 'video', platform: 'tiktok', time: '15:00', status: 'scheduled', isOptimalTime: true },
-    ],
-    '2025-01-14': [
-      { id: '3', content: 'Behind the scenes', type: 'carousel', platform: 'instagram', time: '12:00', status: 'posted' },
-    ],
-    '2025-01-15': [
-      { id: '4', content: 'Tips and tricks', type: 'text', platform: 'twitter', time: '18:00', status: 'scheduled', isOptimalTime: true },
-    ],
-  });
+  const [calendarPosts, setCalendarPosts] = useState<{ [key: string]: CalendarPost[] }>({});
   
   // Optimal posting times by platform
+  // TODO: Consider dynamically generating these optimal times based on user's historical data via AI analysis.
   const optimalTimes = {
     instagram: ['09:00', '15:00', '18:00'],
     tiktok: ['14:00', '18:00', '21:00'],
@@ -75,11 +66,13 @@ export default function BlitzComponent() {
 
   // Polling for post status updates
   useEffect(() => {
+    // TODO: Replace with real-time updates from a backend or websocket for post status.
     const interval = setInterval(async () => {
       setScheduledPosts(prevPosts => prevPosts.map(post => {
+        // This is a simulation. In a real app, you'd fetch actual status from backend.
         if (post.status === 'scheduled') {
-          // Simulate status update: after 5 seconds, mark as 'posted'
-          if (Date.now() - Number(post.id) > 5000) {
+          // Simulate posting after some time
+          if (Date.now() - Number(post.id) > 5000) { // Example: post 'completes' after 5 seconds
             return { ...post, status: 'posted' };
           }
         }
@@ -112,10 +105,8 @@ export default function BlitzComponent() {
     setSuccessMessage(null);
     
     try {
-      // Simulate scheduling via autopost workflow
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Create a new scheduled post
       const newPost: ScheduledPost = {
         id: Date.now().toString(),
         content,
@@ -146,7 +137,7 @@ export default function BlitzComponent() {
     const icons = {
       video: Video,
       image: Image,
-      carousel: Image, // Using Image as placeholder for carousel
+      carousel: Image,
       text: Type,
     };
     const IconComponent = icons[type];
@@ -155,16 +146,16 @@ export default function BlitzComponent() {
 
   const getPostTypeColor = (type: 'video' | 'image' | 'carousel' | 'text') => {
     const colors = {
-      video: 'bg-mint/20 border-mint text-mint',
-      image: 'bg-lavender/20 border-lavender text-lavender',
-      carousel: 'bg-coral/20 border-coral text-coral',
-      text: 'bg-info/20 border-info text-info',
+      video: 'bg-violet-500/20 border-violet-500/30 text-violet-400',
+      image: 'bg-blue-500/20 border-blue-500/30 text-blue-400',
+      carousel: 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400',
+      text: 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400',
     };
     return colors[type];
   };
 
   const getWeekDays = () => {
-    const start = startOfWeek(currentWeek, { weekStartsOn: 1 }); // Start on Monday
+    const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
     return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   };
 
@@ -176,355 +167,392 @@ export default function BlitzComponent() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight gradient-text">Blitz</h1>
-        <p className="text-muted-foreground mt-1">Schedule and autopost your content at optimal times</p>
-      </div>
+    <div className="min-h-screen" style={{
+      background: 'linear-gradient(135deg, #0a0b0f 0%, #111318 50%, #1a1d25 100%)'
+    }}>
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        
+        {/* Enhanced Header */}
+        <div className="text-center space-y-4 animate-fadeIn">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight gradient-text">Blitz</h1>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            Schedule and autopost your content at optimal times with AI-powered timing intelligence
+          </p>
+        </div>
 
-      {/* Calendar View - Now moved above Quick Schedule */}
-      <Card className="bg-card border-border shadow-sm">
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle className="text-creative">Content Calendar</CardTitle>
-              <CardDescription>Drag and drop to reschedule posts</CardDescription>
+        {/* Enhanced Calendar View */}
+        <GlassCard className="animate-slideUp">
+          <div className="p-6 border-b border-gray-700/50">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <Sparkles className="h-6 w-6 text-violet-400" />
+                  Content Calendar
+                </h2>
+                <p className="text-gray-400 mt-1">Drag and drop to reschedule posts</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant={viewMode === 'week' ? 'default' : 'outline'} 
+                  size="sm"
+                  onClick={() => setViewMode('week')}
+                  className="btn-primary"
+                >
+                  Week
+                </Button>
+                <Button 
+                  variant={viewMode === 'month' ? 'default' : 'outline'} 
+                  size="sm"
+                  onClick={() => setViewMode('month')}
+                  className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                >
+                  Month
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+          </div>
+          
+          <div className="p-6">
+            <div className="overflow-x-auto">
+              <div className="min-w-[700px]">
+                {/* Calendar Header */}
+                <div className="grid grid-cols-8 gap-0 border border-gray-700 rounded-t-lg overflow-hidden">
+                  <div className="bg-gray-800/50 p-3 text-center text-sm font-medium text-gray-300">Time</div>
+                  {getWeekDays().map((day, index) => (
+                    <div key={index} className="bg-gray-800/50 p-3 text-center border-l border-gray-700">
+                      <div className="text-sm font-medium text-white">{format(day, 'EEE')}</div>
+                      <div className="text-xs text-gray-400">{format(day, 'MMM d')}</div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Calendar Body */}
+                <div className="border-l border-r border-b border-gray-700 rounded-b-lg overflow-hidden">
+                  {['09:00', '12:00', '15:00', '18:00', '21:00'].map((time) => (
+                    <div key={time} className="grid grid-cols-8 gap-0 min-h-[80px] border-b border-gray-700 last:border-b-0">
+                      <div className="bg-gray-800/20 p-3 text-sm font-medium border-r border-gray-700 flex items-center justify-center text-gray-300">
+                        {time}
+                      </div>
+                      {getWeekDays().map((day, dayIndex) => {
+                        const posts = getPostsForDate(day).filter(post => post.time === time);
+                        const isOptimalSlot = Object.values(optimalTimes).some(times => times.includes(time));
+                        return (
+                          <div 
+                            key={dayIndex} 
+                            className={`p-2 border-r border-gray-700 last:border-r-0 transition-colors hover:bg-gray-800/30 ${
+                              isOptimalSlot ? 'bg-violet-500/5' : ''
+                            }`}
+                          >
+                            {isOptimalSlot && posts.length === 0 && (
+                              <div className="h-full flex items-center justify-center opacity-30">
+                                <Star className="h-4 w-4 text-violet-400" />
+                              </div>
+                            )}
+                            <div className="space-y-1">
+                              {posts.map((post) => (
+                                <div 
+                                  key={post.id}
+                                  className={`p-2 rounded-lg border text-xs cursor-move hover-lift ${getPostTypeColor(post.type)} ${
+                                    post.isOptimalTime ? 'ring-1 ring-violet-400' : ''
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-1 mb-1">
+                                    {getPostTypeIcon(post.type)}
+                                    {getPlatformIcon(post.platform)}
+                                    {post.isOptimalTime && <Star className="h-2 w-2 text-violet-400" />}
+                                    <GripVertical className="h-3 w-3 ml-auto opacity-50" />
+                                  </div>
+                                  <div className="font-medium truncate">{post.content}</div>
+                                  <div className={`text-xs font-medium ${
+                                    post.status === 'posted' ? 'text-emerald-400' : 
+                                    post.status === 'failed' ? 'text-red-400' : 'text-blue-400'
+                                  }`}>
+                                    {post.status}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {/* Enhanced Legend */}
+            <div className="mt-6 flex flex-wrap items-center gap-6 text-xs text-gray-400">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded border bg-violet-500/20 border-violet-500/30"></div>
+                <span>Video</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded border bg-blue-500/20 border-blue-500/30"></div>
+                <span>Image</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded border bg-emerald-500/20 border-emerald-500/30"></div>
+                <span>Carousel</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded border bg-cyan-500/20 border-cyan-500/30"></div>
+                <span>Text</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="h-3 w-3 text-violet-400" />
+                <span>Optimal time</span>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Enhanced Quick Schedule */}
+        <GlassCard className="animate-slideUp">
+          <div className="p-6 border-b border-gray-700/50">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+              <Zap className="h-6 w-6 text-violet-400" />
+              Quick Schedule
+            </h2>
+            <p className="text-gray-400 mt-1">Schedule a new post with optimal timing suggestions</p>
+          </div>
+          
+          <div className="p-6 space-y-6">
+            {error && (
+              <Alert className="bg-red-500/10 border-red-500/20 text-red-400">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {successMessage && (
+              <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-400">
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertDescription>{successMessage}</AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Content Type</label>
+                <Select value={selectedPostType} onValueChange={(value: any) => setSelectedPostType(value)}>
+                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="video">📹 Video</SelectItem>
+                    <SelectItem value="image">🖼️ Image</SelectItem>
+                    <SelectItem value="carousel">📱 Carousel</SelectItem>
+                    <SelectItem value="text">📝 Text</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Platform</label>
+                <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
+                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                    <SelectValue placeholder="Select platform" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="instagram">📸 Instagram</SelectItem>
+                    <SelectItem value="tiktok">🎵 TikTok</SelectItem>
+                    <SelectItem value="twitter">🐦 Twitter</SelectItem>
+                    <SelectItem value="facebook">📘 Facebook</SelectItem>
+                    <SelectItem value="linkedin">💼 LinkedIn</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Time</label>
+                <Select value={selectedTime} onValueChange={setSelectedTime}>
+                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                    <SelectValue placeholder="Select time" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    {['09:00', '12:00', '15:00', '18:00', '21:00'].map(time => (
+                      <SelectItem key={time} value={time}>
+                        {time} {optimalTimes[selectedPlatform as keyof typeof optimalTimes]?.includes(time) && 
+                          <span className="text-violet-400">⭐</span>}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {optimalTimes[selectedPlatform as keyof typeof optimalTimes]?.includes(selectedTime) && (
+                  <p className="text-xs text-violet-400 flex items-center gap-1">
+                    <Star className="h-3 w-3" />
+                    Optimal posting time
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start bg-gray-800 border-gray-700 text-white hover:bg-gray-700">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, 'MMM dd') : 'Pick date'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
+                    <Calendar 
+                      mode="single" 
+                      selected={selectedDate} 
+                      onSelect={setSelectedDate}
+                      className="bg-gray-800 text-white"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">Content</label>
+              <Textarea 
+                placeholder="What's your post about?"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={4}
+                className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 resize-none"
+              />
+            </div>
+            
+            <div className="flex justify-end">
               <Button 
-                variant={viewMode === 'week' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setViewMode('week')}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={handleSchedule} 
+                disabled={isScheduling} 
+                className="btn-primary"
               >
-                Week
-              </Button>
-              <Button 
-                variant={viewMode === 'month' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setViewMode('month')}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                Month
+                {isScheduling ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Scheduling...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Schedule Post
+                  </>
+                )}
               </Button>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
-          {/* Week View Calendar */}
-          <div className="overflow-x-auto">
-            <div className="min-w-[700px]">
-              {/* Calendar Header */}
-              <div className="grid grid-cols-8 gap-0 border border-border rounded-t-lg overflow-hidden">
-                <div className="bg-muted/50 p-3 text-center text-sm font-medium">Time</div>
-                {getWeekDays().map((day, index) => (
-                  <div key={index} className="bg-muted/50 p-3 text-center border-l border-border">
-                    <div className="text-sm font-medium">{format(day, 'EEE')}</div>
-                    <div className="text-xs text-muted-foreground">{format(day, 'MMM d')}</div>
+        </GlassCard>
+
+        {/* Enhanced Performance Heatmap */}
+        <GlassCard className="animate-slideUp">
+          <div className="p-6 border-b border-gray-700/50">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+              <TrendingUp className="h-6 w-6 text-violet-400" />
+              Posting Performance Heatmap
+            </h2>
+            <p className="text-gray-400 mt-1">Optimal posting times based on your audience engagement patterns</p>
+          </div>
+          
+          <div className="p-6">
+            <div className="space-y-4">
+              <div className="grid gap-1 text-xs" style={{ gridTemplateColumns: 'auto repeat(24, 1fr)' }}>
+                <div></div>
+                {Array.from({ length: 24 }, (_, i) => (
+                  <div key={i} className="text-center text-gray-400 font-mono">
+                    {i.toString().padStart(2, '0')}
                   </div>
                 ))}
-              </div>
-              
-              {/* Calendar Body */}
-              <div className="border-l border-r border-b border-border rounded-b-lg overflow-hidden">
-                {['09:00', '12:00', '15:00', '18:00', '21:00'].map((time) => (
-                  <div key={time} className="grid grid-cols-8 gap-0 min-h-[80px] border-b border-border last:border-b-0">
-                    <div className="bg-muted/20 p-3 text-sm font-medium border-r border-border flex items-center justify-center">
-                      {time}
-                    </div>
-                    {getWeekDays().map((day, dayIndex) => {
-                      const posts = getPostsForDate(day).filter(post => post.time === time);
-                      const isOptimalSlot = Object.values(optimalTimes).some(times => times.includes(time));
+                
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => (
+                  <React.Fragment key={day}>
+                    <div className="text-right text-gray-400 pr-2">{day}</div>
+                    {Array.from({ length: 24 }, (_, hour) => {
+                      const isPeak = (hour >= 6 && hour <= 9) || (hour >= 17 && hour <= 21);
+                      const isWeekend = dayIndex >= 5;
+                      const baseEngagement = ((hour + dayIndex * 3) % 10) / 25;
+                      const engagement = isPeak ? (isWeekend ? 0.6 : 0.8) : baseEngagement;
+                      
+                      const getHeatmapColor = (value: number) => {
+                        if (value > 0.7) return 'bg-violet-500 text-white';
+                        if (value > 0.5) return 'bg-violet-400/70 text-white';
+                        if (value > 0.3) return 'bg-violet-400/40';
+                        if (value > 0.1) return 'bg-violet-400/20';
+                        return 'bg-gray-800';
+                      };
+
                       return (
-                        <div 
-                          key={dayIndex} 
-                          className={`p-2 border-r border-border last:border-r-0 transition-colors hover:bg-muted/30 ${
-                            isOptimalSlot ? 'bg-mint/5' : ''
-                          }`}
-                        >
-                          {isOptimalSlot && posts.length === 0 && (
-                            <div className="h-full flex items-center justify-center opacity-30">
-                              <Star className="h-4 w-4 text-mint" />
-                            </div>
-                          )}
-                          <div className="space-y-1">
-                            {posts.map((post) => (
-                              <div 
-                                key={post.id}
-                                className={`p-2 rounded-lg border text-xs cursor-move ${getPostTypeColor(post.type)} ${
-                                  post.isOptimalTime ? 'ring-1 ring-mint' : ''
-                                }`}
-                              >
-                                <div className="flex items-center gap-1 mb-1">
-                                  {getPostTypeIcon(post.type)}
-                                  {getPlatformIcon(post.platform)}
-                                  {post.isOptimalTime && <Star className="h-2 w-2 text-mint" />}
-                                  <GripVertical className="h-3 w-3 ml-auto opacity-50" />
-                                </div>
-                                <div className="font-medium truncate">{post.content}</div>
-                                <div className={`text-xs font-medium ${
-                                  post.status === 'posted' ? 'text-mint' : 
-                                  post.status === 'failed' ? 'text-coral' : 'text-info'
-                                }`}>
-                                  {post.status}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                        <div
+                          key={hour}
+                          className={`h-4 w-4 rounded-sm cursor-pointer transition-all hover:scale-110 ${getHeatmapColor(engagement)}`}
+                          title={`${day} ${hour}:00 - ${Math.round(engagement * 100)}% engagement`}
+                        />
                       );
                     })}
-                  </div>
+                  </React.Fragment>
                 ))}
               </div>
-            </div>
-          </div>
-          
-          {/* Legend */}
-          <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded border bg-mint/20 border-mint"></div>
-              <span>Video</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded border bg-lavender/20 border-lavender"></div>
-              <span>Image</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded border bg-coral/20 border-coral"></div>
-              <span>Carousel</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 rounded border bg-info/20 border-info"></div>
-              <span>Text</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 text-mint" />
-              <span>Optimal time</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Quick Post Scheduling Card - Now moved below Calendar */}
-      <Card className="bg-card border-border shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-creative">Quick Schedule</CardTitle>
-          <CardDescription>Schedule a new post with optimal timing suggestions</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {successMessage && (
-            <Alert className="border-mint/20 bg-mint/5">
-              <CheckCircle2 className="h-4 w-4 text-mint" />
-              <AlertDescription className="text-mint">{successMessage}</AlertDescription>
-            </Alert>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Content Type</label>
-              <Select value={selectedPostType} onValueChange={(value: any) => setSelectedPostType(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="video">📹 Video</SelectItem>
-                  <SelectItem value="image">🖼️ Image</SelectItem>
-                  <SelectItem value="carousel">📱 Carousel</SelectItem>
-                  <SelectItem value="text">📝 Text</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Platform</label>
-              <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select platform" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="instagram">📸 Instagram</SelectItem>
-                  <SelectItem value="tiktok">🎵 TikTok</SelectItem>
-                  <SelectItem value="twitter">🐦 Twitter</SelectItem>
-                  <SelectItem value="facebook">📘 Facebook</SelectItem>
-                  <SelectItem value="linkedin">💼 LinkedIn</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Time</label>
-              <Select value={selectedTime} onValueChange={setSelectedTime}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {['09:00', '12:00', '15:00', '18:00', '21:00'].map(time => (
-                    <SelectItem key={time} value={time}>
-                      {time} {optimalTimes[selectedPlatform as keyof typeof optimalTimes]?.includes(time) && 
-                        <span className="text-mint">⭐</span>}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {optimalTimes[selectedPlatform as keyof typeof optimalTimes]?.includes(selectedTime) && (
-                <p className="text-xs text-mint flex items-center gap-1">
-                  <Star className="h-3 w-3" />
-                  Optimal posting time
-                </p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Date</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, 'MMM dd') : 'Pick date'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Content</label>
-            <Textarea 
-              placeholder="What's your post about?"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={3}
-            />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={handleSchedule} disabled={isScheduling} className="bg-primary text-primary-foreground hover:bg-primary/90">
-            {isScheduling ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Scheduling...
-              </>
-            ) : (
-              'Schedule Post'
-            )}
-          </Button>
-        </CardFooter>
-      </Card>
-
-      {/* Posting Performance Heatmap */}
-      <Card className="bg-card border-border shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-creative">Posting Performance Heatmap</CardTitle>
-          <CardDescription>Optimal posting times based on your audience engagement patterns</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Hours grid */}
-            <div className="grid gap-1 text-xs" style={{ gridTemplateColumns: 'auto repeat(24, 1fr)' }}>
-              <div></div>
-              {Array.from({ length: 24 }, (_, i) => (
-                <div key={i} className="text-center text-muted-foreground font-mono">
-                  {i.toString().padStart(2, '0')}
-                </div>
-              ))}
               
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => (
-                <React.Fragment key={day}>
-                  <div className="text-right text-muted-foreground pr-2">{day}</div>
-                  {Array.from({ length: 24 }, (_, hour) => {
-                    // Mock engagement data - higher values during typical peak hours
-                    const isPeak = (hour >= 6 && hour <= 9) || (hour >= 17 && hour <= 21);
-                    const isWeekend = dayIndex >= 5;
-                    // Use deterministic values based on hour and day to prevent hydration mismatch
-                    const baseEngagement = ((hour + dayIndex * 3) % 10) / 25; // Creates values 0-0.4
-                    const engagement = isPeak ? (isWeekend ? 0.6 : 0.8) : baseEngagement;
-                    
-                    const getHeatmapColor = (value: number) => {
-                      if (value > 0.7) return 'bg-mint text-white';
-                      if (value > 0.5) return 'bg-mint/70 text-white';
-                      if (value > 0.3) return 'bg-mint/40';
-                      if (value > 0.1) return 'bg-mint/20';
-                      return 'bg-muted';
-                    };
-
-                    return (
-                      <div
-                        key={hour}
-                        className={`h-4 w-4 rounded-sm cursor-pointer transition-all hover:scale-110 ${getHeatmapColor(engagement)}`}
-                        title={`${day} ${hour}:00 - ${Math.round(engagement * 100)}% engagement`}
-                      />
-                    );
-                  })}
-                </React.Fragment>
-              ))}
-            </div>
-            
-            {/* Legend */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground">Low</span>
-                <div className="flex gap-1">
-                  <div className="w-3 h-3 bg-muted rounded-sm"></div>
-                  <div className="w-3 h-3 bg-mint/20 rounded-sm"></div>
-                  <div className="w-3 h-3 bg-mint/40 rounded-sm"></div>
-                  <div className="w-3 h-3 bg-mint/70 rounded-sm"></div>
-                  <div className="w-3 h-3 bg-mint rounded-sm"></div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-gray-400">Low</span>
+                  <div className="flex gap-1">
+                    <div className="w-3 h-3 bg-gray-800 rounded-sm"></div>
+                    <div className="w-3 h-3 bg-violet-400/20 rounded-sm"></div>
+                    <div className="w-3 h-3 bg-violet-400/40 rounded-sm"></div>
+                    <div className="w-3 h-3 bg-violet-400/70 rounded-sm"></div>
+                    <div className="w-3 h-3 bg-violet-500 rounded-sm"></div>
+                  </div>
+                  <span className="text-gray-400">High</span>
                 </div>
-                <span className="text-muted-foreground">High</span>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Hover for details
+                <div className="text-xs text-gray-500">
+                  Hover for details
+                </div>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </GlassCard>
 
-      {/* Recent Scheduled Posts */}
-      {scheduledPosts.length > 0 && (
-        <Card className="bg-card border-border shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-creative">Recent Scheduled Posts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {scheduledPosts.slice(0, 5).map(post => (
-                <div key={post.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-border">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-1 rounded border ${getPostTypeColor(post.type)}`}>
-                      {getPostTypeIcon(post.type)}
-                    </div>
-                    <div>
-                      <div className="font-medium">{post.content}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {getPlatformIcon(post.platform)} {post.platform} • {format(post.scheduledDate, 'MMM d')} at {post.scheduledTime}
+        {/* Enhanced Recent Posts */}
+        {scheduledPosts.length > 0 && (
+          <GlassCard className="animate-slideUp">
+            <div className="p-6 border-b border-gray-700/50">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                <Clock className="h-6 w-6 text-violet-400" />
+                Recent Scheduled Posts
+              </h2>
+            </div>
+            <div className="p-6">
+              <div className="space-y-3">
+                {scheduledPosts.slice(0, 5).map(post => (
+                  <div key={post.id} className="enhanced-card p-4 hover-lift">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={`p-2 rounded-lg border ${getPostTypeColor(post.type)}`}>
+                          {getPostTypeIcon(post.type)}
+                        </div>
+                        <div>
+                          <div className="font-medium text-white">{post.content}</div>
+                          <div className="text-sm text-gray-400 flex items-center gap-2">
+                            {getPlatformIcon(post.platform)} 
+                            <span>{post.platform}</span>
+                            <span>•</span>
+                            <span>{format(post.scheduledDate, 'MMM d')} at {post.scheduledTime}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {post.isOptimalTime && <Star className="h-4 w-4 text-violet-400" />}
+                        <span className={`text-xs font-medium px-3 py-1 rounded-full ${
+                          post.status === 'posted' ? 'bg-emerald-500/20 text-emerald-400' : 
+                          post.status === 'failed' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'
+                        }`}>
+                          {post.status}
+                        </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {post.isOptimalTime && <Star className="h-3 w-3 text-mint" />}
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      post.status === 'posted' ? 'bg-mint/20 text-mint' : 
-                      post.status === 'failed' ? 'bg-coral/20 text-coral' : 'bg-info/20 text-info'
-                    }`}>
-                      {post.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </GlassCard>
+        )}
+      </div>
     </div>
   );
 }

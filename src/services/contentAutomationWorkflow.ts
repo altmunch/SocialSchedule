@@ -1,6 +1,6 @@
 import { optimizeVideo } from './videoOptimization';
 import { autopost, AutoPostRequest } from './autoposting';
-import { Platform, TimeRange } from '../app/workflows/data_analysis/types/analysis_types';
+import { Platform, TimeRange, AnalysisResult, VideoOptimizationAnalysisData } from '../app/workflows/data_analysis/types/analysis_types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ContentAutomationRequest {
@@ -15,10 +15,25 @@ interface ContentAutomationRequest {
   mode?: 'fast' | 'thorough';
 }
 
+interface WorkflowState {
+  id: string;
+  status: string;
+  progress: number;
+}
+
+interface ResumptionInfo {
+  resumedFrom: string;
+  completedSteps: string[];
+}
+
 interface ContentAutomationResult {
   requestId: string;
-  optimization: ReturnType<typeof optimizeVideo>;
+  optimization: AnalysisResult<VideoOptimizationAnalysisData>;
   autopostId: string;
+  status?: string;
+  error?: { message: string; code?: string; details?: any };
+  workflowState?: WorkflowState;
+  resumptionInfo?: ResumptionInfo;
 }
 
 /**
@@ -60,19 +75,48 @@ export class ContentAutomationWorkflow {
         mode: req.mode,
       });
 
-      // 2) Autoposting (fire-and-forget inside autoposting)
-      const autopostRequest: AutoPostRequest = {
-        content: {
-          videoUrl: req.videoUrl,
-          caption: optimization.optimizedCaption ?? req.caption,
-          hashtags: optimization.trendingHashtags?.map((h) => h.tag) ?? req.hashtags,
-        },
-        platforms: [req.platform.toLowerCase() as any],
-        scheduleTime: req.scheduleTime,
-      };
-      const autopostResult = await autopost(autopostRequest);
+      let resultStatus: string = 'pending';
+      let resultError: { message: string; code?: string; details?: any } | undefined;
 
-      sink.push({ requestId, optimization, autopostId: autopostResult.id });
+      if (!optimization.success) {
+        resultStatus = 'failed';
+        resultError = optimization.error;
+      }
+
+      let autopostResult: { id: string; success: boolean; error?: any };
+      if (resultStatus !== 'failed') {
+        // 2) Autoposting (fire-and-forget inside autoposting)
+        const autopostRequest: AutoPostRequest = {
+          content: {
+            videoUrl: req.videoUrl,
+            caption: optimization.data!.optimizedVideoContent!.optimizedCaption ?? req.caption,
+            hashtags: optimization.data!.optimizedVideoContent!.trendingHashtags?.map((h) => h.tag) ?? req.hashtags,
+          },
+          platforms: [req.platform.toLowerCase() as any],
+          scheduleTime: req.scheduleTime,
+        };
+        autopostResult = await autopost(autopostRequest);
+
+        if (!autopostResult.success) {
+          resultStatus = 'failed';
+          resultError = autopostResult.error ? { message: autopostResult.error.message, code: autopostResult.error.code } : { message: 'Autoposting failed' };
+        } else {
+          resultStatus = 'success';
+        }
+      }
+
+      const workflowState = { id: requestId, status: resultStatus, progress: resultStatus === 'success' ? 100 : 50 };
+      const resumptionInfo = resultStatus === 'failed' ? { resumedFrom: 'autoposting', completedSteps: ['optimization'] } : undefined;
+
+      sink.push({
+        requestId,
+        optimization,
+        autopostId: autopostResult?.id || '' ,
+        status: resultStatus,
+        error: resultError,
+        workflowState,
+        resumptionInfo,
+      });
     }
   }
 } 

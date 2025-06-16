@@ -178,7 +178,6 @@ export const autopost = async (
       caption: (content && content.caption) || undefined,
       hashtags: (content && content.hashtags) || undefined,
       scheduledTime: scheduleTime,
-      status: 'pending',
     },
   });
 

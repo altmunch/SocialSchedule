@@ -1,5 +1,16 @@
 import React from 'react';
 
+// Mock process.env directly at the top of the file
+jest.mock('process', () => ({
+  env: {
+    ...process.env, // Keep existing environment variables
+    NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK: 'https://buy.stripe.com/test_pro_monthly',
+    NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK: 'https://buy.stripe.com/test_pro_yearly',
+    NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK: 'https://buy.stripe.com/test_team_monthly',
+    NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK: 'https://buy.stripe.com/test_team_yearly',
+  },
+}));
+
 // Simple test to verify payment flow functionality
 describe('Payment Flow Verification', () => {
   it('should have correct environment variable names', () => {
@@ -35,10 +46,10 @@ describe('Payment Flow Verification', () => {
     };
 
     // Test plan link generation
-    expect(getPlanLink('pro', 'monthly')).toBe('');
-    expect(getPlanLink('pro', 'yearly')).toBe('');
-    expect(getPlanLink('team', 'monthly')).toBe('');
-    expect(getPlanLink('team', 'yearly')).toBe('');
+    expect(getPlanLink('pro', 'monthly')).toBe('https://buy.stripe.com/test_pro_monthly');
+    expect(getPlanLink('pro', 'yearly')).toBe('https://buy.stripe.com/test_pro_yearly');
+    expect(getPlanLink('team', 'monthly')).toBe('https://buy.stripe.com/test_team_monthly');
+    expect(getPlanLink('team', 'yearly')).toBe('https://buy.stripe.com/test_team_yearly');
     expect(getPlanLink('free', 'monthly')).toBe('/dashboard');
   });
 

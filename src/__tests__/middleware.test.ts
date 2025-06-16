@@ -1,7 +1,31 @@
 import { middleware } from '../../middleware';
 import { NextRequest, NextResponse } from 'next/server';
 
-jest.mock('next/server');
+// Mock the entire next/server module
+jest.mock('next/server', () => {
+  const actual = jest.requireActual('next/server');
+
+  return {
+    ...actual,
+    NextResponse: {
+      ...actual.NextResponse,
+      next: jest.fn(() => {
+        const response = new actual.NextResponse();
+        response.status = 200;
+        return response;
+      }),
+      redirect: jest.fn((url: string) => {
+        const response = actual.NextResponse.redirect(url);
+        response.status = 307;
+        return response;
+      }),
+      json: jest.fn((data: any, options: any) => {
+        const response = actual.NextResponse.json(data, options);
+        return response;
+      }),
+    },
+  };
+});
 
 // Mock Supabase and CSRF logic as needed
 const mockGetSession = jest.fn();
@@ -20,6 +44,32 @@ describe('Middleware', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
+    // Reset the mock implementations for NextResponse methods before each test
+    (NextResponse.next as jest.Mock).mockClear();
+    (NextResponse.redirect as jest.Mock).mockClear();
+    (NextResponse.json as jest.Mock).mockClear();
+
+    // Re-implement the mock each time to ensure isolation
+    (NextResponse.next as jest.Mock).mockImplementation(() => {
+      const actual = jest.requireActual('next/server');
+      const response = new actual.NextResponse();
+      response.status = 200;
+      return response;
+    });
+
+    (NextResponse.redirect as jest.Mock).mockImplementation((url: string) => {
+      const actual = jest.requireActual('next/server');
+      const response = actual.NextResponse.redirect(url);
+      response.status = 307;
+      return response;
+    });
+
+    (NextResponse.json as jest.Mock).mockImplementation((data: any, options: any) => {
+      const actual = jest.requireActual('next/server');
+      const response = actual.NextResponse.json(data, options);
+      return response;
+    });
+
     mockRequest = {
       nextUrl: {
         pathname: '/',

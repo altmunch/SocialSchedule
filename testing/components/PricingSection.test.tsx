@@ -9,7 +9,7 @@ import {
   testResponsive,
   createMockPricingTier,
   expectElementToBeAccessible,
-} from '@testUtils/index';
+} from '../../testing/utils/index';
 import PricingSection from '@/app/landing/components/PricingSection';
 
 // Mock the pricing data
@@ -222,7 +222,7 @@ describe('PricingSection Component', () => {
       
       // Check for proper button labels
       const buttons = container.querySelectorAll('button');
-      buttons.forEach(button => {
+      buttons.forEach((button: HTMLElement) => {
         expectElementToBeAccessible(button);
       });
     });

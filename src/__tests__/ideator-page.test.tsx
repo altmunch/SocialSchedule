@@ -7,7 +7,7 @@ describe('IdeatorPage', () => {
     render(<IdeatorPage />);
     
     // Check if the title is displayed
-    expect(screen.getByText('Content Idea Generator')).toBeInTheDocument();
+    expect(screen.getByText('Ideator')).toBeInTheDocument();
     
     // Check if the textarea is present with proper size attributes
     const textarea = screen.getByPlaceholderText(/Describe your product or service in detail/);

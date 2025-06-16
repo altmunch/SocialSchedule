@@ -59,130 +59,145 @@ import {
   FileVideo,
   MousePointer2,
   Maximize2,
-  Minimize2
+  Minimize2,
+  ChevronRight,
+  MoreHorizontal,
+  Bell,
+  UserCheck,
+  TrendingDown,
+  ShoppingBag,
+  Video,
+  Building,
+  CreditCard,
+  ArrowUpRight
 } from 'lucide-react';
+import { ChartWrapper } from '@/components/ui/chart-wrapper';
+import { LineChart as LineChartComponent, BarChart as BarChartComponent } from '@/components/dashboard/charts';
+import { GlassCard } from '@/components/ui/glass-card';
+import { AnimatedButton } from '@/components/ui/animated-button';
+import { ClientOverviewGrid } from '@/components/ui/client-overview-grid';
+import { WorkflowStatusOverview } from '@/components/ui/workflow-status-overview';
+import { TeamActivityStream } from '@/components/ui/team-activity-stream';
 
 export default function TeamDashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { totalClientCount, setCurrentTab } = useTeamMode();
-  const [activeWorkflows, setActiveWorkflows] = useState(0);
-  const [completionProgress, setCompletionProgress] = useState(0);
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
-  const [realTimeMetrics, setRealTimeMetrics] = useState({
-    processingRate: 847,
-    queueSize: 12450,
-    successRate: 98.7,
-    avgResponseTime: 1.2
-  });
-  const [chartData, setChartData] = useState<{
-    performance: Array<{date: string; value: number; success: number; errors: number}>;
-    clientGrowth: Array<{date: string; new: number; active: number; churned: number}>;
-    revenueData: Array<{date: string; revenue: number; profit: number; costs: number}>;
-    automationEfficiency: Array<{date: string; automated: number; manual: number; savings: number}>;
-  }>({
-    performance: [],
-    clientGrowth: [],
-    revenueData: [],
-    automationEfficiency: []
-  });
-  const [selectedChart, setSelectedChart] = useState('performance');
-  const [chartTimeRange, setChartTimeRange] = useState('7d');
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [animationStage, setAnimationStage] = useState(0);
-  
-  // Mock subscription tier - in production, get this from user data
-  const subscriptionTier = 'team'; // Changed to team for demo
+  const [searchQuery, setSearchQuery] = useState('');
+  const [realtimeMetrics, setRealtimeMetrics] = useState({
+    totalRevenue: 847250,
+    revenueGrowth: 23.4,
+    activeClients: 1247,
+    clientGrowth: 8.7,
+    teamEfficiency: 94.2,
+    efficiencyChange: 12.1,
+    processingRate: 2847,
+    queueSize: 234
+  });
+
+  // Mock subscription tier - team plan for demo
+  const subscriptionTier = 'team';
   const { hasFeatureAccess, tier } = useUsageLimits(subscriptionTier);
 
   // Check team dashboard access
   const hasTeamAccess = hasFeatureAccess('teamDashboard');
 
-  // Enhanced mouse tracking for interactive effects
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  const isTeam = user?.subscription_tier === 'team';
+
+  // Utility functions for consistent styling
+  const getMetricColorClass = (id: string) => {
+    switch (id) {
+      case 'revenue': return 'bg-emerald-500/20 text-emerald-400';
+      case 'clients': return 'bg-purple-500/20 text-purple-400';
+      case 'efficiency': return 'bg-emerald-500/20 text-emerald-400';
+      case 'processing': return 'bg-purple-500/20 text-purple-400';
+      default: return 'bg-slate-500/20 text-slate-400';
+    }
+  };
+
+  const getMetricProgress = (id: string) => {
+    switch (id) {
+      case 'revenue': return Math.min(100, realtimeMetrics.revenueGrowth * 3);
+      case 'clients': return Math.min(100, realtimeMetrics.clientGrowth * 5);
+      case 'efficiency': return realtimeMetrics.teamEfficiency;
+      case 'processing': return Math.min(100, realtimeMetrics.processingRate / 30); // Example progress
+      default: return 50;
+    }
+  };
+
+  const getModuleColorClass = (id: string) => {
+    switch (id) {
+      case 'bulk-operations': return 'bg-emerald-500/20 text-emerald-400';
+      case 'client-management-module': return 'bg-purple-500/20 text-purple-400';
+      case 'analytics-reports': return 'bg-violet-500/20 text-violet-400';
+      case 'workflow-automation': return 'bg-teal-500/20 text-teal-400';
+      default: return 'bg-slate-500/20 text-slate-400';
+    }
+  };
+
+  const getModuleButtonClass = (id: string) => {
+    switch (id) {
+      case 'bulk-operations': return 'bg-emerald-600 hover:bg-emerald-700';
+      case 'client-management-module': return 'bg-purple-600 hover:bg-purple-700';
+      case 'analytics-reports': return 'bg-violet-600 hover:bg-violet-700';
+      case 'workflow-automation': return 'bg-teal-600 hover:bg-teal-700';
+      default: return 'bg-slate-600 hover:bg-slate-700';
+    }
+  };
+
+  const getActivityColorClass = (type: string) => {
+    switch (type) {
+      case 'sale': return 'bg-emerald-500/20 text-emerald-400';
+      case 'optimization': return 'bg-purple-500/20 text-purple-400';
+      case 'alert': return 'bg-amber-500/20 text-amber-400';
+      case 'client-onboard': return 'bg-blue-500/20 text-blue-400';
+      case 'workflow-update': return 'bg-cyan-500/20 text-cyan-400';
+      default: return 'bg-slate-500/20 text-slate-400';
+    }
+  };
+
+  const getAlertColorClass = (type: string) => {
+    switch (type) {
+      case 'positive': return 'bg-emerald-500/20 text-emerald-400';
+      case 'warning': return 'bg-amber-500/20 text-amber-400';
+      case 'critical': return 'bg-red-500/20 text-red-400';
+      default: return 'bg-slate-500/20 text-slate-400';
+    }
+  };
+
+  const getUsageColorClass = (id: string) => {
+    switch (id) {
+      case 'ai-credits': return 'bg-purple-500/20 text-purple-400';
+      case 'video-processing-hours': return 'bg-blue-500/20 text-blue-400';
+      case 'automation-tasks': return 'bg-teal-500/20 text-teal-400';
+      default: return 'bg-slate-500/20 text-slate-400';
+    }
+  };
 
   // Staggered animation entrance
   useEffect(() => {
-    const stages = [0, 1, 2, 3, 4, 5];
+    const stages = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]; // Expanded stages for all sections
     stages.forEach((stage, index) => {
-      setTimeout(() => setAnimationStage(stage), index * 300);
+      setTimeout(() => setAnimationStage(stage), index * 150);
     });
   }, []);
 
-  // Generate dynamic chart data
-  useEffect(() => {
-    const generateChartData = () => {
-      const days = chartTimeRange === '7d' ? 7 : chartTimeRange === '30d' ? 30 : 90;
-      const performance = [];
-      const clientGrowth = [];
-      const revenueData = [];
-      const automationEfficiency = [];
-
-      for (let i = days; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        
-        performance.push({
-          date: date.toISOString().split('T')[0],
-          value: Math.floor(Math.random() * 1000) + 500,
-          success: Math.floor(Math.random() * 100) + 90,
-          errors: Math.floor(Math.random() * 50) + 10
-        });
-
-        clientGrowth.push({
-          date: date.toISOString().split('T')[0],
-          new: Math.floor(Math.random() * 50) + 10,
-          active: Math.floor(Math.random() * 200) + 100,
-          churned: Math.floor(Math.random() * 10) + 2
-        });
-
-        revenueData.push({
-          date: date.toISOString().split('T')[0],
-          revenue: Math.floor(Math.random() * 50000) + 25000,
-          profit: Math.floor(Math.random() * 20000) + 10000,
-          costs: Math.floor(Math.random() * 15000) + 8000
-        });
-
-        automationEfficiency.push({
-          date: date.toISOString().split('T')[0],
-          automated: Math.floor(Math.random() * 100) + 85,
-          manual: Math.floor(Math.random() * 15) + 5,
-          savings: Math.floor(Math.random() * 10000) + 5000
-        });
-      }
-
-      setChartData({
-        performance,
-        clientGrowth,
-        revenueData,
-        automationEfficiency
-      });
-    };
-
-    generateChartData();
-    const interval = setInterval(generateChartData, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, [chartTimeRange]);
-
-  // Enhanced real-time updates with more sophisticated animations
+  // Real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveWorkflows(prev => Math.max(0, prev + Math.floor(Math.random() * 10) - 5));
-      setCompletionProgress(prev => Math.min(100, prev + Math.random() * 2));
-      setRealTimeMetrics(prev => ({
-        processingRate: Math.max(500, prev.processingRate + Math.floor(Math.random() * 100) - 50),
-        queueSize: Math.max(0, prev.queueSize + Math.floor(Math.random() * 200) - 100),
-        successRate: Math.min(100, Math.max(95, prev.successRate + (Math.random() - 0.5) * 0.5)),
-        avgResponseTime: Math.max(0.5, prev.avgResponseTime + (Math.random() - 0.5) * 0.2)
+      setRealtimeMetrics(prev => ({
+        totalRevenue: prev.totalRevenue + Math.floor(Math.random() * 1000) - 500,
+        revenueGrowth: Math.max(0, prev.revenueGrowth + (Math.random() - 0.5) * 0.5),
+        activeClients: prev.activeClients + Math.floor(Math.random() * 10) - 5,
+        clientGrowth: Math.max(0, prev.clientGrowth + (Math.random() - 0.5) * 0.3),
+        teamEfficiency: Math.max(80, Math.min(100, prev.teamEfficiency + (Math.random() - 0.5) * 0.5)),
+        efficiencyChange: Math.max(0, prev.efficiencyChange + (Math.random() - 0.5) * 0.3),
+        processingRate: Math.max(1000, prev.processingRate + Math.floor(Math.random() * 200) - 100),
+        queueSize: Math.max(0, prev.queueSize + Math.floor(Math.random() * 50) - 25)
       }));
-    }, 2000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -190,33 +205,26 @@ export default function TeamDashboardPage() {
   // If no team access, show upgrade prompt
   if (!hasTeamAccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Enhanced animated background */}
-        <div className="absolute inset-0">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500/40 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/40 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[32rem] h-[32rem] bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
-        </div>
-        
-        <Card className="max-w-md w-full bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-2xl border-white/30 shadow-2xl relative z-10 hover:scale-105 transition-transform duration-500">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
+        <Card className="max-w-md w-full bg-slate-900 border border-slate-700 shadow-xl relative z-10">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="p-4 rounded-full bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-400/50 backdrop-blur-sm">
-                <Lock className="h-8 w-8 text-purple-300" />
+              <div className="p-4 rounded-full bg-slate-800 border border-slate-700">
+                <Lock className="h-8 w-8 text-slate-300" />
               </div>
             </div>
             <CardTitle className="text-xl text-white">Team Dashboard Access Required</CardTitle>
-            <CardDescription className="text-gray-300">
+            <CardDescription className="text-slate-400">
               The Team Dashboard is available for Team plan subscribers only
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-white/10 rounded-lg p-4 border border-white/20 backdrop-blur-sm">
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
               <h4 className="font-semibold text-white mb-2">Current Plan: {tier?.name}</h4>
-              <p className="text-sm text-gray-300 mb-3">
+              <p className="text-sm text-slate-300 mb-3">
                 Upgrade to Team plan to unlock:
               </p>
-              <ul className="text-sm text-gray-200 space-y-1">
+              <ul className="text-sm text-slate-200 space-y-1">
                 <li className="flex items-center">
                   <Shield className="h-4 w-4 text-purple-400 mr-2" />
                   Advanced team management
@@ -227,7 +235,7 @@ export default function TeamDashboardPage() {
                 </li>
                 <li className="flex items-center">
                   <Users className="h-4 w-4 text-purple-400 mr-2" />
-                  Multi-account management
+                  Multi-client management
                 </li>
               </ul>
             </div>
@@ -235,16 +243,16 @@ export default function TeamDashboardPage() {
             <div className="flex flex-col space-y-2">
               <Button
                 onClick={() => router.push('/dashboard/subscription')}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold hover:opacity-90 transition-all transform hover:scale-105 shadow-2xl"
+                className="w-full bg-purple-600 text-white font-bold hover:bg-purple-700 shadow-md"
               >
                 Upgrade to Team Plan
               </Button>
               <Button
                 variant="outline"
                 onClick={() => router.push('/dashboard')}
-                className="border-white/30 text-gray-300 hover:bg-white/20 backdrop-blur-sm"
+                className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
               >
-                Back to Dashboard
+                Back to My Dashboard
               </Button>
             </div>
           </CardContent>
@@ -253,541 +261,444 @@ export default function TeamDashboardPage() {
     );
   }
 
-  // Enhanced dashboard stats for 1000x scale
-  const dashboardStats = {
-    totalClients: totalClientCount,
-    activeWorkflows: 2847,
-    completedToday: 15420,
-    avgEngagement: 8.7,
-    revenueThisMonth: 12847650,
-    clientsNeedingAttention: 234,
-    videosProcessed: 45680,
-    reportsGenerated: 1247,
-    emailsSent: 8934,
-    scheduledPosts: 23456,
-    aiProcessingPower: 94.2,
-    systemUptime: 99.97,
-    dataProcessed: 847.3, // GB
-    automationEfficiency: 96.8
-  };
+  if (!isTeam) {
+    return (
+      <div data-testid="team-restricted-content" className="p-8 text-center">
+        <h2 className="text-2xl font-bold mb-4">Team-only features</h2>
+        <p className="text-lg text-muted-foreground">
+          <span>Upgrade to Team</span> to access these features.
+        </p>
+      </div>
+    );
+  }
 
-  const enhancedWorkflowModules = [
+  const teamMetrics = [
     {
-      id: 'content-automation',
-      title: 'Content Automation',
-      description: 'AI-powered video processing with intelligent descriptions and hashtag generation',
-      icon: Bot,
-      status: 'active',
-      progress: 78,
-      stats: {
-        videosQueued: 12450,
-        processing: 847,
-        completed: 8934,
-        scheduled: 15670,
-        aiAccuracy: 97.3,
-        avgProcessingTime: '2.1s'
-      },
-      color: 'from-emerald-500 to-teal-500',
-      bgGradient: 'from-emerald-500/20 via-teal-500/10 to-transparent',
-      borderGradient: 'from-emerald-500/50 to-teal-500/50'
+      id: 'revenue',
+      title: 'Total Revenue',
+      value: `$${(realtimeMetrics.totalRevenue / 1000).toFixed(1)}K`,
+      change: `${realtimeMetrics.revenueGrowth.toFixed(1)}%`,
+      icon: DollarSign,
+      trend: realtimeMetrics.revenueGrowth >= 0 ? 'up' : 'down',
+      chartData: [
+        { name: 'Jan', value: 4000 }, { name: 'Feb', value: 3000 }, { name: 'Mar', value: 2000 },
+        { name: 'Apr', value: 2780 }, { name: 'May', value: 1890 }, { name: 'Jun', value: 2390 },
+        { name: 'Jul', value: 3490 }
+      ]
     },
     {
-      id: 'content-ideation',
-      title: 'Content Ideation',
-      description: 'Personalized content strategies and automated report generation',
-      icon: Sparkles,
-      status: 'active',
-      progress: 92,
-      stats: {
-        reportsGenerated: 3420,
-        emailsSent: 2890,
-        clientsProcessed: 4567,
-        engagementBoost: '+23.4%',
-        ideaAccuracy: 94.7
-      },
-      color: 'from-purple-500 to-pink-500',
-      bgGradient: 'from-purple-500/20 via-pink-500/10 to-transparent',
-      borderGradient: 'from-purple-500/50 to-pink-500/50'
-    },
-    {
-      id: 'performance-tracking',
-      title: 'Performance Intelligence',
-      description: 'Advanced analytics with predictive insights and optimization recommendations',
-      icon: TrendingUp,
-      status: 'running',
-      progress: 65,
-      stats: {
-        clientsAnalyzed: 8934,
-        improvementsGenerated: 2340,
-        performanceReports: 1247,
-        predictiveAccuracy: '91.2%',
-        optimizationGains: '+18.7%'
-      },
-      color: 'from-orange-500 to-red-500',
-      bgGradient: 'from-orange-500/20 via-red-500/10 to-transparent',
-      borderGradient: 'from-orange-500/50 to-red-500/50'
-    }
-  ];
-
-  const systemMetrics = [
-    {
-      id: 'ai-processing',
-      title: 'AI Processing Power',
-      value: dashboardStats.aiProcessingPower,
-      unit: '%',
-      icon: Cpu,
-      color: 'text-emerald-400',
-      bgColor: 'bg-emerald-500/20',
-      trend: '+2.3%',
-      description: 'Current AI utilization'
-    },
-    {
-      id: 'system-uptime',
-      title: 'System Uptime',
-      value: dashboardStats.systemUptime,
-      unit: '%',
-      icon: Activity,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/20',
-      trend: '99.97%',
-      description: 'System availability'
-    },
-    {
-      id: 'data-processed',
-      title: 'Data Processed',
-      value: dashboardStats.dataProcessed,
-      unit: 'GB',
-      icon: Database,
-      color: 'text-purple-400',
-      bgColor: 'bg-purple-500/20',
-      trend: '+12.4GB',
-      description: 'Today\'s data volume'
-    },
-    {
-      id: 'automation-efficiency',
-      title: 'Automation Efficiency',
-      value: dashboardStats.automationEfficiency,
-      unit: '%',
-      icon: Workflow,
-      color: 'text-orange-400',
-      bgColor: 'bg-orange-500/20',
-      trend: '+3.2%',
-      description: 'Process optimization'
-    }
-  ];
-
-  const quickActions = [
-    {
-      title: 'Bulk Video Upload',
-      description: 'Upload thousands of videos for AI processing',
-      icon: Upload,
-      action: () => router.push('/team-dashboard/operations/bulk-upload'),
-      color: 'from-emerald-500 to-teal-500',
-      bgColor: 'bg-emerald-500/20'
-    },
-    {
-      title: 'Client Management',
-      description: 'Manage client accounts and preferences',
+      id: 'clients',
+      title: 'Active Clients',
+      value: realtimeMetrics.activeClients,
+      change: `${realtimeMetrics.clientGrowth.toFixed(1)}%`,
       icon: Users,
-      action: () => router.push('/team-dashboard/clients'),
-      color: 'from-blue-500 to-cyan-500',
-      bgColor: 'bg-blue-500/20'
+      trend: realtimeMetrics.clientGrowth >= 0 ? 'up' : 'down',
+      chartData: [
+        { name: 'Jan', value: 200 }, { name: 'Feb', value: 220 }, { name: 'Mar', value: 180 },
+        { name: 'Apr', value: 250 }, { name: 'May', value: 230 }, { name: 'Jun', value: 270 },
+        { name: 'Jul', value: 290 }
+      ]
     },
     {
-      title: 'Analytics Dashboard',
-      description: 'View comprehensive performance analytics',
-      icon: BarChart3,
-      action: () => router.push('/team-dashboard/analytics'),
-      color: 'from-purple-500 to-pink-500',
-      bgColor: 'bg-purple-500/20'
+      id: 'efficiency',
+      title: 'Team Efficiency',
+      value: `${realtimeMetrics.teamEfficiency.toFixed(1)}%`,
+      change: `${realtimeMetrics.efficiencyChange.toFixed(1)}%`,
+      icon: Gauge,
+      trend: realtimeMetrics.efficiencyChange >= 0 ? 'up' : 'down',
+      chartData: [
+        { name: 'Jan', value: 70 }, { name: 'Feb', value: 75 }, { name: 'Mar', value: 80 },
+        { name: 'Apr', value: 78 }, { name: 'May', value: 85 }, { name: 'Jun', value: 82 },
+        { name: 'Jul', value: 88 }
+      ]
     },
     {
-      title: 'Workflow Builder',
-      description: 'Create custom automation workflows',
-      icon: Settings,
-      action: () => router.push('/team-dashboard/workflows'),
-      color: 'from-orange-500 to-red-500',
-      bgColor: 'bg-orange-500/20'
-    }
+      id: 'processing',
+      title: 'Processing Rate',
+      value: `${realtimeMetrics.processingRate} ops/sec`,
+      change: `${realtimeMetrics.queueSize} in queue`,
+      icon: Cpu,
+      trend: 'flat', // No direct trend for processing rate change
+      chartData: [
+        { name: 'Jan', value: 1500 }, { name: 'Feb', value: 1700 }, { name: 'Mar', value: 1600 },
+        { name: 'Apr', value: 1800 }, { name: 'May', value: 1750 }, { name: 'Jun', value: 1900 },
+        { name: 'Jul', value: 2000 }
+      ]
+    },
+  ];
+
+  const workflowModules = [
+    {
+      id: 'bulk-operations',
+      title: 'Bulk Operations Panel',
+      description: 'Manage and automate tasks across multiple clients and campaigns simultaneously.',
+      icon: Layers,
+      buttonText: 'Launch Panel',
+      link: '/dashboard/bulk-operations',
+      features: [
+        { text: 'Mass content uploads', icon: Upload },
+        { text: 'Campaign scheduling', icon: Calendar },
+        { text: 'Performance adjustments', icon: BarChart3 }
+      ]
+    },
+    {
+      id: 'client-management-module',
+      title: 'Client Management Module',
+      description: 'Centralized hub for detailed client insights, performance tracking, and communication.',
+      icon: Briefcase,
+      buttonText: 'View Clients',
+      link: '/dashboard/client-management',
+      features: [
+        { text: 'Zoom-in client profiles', icon: Eye },
+        { text: 'Custom reporting', icon: FileVideo },
+        { text: 'Direct communication tools', icon: Mail }
+      ]
+    },
+    {
+      id: 'analytics-reports',
+      title: 'Advanced Analytics & Reports',
+      description: 'Deep-dive into performance data with AI-driven insights and customizable reports.',
+      icon: LineChart,
+      buttonText: 'Generate Reports',
+      link: '/dashboard/analytics-reports',
+      features: [
+        { text: 'Predictive analytics', icon: TrendingUp },
+        { text: 'Real-time data feeds', icon: Activity },
+        { text: 'Automated report generation', icon: RefreshCw }
+      ]
+    },
+    {
+      id: 'workflow-automation',
+      title: 'Workflow Automation Engine',
+      description: 'Design, deploy, and monitor automated workflows for content, campaigns, and more.',
+      icon: Workflow,
+      buttonText: 'Manage Workflows',
+      link: '/dashboard/workflow-automation',
+      features: [
+        { text: 'AI-powered task routing', icon: Bot },
+        { text: 'Conditional logic builder', icon: Target },
+        { text: 'Integrated approval flows', icon: CheckCircle2 }
+      ]
+    },
+  ];
+
+  const recentActivities = [
+    { id: 1, type: 'sale', description: 'New Team Plan subscription from Acme Corp', time: '5 mins ago', icon: DollarSign },
+    { id: 2, type: 'optimization', description: 'Video content optimized for Client A', time: '1 hour ago', icon: Sparkles },
+    { id: 3, type: 'alert', description: 'High processing queue detected, initiating scale-up', time: '2 hours ago', icon: AlertTriangle },
+    { id: 4, type: 'client-onboard', description: 'New client "Global Brands Inc." onboarded', time: '1 day ago', icon: UserCheck },
+    { id: 5, type: 'workflow-update', description: 'Content approval workflow updated by John Doe', time: '2 days ago', icon: Workflow },
+    { id: 6, type: 'sale', description: 'Enterprise Plan upgrade from Tech Solutions LLC', time: '3 days ago', icon: Rocket },
+  ];
+
+  const teamAlerts = [
+    { id: 1, type: 'critical', title: 'Payment Gateway Issue', description: 'Immediate action required: Payment processing is experiencing disruptions.', icon: CreditCard },
+    { id: 2, type: 'warning', title: 'Content Moderation Backlog', description: 'Growing backlog in content moderation. Consider assigning more resources.', icon: Pause },
+    { id: 3, type: 'positive', title: 'New AI Model Deployed', description: 'Successfully deployed new AI model for enhanced content ideation.', icon: CheckCircle2 },
+    { id: 4, type: 'warning', title: 'Server Load Imbalance', description: 'Monitoring server load imbalance, automatic rebalancing in progress.', icon: Network },
+  ];
+
+  const usageBreakdown = [
+    { id: 'ai-credits', title: 'AI Credits Used', current: 7500, limit: 10000, unit: 'credits', icon: Cpu },
+    { id: 'video-processing-hours', title: 'Video Processing Hours', current: 120, limit: 200, unit: 'hours', icon: FileVideo },
+    { id: 'automation-tasks', title: 'Automation Tasks', current: 4500, limit: 5000, unit: 'tasks', icon: Bot },
+  ];
+
+  const teamMembers = [
+    { id: 1, name: 'Alice Johnson', role: 'Team Lead', status: 'Active', avatar: '/avatars/avatar1.jpg' },
+    { id: 2, name: 'Bob Williams', role: 'Content Strategist', status: 'Active', avatar: '/avatars/avatar2.jpg' },
+    { id: 3, name: 'Charlie Brown', role: 'AI Engineer', status: 'Active', avatar: '/avatars/avatar3.jpg' },
+    { id: 4, name: 'Diana Prince', role: 'Client Manager', status: 'On Leave', avatar: '/avatars/avatar4.jpg' },
+    { id: 5, name: 'Eve Adams', role: 'Data Analyst', status: 'Active', avatar: '/avatars/avatar5.jpg' },
   ];
 
   const formatNumber = (num: number) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(0)}k`;
-    return num.toString();
+    return new Intl.NumberFormat().format(num);
   };
 
-  const formatTimeAgo = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutes = Math.floor(diff / 60000);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    return `${hours}h ago`;
-  };
+  const currentClientData = [
+    { category: 'Client A', value: 400 },
+    { category: 'Client B', value: 300 },
+    { category: 'Client C', value: 200 },
+    { category: 'Client D', value: 100 },
+    { category: 'Other', value: 50 }
+  ];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-      case 'running': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
-      case 'paused': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
-      case 'error': return 'bg-red-500/20 text-red-400 border-red-500/30';
-      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-    }
-  };
+  const ClientDetailView = ({ client }: any) => (
+    <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
+      <h3 className="text-lg font-semibold text-white mb-2">{client.name}</h3>
+      <p className="text-sm text-slate-400">ID: {client.id}</p>
+      <p className="text-sm text-slate-400">Total Projects: {client.totalProjects}</p>
+      <p className="text-sm text-slate-400">Active Campaigns: {client.activeCampaigns}</p>
+      <p className="text-sm text-slate-400">Last Activity: {client.lastActivity}</p>
+      <Button size="sm" className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white">View Details</Button>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden">
-      {/* Enhanced Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[32rem] h-[32rem] bg-emerald-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
-        <div className="absolute top-20 right-20 w-64 h-64 bg-pink-500/20 rounded-full blur-2xl animate-pulse delay-3000"></div>
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-cyan-500/20 rounded-full blur-2xl animate-pulse delay-4000"></div>
-      </div>
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-foreground transition-all duration-500">
+            Team Dashboard — Total Clients: {totalClientCount} clients
+          </h1>
+        </div>
+        <p className="text-slate-400 mb-8">Comprehensive overview of your team's performance, workflows, and client activities.</p>
 
-      {/* Enhanced Glassmorphism Grid Pattern */}
-      <div className="absolute inset-0 bg-[var(--grid-background-svg)] opacity-40"></div>
+        {/* Search and Quick Actions */}
+        <div className="flex flex-col sm:flex-row items-center justify-between mb-8 space-y-4 sm:space-y-0 sm:space-x-4">
+          <div className="relative w-full sm:w-1/2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search team members, clients, or modules..."
+              className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex space-x-2 w-full sm:w-auto justify-end">
+            <Button variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+              <Filter className="h-4 w-4 mr-2" /> Filter
+            </Button>
+            <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+              <Plus className="h-4 w-4 mr-2" /> New Task
+            </Button>
+          </div>
+        </div>
 
-      <div className="relative z-10">
-        {/* Enhanced Hero Header */}
-        <div className="relative px-6 py-12">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between">
+        {/* Main Team Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {teamMetrics.map((metric, index) => (
+            <GlassCard
+              key={metric.id}
+              className={`bg-slate-900 border border-slate-700 shadow-lg relative overflow-hidden transition-all duration-500 transform ${animationStage >= 1 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} hover:scale-[1.02]`}
+            >
+              <GlassCardHeader className="flex flex-row items-center justify-between pb-2">
+                <GlassCardDescription className="text-slate-400 text-sm">{metric.title}</GlassCardDescription>
+                <metric.icon className="h-5 w-5 text-slate-500" />
+              </GlassCardHeader>
+              <GlassCardContent>
+                <div className="text-2xl font-bold text-white mb-2">{metric.value}</div>
+                <div className={`flex items-center text-sm ${metric.trend === 'up' ? 'text-emerald-400' : metric.trend === 'down' ? 'text-red-400' : 'text-slate-400'}`}>
+                  {metric.trend === 'up' && <TrendingUp className="h-4 w-4 mr-1" />}
+                  {metric.trend === 'down' && <TrendingDown className="h-4 w-4 mr-1" />}
+                  {metric.change}
+                </div>
+                <Progress value={getMetricProgress(metric.id)} className="mt-3 h-2 bg-slate-800 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-purple-500" />
+              </GlassCardContent>
+            </GlassCard>
+          ))}
+        </div>
+
+        {/* Workflow Modules */}
+        <h2 className="text-3xl font-bold text-white mb-6 flex items-center">
+          <Workflow className="h-7 w-7 mr-3 text-teal-400" /> Workflow Modules
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          {workflowModules.map((module, index) => (
+            <GlassCard
+              key={module.id}
+              className={`bg-slate-900 border border-slate-700 shadow-lg relative overflow-hidden transition-all duration-500 transform ${animationStage >= 2 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'} hover:scale-[1.02]`}
+            >
+              <GlassCardHeader className="flex flex-row items-center justify-between pb-2">
+                <GlassCardTitle className="text-xl font-semibold text-white">{module.title}</GlassCardTitle>
+                <module.icon className="h-6 w-6 text-slate-500" />
+              </GlassCardHeader>
+              <GlassCardContent className="space-y-4">
+                <GlassCardDescription className="text-slate-400 text-sm">{module.description}</GlassCardDescription>
+                <ul className="text-sm text-slate-300 space-y-2">
+                  {module.features.map((feature, fIndex) => (
+                    <li key={fIndex} className="flex items-center">
+                      <feature.icon className="h-4 w-4 mr-2 text-blue-400" /> {feature.text}
+                    </li>
+                  ))}
+                </ul>
+                <AnimatedButton onClick={() => router.push(module.link)} className={`w-full ${getModuleButtonClass(module.id)} text-white font-semibold`}>
+                  {module.buttonText} <ArrowRight className="ml-2 h-4 w-4" />
+                </AnimatedButton>
+              </GlassCardContent>
+            </GlassCard>
+          ))}
+        </div>
+
+        {/* Team Activity and Alerts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+          {/* Recent Activity */}
+          <GlassCard className={`bg-slate-900 border border-slate-700 shadow-lg transition-all duration-500 transform ${animationStage >= 3 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+            <GlassCardHeader>
+              <GlassCardTitle className="text-2xl font-bold text-white flex items-center">
+                <Activity className="h-6 w-6 mr-2 text-yellow-400" /> Recent Activity
+              </GlassCardTitle>
+            </GlassCardHeader>
+            <GlassCardContent>
+              <ul className="space-y-4">
+                {recentActivities.map(activity => (
+                  <li key={activity.id} className="flex items-start">
+                    <div className={`p-2 rounded-full ${getActivityColorClass(activity.type)} mr-3`}>
+                      <activity.icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{activity.description}</p>
+                      <p className="text-slate-500 text-sm">{activity.time}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </GlassCardContent>
+          </GlassCard>
+
+          {/* Team Alerts */}
+          <GlassCard className={`bg-slate-900 border border-slate-700 shadow-lg transition-all duration-500 transform ${animationStage >= 4 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+            <GlassCardHeader>
+              <GlassCardTitle className="text-2xl font-bold text-white flex items-center">
+                <Bell className="h-6 w-6 mr-2 text-red-400" /> Team Alerts
+              </GlassCardTitle>
+            </GlassCardHeader>
+            <GlassCardContent>
+              <ul className="space-y-4">
+                {teamAlerts.map(alert => (
+                  <li key={alert.id} className="flex items-start">
+                    <div className={`p-2 rounded-full ${getAlertColorClass(alert.type)} mr-3`}>
+                      <alert.icon className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-white font-medium">{alert.title}</p>
+                      <p className="text-slate-500 text-sm">{alert.description}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </GlassCardContent>
+          </GlassCard>
+        </div>
+
+        {/* Usage & Team Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+          {/* Usage Breakdown */}
+          <GlassCard className={`bg-slate-900 border border-slate-700 shadow-lg transition-all duration-500 transform ${animationStage >= 5 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+            <GlassCardHeader>
+              <GlassCardTitle className="text-2xl font-bold text-white flex items-center">
+                <PieChart className="h-6 w-6 mr-2 text-blue-400" /> Usage Breakdown
+              </GlassCardTitle>
+            </GlassCardHeader>
+            <GlassCardContent className="space-y-4">
+              {usageBreakdown.map(usage => (
+                <div key={usage.id}>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-white font-medium flex items-center">
+                      <usage.icon className="h-4 w-4 mr-2 text-slate-400" /> {usage.title}
+                    </span>
+                    <span className="text-slate-400 text-sm">{usage.current} / {usage.limit} {usage.unit}</span>
+                  </div>
+                  <Progress value={(usage.current / usage.limit) * 100} className="h-2 bg-slate-800 [&::-webkit-progress-bar]:rounded-lg [&::-webkit-progress-value]:rounded-lg [&::-webkit-progress-value]:bg-blue-500" />
+                </div>
+              ))}
+            </GlassCardContent>
+          </GlassCard>
+
+          {/* Team Members */}
+          <GlassCard className={`bg-slate-900 border border-slate-700 shadow-lg transition-all duration-500 transform ${animationStage >= 6 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+            <GlassCardHeader>
+              <GlassCardTitle className="text-2xl font-bold text-white flex items-center">
+                <Users className="h-6 w-6 mr-2 text-emerald-400" /> Team Members ({teamMembers.length})
+              </GlassCardTitle>
+            </GlassCardHeader>
+            <GlassCardContent>
               <div className="space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-purple-500/30 to-pink-500/30 border border-purple-400/50 backdrop-blur-2xl shadow-2xl hover:scale-110 transition-transform duration-500">
-                    <Rocket className="h-8 w-8 text-purple-300" />
-                  </div>
-                  <div>
-                    <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
-                      Team Dashboard
-                    </h1>
-                    <p className="text-gray-300 text-lg">
-                      AI-Powered Content Automation at Scale
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-6">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <span className="text-emerald-400 text-sm font-medium">
-                      {formatNumber(totalClientCount)} Active Clients
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Activity className="h-4 w-4 text-blue-400" />
-                    <span className="text-blue-400 text-sm font-medium">
-                      {realTimeMetrics.processingRate}/min Processing
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="hidden lg:flex items-center space-x-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="border-white/30 text-white hover:bg-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105"
-                  onClick={() => router.push('/team-dashboard/settings')}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-2xl"
-                  onClick={() => router.push('/team-dashboard/analytics')}
-                >
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  View Analytics
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Key Metrics */}
-        <div className="px-6 mb-12">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                {
-                  title: 'Active Workflows',
-                  value: formatNumber(dashboardStats.activeWorkflows),
-                  icon: Workflow,
-                  color: 'text-purple-400',
-                  bgColor: 'bg-purple-500/20',
-                  trend: 'Real-time'
-                },
-                {
-                  title: 'Reports Generated',
-                  value: formatNumber(dashboardStats.reportsGenerated),
-                  icon: BarChart3,
-                  color: 'text-blue-400',
-                  bgColor: 'bg-blue-500/20',
-                  trend: 'This week'
-                },
-                {
-                  title: 'Revenue This Month',
-                  value: `$${formatNumber(dashboardStats.revenueThisMonth)}`,
-                  icon: DollarSign,
-                  color: 'text-orange-400',
-                  bgColor: 'bg-orange-500/20',
-                  trend: '+18.7% MoM'
-                },
-                {
-                  title: 'Clients Processed',
-                  value: formatNumber(totalClientCount),
-                  icon: Users,
-                  color: 'text-emerald-400',
-                  bgColor: 'bg-emerald-500/20',
-                  trend: '+12.3% growth'
-                }
-              ].map((metric, index) => {
-                const IconComponent = metric.icon;
-                return (
-                  <Card 
-                    key={index} 
-                    className="bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-2xl border-white/30 hover:border-white/50 transition-all duration-500 group cursor-pointer shadow-2xl"
-                    onMouseEnter={() => setHoveredCard(`metric-${index}`)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-2">
-                          <p className="text-gray-300 text-sm font-medium">{metric.title}</p>
-                          <p className="text-3xl font-bold text-white group-hover:scale-110 transition-transform duration-300">
-                            {metric.value}
-                          </p>
-                          <div className="flex items-center space-x-1">
-                            <div className={`w-2 h-2 rounded-full ${metric.bgColor.replace('/20', '')} animate-pulse`}></div>
-                            <span className={`${metric.color} text-sm`}>{metric.trend}</span>
-                          </div>
-                        </div>
-                        <div className={`p-3 rounded-xl ${metric.bgColor} group-hover:scale-110 transition-all duration-300 backdrop-blur-sm`}>
-                          <IconComponent className={`h-8 w-8 ${metric.color}`} />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Workflow Modules */}
-        <div className="px-6 mb-12">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl font-bold text-white mb-8 text-center">Workflow Automation Hub</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {enhancedWorkflowModules.map((module) => {
-                const IconComponent = module.icon;
-                const isHovered = hoveredCard === module.id;
-                
-                return (
-                  <Card 
-                    key={module.id}
-                    className="bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-2xl border-white/30 hover:border-white/50 transition-all duration-700 group cursor-pointer shadow-2xl hover:scale-105"
-                    onMouseEnter={() => setHoveredCard(module.id)}
-                    onMouseLeave={() => setHoveredCard(null)}
-                  >
-                    <CardHeader className="pb-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className={`p-3 rounded-xl bg-gradient-to-r ${module.color} shadow-2xl group-hover:scale-110 transition-transform duration-500`}>
-                            <IconComponent className="h-6 w-6 text-white" />
-                          </div>
-                          <div>
-                            <CardTitle className="text-white text-lg">{module.title}</CardTitle>
-                            <Badge className={`${getStatusColor(module.status)} text-xs mt-1`}>
-                              {module.status}
-                            </Badge>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-white hover:bg-white/20 transition-all duration-300"
-                          onClick={() => setExpandedMetric(expandedMetric === module.id ? null : module.id)}
-                        >
-                          {expandedMetric === module.id ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-4">
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        {module.description}
-                      </p>
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-400">Progress</span>
-                          <span className="text-white font-medium">{module.progress}%</span>
-                        </div>
-                        <Progress 
-                          value={module.progress} 
-                          className="h-2 bg-white/20"
-                        />
-                      </div>
-                      
-                      {expandedMetric === module.id && (
-                        <div className="mt-4 p-4 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 animate-in slide-in-from-top duration-300">
-                          <h4 className="text-white font-medium mb-3">Detailed Stats</h4>
-                          <div className="grid grid-cols-2 gap-3 text-xs">
-                            {Object.entries(module.stats).map(([key, value]) => (
-                              <div key={key} className="flex justify-between">
-                                <span className="text-gray-400 capitalize">{key.replace(/([A-Z])/g, ' $1')}</span>
-                                <span className="text-white font-medium">{value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="flex space-x-2 pt-2">
-                        <Button
-                          size="sm"
-                          className={`flex-1 bg-gradient-to-r ${module.color} text-white hover:opacity-90 transition-all duration-300 hover:scale-105`}
-                        >
-                          <Play className="h-4 w-4 mr-2" />
-                          Manage
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-white/30 text-white hover:bg-white/20 transition-all duration-300"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced System Metrics */}
-        <div className="px-6 mb-12">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl font-bold text-white mb-8 text-center">System Performance</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {systemMetrics.map((metric) => {
-                const IconComponent = metric.icon;
-                const isExpanded = expandedMetric === metric.id;
-                
-                return (
-                  <Card 
-                    key={metric.id}
-                    className="bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-2xl border-white/30 hover:border-white/50 transition-all duration-500 group cursor-pointer shadow-2xl"
-                    onClick={() => setExpandedMetric(isExpanded ? null : metric.id)}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className={`p-3 rounded-xl ${metric.bgColor} group-hover:scale-110 transition-transform duration-300 backdrop-blur-sm`}>
-                          <IconComponent className={`h-6 w-6 ${metric.color}`} />
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-white group-hover:scale-110 transition-transform duration-300">
-                            {metric.value}{metric.unit}
-                          </div>
-                          <div className={`text-sm ${metric.color}`}>
-                            {metric.trend}
-                          </div>
-                        </div>
-                      </div>
-                      
+                {teamMembers.map(member => (
+                  <div key={member.id} className="flex items-center justify-between p-3 bg-slate-800 rounded-lg border border-slate-700">
+                    <div className="flex items-center">
+                      <img src={member.avatar} alt={member.name} className="h-10 w-10 rounded-full mr-3 border border-slate-600" />
                       <div>
-                        <h3 className="text-white font-medium mb-1">{metric.title}</h3>
-                        <p className="text-gray-400 text-sm">{metric.description}</p>
+                        <p className="text-white font-medium">{member.name}</p>
+                        <p className="text-slate-400 text-sm">{member.role}</p>
                       </div>
-                      
-                      {isExpanded && (
-                        <div className="mt-4 p-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 animate-in slide-in-from-top duration-300">
-                          <div className="text-xs text-gray-300">
-                            <div className="flex justify-between mb-1">
-                              <span>Last Hour:</span>
-                              <span className="text-white">{(metric.value * 0.98).toFixed(1)}{metric.unit}</span>
-                            </div>
-                            <div className="flex justify-between mb-1">
-                              <span>Peak Today:</span>
-                              <span className="text-white">{(metric.value * 1.05).toFixed(1)}{metric.unit}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Average:</span>
-                              <span className="text-white">{(metric.value * 0.95).toFixed(1)}{metric.unit}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
+                    </div>
+                    <Badge className={`${member.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                      {member.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+              <AnimatedButton variant="outline" className="mt-6 w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+                Manage Team <ArrowRight className="ml-2 h-4 w-4" />
+              </AnimatedButton>
+            </GlassCardContent>
+          </GlassCard>
         </div>
 
-        {/* Enhanced Quick Actions */}
-        <div className="px-6 pb-12">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-2xl font-bold text-white mb-8 text-center">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {quickActions.map((action, index) => {
-                const IconComponent = action.icon;
-                return (
-                  <Card 
-                    key={index}
-                    className="bg-gradient-to-br from-white/15 via-white/10 to-white/5 backdrop-blur-2xl border-white/30 hover:border-white/50 transition-all duration-500 group cursor-pointer shadow-2xl hover:scale-105"
-                    onClick={action.action}
-                  >
-                    <CardContent className="p-6 text-center">
-                      <div className="space-y-4">
-                        <div className="relative">
-                          <div className={`absolute inset-0 bg-gradient-to-r ${action.color} rounded-xl blur-xl opacity-0 group-hover:opacity-60 transition-opacity duration-500`}></div>
-                          <div className={`relative p-4 rounded-xl bg-gradient-to-r ${action.color} group-hover:scale-110 transition-transform duration-500 shadow-2xl`}>
-                            <IconComponent className="h-8 w-8 text-white mx-auto" />
-                          </div>
-                        </div>
-                        <div>
-                          <h3 className="text-white font-bold text-lg mb-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300 group-hover:bg-clip-text transition-all duration-300">
-                            {action.title}
-                          </h3>
-                          <p className="text-gray-400 text-sm">
-                            {action.description}
-                          </p>
-                        </div>
-                        <Button
-                          className={`w-full bg-gradient-to-r ${action.color} text-white hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-xl`}
-                        >
-                          Get Started
-                          <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        {/* Client Distribution (Chart) */}
+        <h2 className="text-3xl font-bold text-white mb-6 flex items-center">
+          <BarChart className="h-7 w-7 mr-3 text-violet-400" /> Client Distribution
+        </h2>
+        <GlassCard className={`bg-slate-900 border border-slate-700 shadow-lg mb-12 transition-all duration-500 transform ${animationStage >= 7 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+          <GlassCardContent className="p-6">
+            <ChartWrapper title="Client Revenue Distribution" description="Revenue contribution by top clients">
+              <BarChartComponent
+                data={currentClientData}
+                categoryKey="category"
+                valueKey="value"
+                valueFormatter={(value: number) => `$${formatNumber(value)}`}
+                className="h-[300px]"
+              />
+            </ChartWrapper>
+          </GlassCardContent>
+        </GlassCard>
 
-        {/* Floating Action Button */}
-        <div className="fixed bottom-8 right-8 z-50">
-          <Button
-            size="lg"
-            className="rounded-full w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-2xl hover:scale-110 transition-all duration-300 animate-pulse"
-            onClick={() => router.push('/team-dashboard/operations/bulk-upload')}
-          >
-            <Plus className="h-8 w-8" />
-          </Button>
-        </div>
+        {/* Placeholder for Dynamic Client List - now a table */}
+        <h2 className="text-3xl font-bold text-white mb-6 flex items-center">
+          <Building className="h-7 w-7 mr-3 text-cyan-400" /> Top Clients Overview
+        </h2>
+        <GlassCard className={`bg-slate-900 border border-slate-700 shadow-lg mb-12 transition-all duration-500 transform ${animationStage >= 8 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+          <GlassCardContent className="p-6">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-700">
+                <thead className="bg-slate-800">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider rounded-tl-lg">Client Name</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Total Projects</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Active Campaigns</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-400 uppercase tracking-wider rounded-tr-lg">Last Activity</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-slate-900 divide-y divide-slate-800">
+                  {/* Sample Data, replace with actual fetched data */}
+                  {[
+                    { id: '1', name: 'Alpha Solutions', totalProjects: 15, activeCampaigns: 7, lastActivity: '2 days ago' },
+                    { id: '2', name: 'Beta Innovations', totalProjects: 10, activeCampaigns: 5, lastActivity: '1 week ago' },
+                    { id: '3', name: 'Gamma Enterprises', totalProjects: 22, activeCampaigns: 12, lastActivity: '3 hours ago' },
+                    { id: '4', name: 'Delta Dynamics', totalProjects: 8, activeCampaigns: 3, lastActivity: '4 days ago' },
+                  ].map((client) => (
+                    <tr key={client.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-white font-medium">{client.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-300">{client.totalProjects}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-300">{client.activeCampaigns}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-300">{client.lastActivity}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <AnimatedButton variant="outline" className="mt-6 w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+                View All Clients <ArrowRight className="ml-2 h-4 w-4" />
+            </AnimatedButton>
+          </GlassCardContent>
+        </GlassCard>
+
+        {/* Call to Action for New Workflow */}
+        <GlassCard className={`bg-slate-900 border border-slate-700 shadow-lg text-center p-8 transition-all duration-500 transform ${animationStage >= 9 ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+          <GlassCardContent className="space-y-4">
+            <Sparkles className="h-12 w-12 text-purple-500 mx-auto" />
+            <GlassCardTitle className="text-3xl font-bold text-white">Ready to Boost Your Team's Productivity?</GlassCardTitle>
+            <GlassCardDescription className="text-slate-400 text-lg max-w-2xl mx-auto">
+              Explore our advanced workflow automation tools and seamlessly integrate AI into your team's operations.
+            </GlassCardDescription>
+            <AnimatedButton onClick={() => router.push('/dashboard/workflow-automation')} className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-lg px-8 py-3 rounded-full shadow-lg transition-all transform hover:scale-105">
+              Build a New Workflow <ArrowUpRight className="ml-2 h-5 w-5" />
+            </AnimatedButton>
+          </GlassCardContent>
+        </GlassCard>
       </div>
     </div>
   );

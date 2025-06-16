@@ -1,7 +1,8 @@
 'use client';
 
 import { lazy, Suspense, ComponentType } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import GlassCard from '@/components/ui/GlassCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
 import { BulkOperationsPanelProps } from '../team-dashboard/BulkOperationsPanel';
@@ -11,7 +12,7 @@ import { ClientDetailViewProps } from '../team-dashboard/ClientDetailView';
 // Generic loading skeleton
 function GenericSkeleton({ title = 'Loading...', rows = 3 }: { title?: string; rows?: number }) {
   return (
-    <Card className="w-full">
+    <GlassCard className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Loader2 className="h-5 w-5 animate-spin" />
@@ -23,14 +24,14 @@ function GenericSkeleton({ title = 'Loading...', rows = 3 }: { title?: string; r
           <Skeleton key={i} className="h-4 w-full" />
         ))}
       </CardContent>
-    </Card>
+    </GlassCard>
   );
 }
 
 // Chart loading skeleton
 function ChartSkeleton() {
   return (
-    <Card className="w-full">
+    <GlassCard className="w-full">
       <CardHeader>
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-4 w-32" />
@@ -38,7 +39,7 @@ function ChartSkeleton() {
       <CardContent>
         <div className="h-64 bg-muted animate-pulse rounded-lg" />
       </CardContent>
-    </Card>
+    </GlassCard>
   );
 }
 
@@ -47,7 +48,7 @@ function DashboardSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i} className="h-48">
+        <GlassCard key={i} className="h-48">
           <CardHeader>
             <Skeleton className="h-6 w-32" />
             <Skeleton className="h-4 w-24" />
@@ -55,7 +56,7 @@ function DashboardSkeleton() {
           <CardContent>
             <Skeleton className="h-20 w-full" />
           </CardContent>
-        </Card>
+        </GlassCard>
       ))}
     </div>
   );

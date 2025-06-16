@@ -110,8 +110,6 @@ export const AudioViralitySchema = z.object({
 });
 export type AudioVirality = z.infer<typeof AudioViralitySchema>;
 
-
-
 // --- AI Improvement Workflow Specific Types (New) ---
 export const AIContentInsightSchema = z.object({
   postId: z.string(),
@@ -126,7 +124,6 @@ export interface AIImprovementAnalysisData { // New interface
   topPerformingContentInsights: AIContentInsight[];
   workflowImprovementSuggestions: Record<string, string[]>;
 }
-
 
 // --- Existing Types from original analysis_types.ts (Integrated and reviewed) ---
 
@@ -274,6 +271,7 @@ export interface VideoOptimizationAnalysisData {
   audioViralityAnalysis: AudioVirality[];
   realTimeSentiment?: SentimentAnalysisResult; // NEW: Integrated for sentiment insights
   detailedPlatformAnalytics?: DetailedPlatformMetrics; // NEW: Integrated for richer analytics
+  optimizedVideoContent?: OptimizedVideoContent; // New nested property
 }
 
 export interface CompetitorContextTopPerformingContent {
@@ -333,4 +331,65 @@ export interface PerformanceTrends { // Kept
   benchmarks: Benchmark[];
   keyInsights: string[];
   actionableRecommendations: Recommendation[];
+}
+
+export interface AudioHandling {
+  audioDetected: boolean;
+  musicSuggestions?: string[];
+  voiceoverSuggestions?: boolean;
+}
+
+export interface MultiAudioHandling {
+  tracksProcessed: number;
+  primaryTrackSelected: string;
+  alternativeTracksOptimized: boolean;
+}
+
+export interface AspectRatioHandling {
+  originalRatio: string;
+  recommendedRatio: string;
+  cropSuggestions: boolean;
+}
+
+export interface ShortVideoHandling {
+  durationWarning: boolean;
+  optimizationLimited: boolean;
+  suggestions: string[];
+}
+
+export interface ErrorHandling {
+  corruptionDetected: boolean;
+  recoveryAttempted: boolean;
+  recoverySuccess: boolean;
+}
+
+export interface MemoryStats {
+  peakUsage: number;
+  averageUsage: number;
+  optimizationEffective: boolean;
+}
+
+export interface BatchResult {
+  videoId: string;
+  score: number;
+  status: 'completed' | 'failed' | 'pending';
+}
+
+export interface VideoRecommendation {
+  score: number;
+  recommendations: string[];
+}
+
+export interface OptimizedVideoContent {
+  optimizedCaption?: string;
+  optimizedHashtags?: TrendingHashtag[];
+  videoRecommendation?: VideoRecommendation;
+  thumbnails?: Array<{ timestamp: number; url: string; score: number }>;
+  audioHandling?: AudioHandling;
+  multiAudioHandling?: MultiAudioHandling;
+  aspectRatioHandling?: AspectRatioHandling;
+  shortVideoHandling?: ShortVideoHandling;
+  errorHandling?: ErrorHandling;
+  memoryStats?: MemoryStats;
+  batchResults?: BatchResult[];
 }

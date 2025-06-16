@@ -1,26 +1,29 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import Navbar from '../navbar';
 
-// Mock Next.js Link component
-jest.mock('next/link', () => {
-  return function MockLink({ children, href, ...props }: any) {
-    return (
-      <a href={href} {...props}>
-        {children}
-      </a>
-    );
-  };
-});
+// Mock Next.js navigation
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/',
+  useRouter: () => ({
+    push: jest.fn(),
+  }),
+}));
 
 // Mock Supabase client
-jest.mock('../../supabase/server', () => ({
+jest.mock('@/lib/supabase/client', () => ({
   createClient: jest.fn(() => Promise.resolve({
     auth: {
       getUser: jest.fn(),
     },
   })),
+}));
+
+// Mock Auth Provider
+jest.mock('@/providers/AuthProvider', () => ({
+  useAuth: jest.fn(),
 }));
 
 // Mock UserProfile component
@@ -38,7 +41,7 @@ jest.mock('../ui/button', () => ({
 }));
 
 describe('Navbar Component', () => {
-  const mockCreateClient = require('../../supabase/server').createClient;
+  const mockCreateClient = require('@/lib/supabase/client').createClient;
 
   beforeEach(() => {
     jest.clearAllMocks();

@@ -18,40 +18,43 @@ describe('contentGeneration', () => {
     const mockNLPResponse = {
       captions: [
         {
-          text: 'Original caption optimized for engagement',
-          confidence: 0.85,
-          engagementScore: 7.2,
-          variations: ['Variation 1', 'Variation 2'],
+          variation: 'Original caption optimized for engagement',
+          type: 'emoji_enhanced',
+          expectedPerformance: 7.2,
+          targetAudience: 'general',
         },
         {
-          text: 'Alternative caption with trending keywords',
-          confidence: 0.78,
-          engagementScore: 6.8,
-          variations: ['Alt variation 1', 'Alt variation 2'],
+          variation: 'Alternative caption with trending keywords',
+          type: 'tone_adjusted',
+          expectedPerformance: 6.8,
+          targetAudience: 'general',
         },
       ],
       hashtags: [
         {
-          tag: '#trending',
+          hashtag: '#trending',
           relevanceScore: 0.92,
           popularityScore: 0.88,
-          category: 'general',
+          competitionLevel: 'low',
+          estimatedReach: 100000,
         },
         {
-          tag: '#viral',
+          hashtag: '#viral',
           relevanceScore: 0.87,
           popularityScore: 0.95,
-          category: 'engagement',
+          competitionLevel: 'medium',
+          estimatedReach: 200000,
         },
       ],
       optimization: {
-        readabilityScore: 8.5,
-        sentimentScore: 0.7,
-        keywordDensity: 0.15,
-        recommendations: [
+        originalText: 'Test caption for content generation',
+        optimizedText: 'Optimized Test caption for content generation',
+        improvements: [
           'Add more emotional triggers',
           'Include call-to-action',
         ],
+        expectedEngagementIncrease: 0.15,
+        platform: Platform.TIKTOK,
       },
     };
 

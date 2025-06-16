@@ -103,8 +103,8 @@ describe('AccelerateComponent', () => {
   it('displays progress percentages correctly', () => {
     render(<AccelerateComponent />);
     
-    expect(screen.getByText('40%')).toBeInTheDocument();
-    expect(screen.getByText('60%')).toBeInTheDocument();
-    expect(screen.getByText('30%')).toBeInTheDocument();
+    expect(screen.getByText('65%')).toBeInTheDocument();
+    expect(screen.getByText('80%')).toBeInTheDocument();
+    expect(screen.getByText('45%')).toBeInTheDocument();
   });
 }); 

@@ -1,6 +1,6 @@
 import { ContentInsightsEngine } from '../ContentInsightsEngine';
 import { BaseAnalysisRequest, VideoOptimizationAnalysisData, AnalysisResult, DetailedPlatformMetrics } from '../../types';
-import { Platform } from '../../types/analysis_types';
+import { Platform } from '@/app/workflows/deliverables/types/deliverables_types';
 
 describe('ContentInsightsEngine', () => {
   let engine: ContentInsightsEngine;

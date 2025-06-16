@@ -585,7 +585,7 @@ export class LightGBMModel {
     validTargets: number[],
     searchSpace: Partial<LightGBMHyperparams>,
     trials: number = 50
-  ): Promise<LightGBMConfig> {
+  ): Promise<Required<LightGBMConfig>> {
     let bestConfig = { ...this.config };
     let bestScore = Infinity;
     
@@ -611,7 +611,7 @@ export class LightGBMModel {
     return bestConfig;
   }
 
-  private sampleHyperparameters(searchSpace: Partial<LightGBMHyperparams>): LightGBMConfig {
+  private sampleHyperparameters(searchSpace: Partial<LightGBMHyperparams>): Required<LightGBMConfig> {
     const config = { ...this.config };
     
     if (searchSpace.numTrees) {

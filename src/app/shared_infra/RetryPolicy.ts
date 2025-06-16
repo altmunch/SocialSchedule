@@ -144,7 +144,7 @@ export class RetryPolicy {
       operationName
     };
 
-    let lastError: Error;
+    let lastError: Error | undefined = undefined;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       context.attempt = attempt;
@@ -206,7 +206,11 @@ export class RetryPolicy {
       }
     }
 
-    throw lastError;
+    if (lastError) {
+      throw lastError;
+    } else {
+      throw new Error(`Operation failed after ${maxRetries + 1} attempts, but no specific error was captured.`);
+    }
   }
 
   private defaultShouldRetry(error: Error): boolean {

@@ -3,17 +3,19 @@ export async function withConcurrencyLimit<T>(
   limit: number,
   handler: (item: T, index: number) => Promise<void>,
 ): Promise<void> {
-  const executing: Promise<void>[] = [];
+  const executing: Set<Promise<void>> = new Set();
+
   for (let i = 0; i < items.length; i++) {
     const p = handler(items[i], i);
-    executing.push(p);
-    if (executing.length >= limit) {
-      await Promise.race(executing);
-      // Remove settled promises
-      for (let j = executing.length - 1; j >= 0; j--) {
-        if (executing[j].settled) executing.splice(j, 1);
-      }
+    const wrappedPromise = p.finally(() => {
+      executing.delete(wrappedPromise);
+    });
+    executing.add(wrappedPromise);
+
+    if (executing.size >= limit) {
+      await Promise.race(Array.from(executing));
     }
   }
-  await Promise.all(executing);
+
+  await Promise.all(Array.from(executing));
 } 

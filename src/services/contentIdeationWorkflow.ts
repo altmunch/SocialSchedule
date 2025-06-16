@@ -1,7 +1,15 @@
-import { generateContent } from './contentGeneration';
+import { generateContent, GenerateContentResponse } from './contentGeneration';
 import { getCompetitorTactics } from './competitorTactics';
 import { Platform } from '../app/workflows/deliverables/types/deliverables_types';
 import { v4 as uuidv4 } from 'uuid';
+
+interface IdeationContentDetails {
+  content: string;
+  qualityScore: number;
+  engagementScore: number;
+  originalityScore: number;
+  platformOptimization: ContentOptimization; // Or a more specific type if needed
+}
 
 interface IdeationRequest {
   workflowId?: string;
@@ -15,9 +23,10 @@ interface IdeationRequest {
 
 interface IdeationResult {
   requestId: string;
-  ideation: ReturnType<typeof generateContent>;
+  ideation: GenerateContentResponse;
   tactics?: Awaited<ReturnType<typeof getCompetitorTactics>>;
   noveltyScore: number; // 0-1
+  contentDetails: IdeationContentDetails;
 }
 
 export class ContentIdeationWorkflow {
@@ -59,7 +68,17 @@ export class ContentIdeationWorkflow {
         : undefined;
 
       const noveltyScore = this.calculateNovelty(ideation.optimization.improvements, tactics);
-      sink.push({ requestId, ideation, tactics, noveltyScore });
+
+      // Extract content details from ideation
+      const contentDetails: IdeationContentDetails = {
+        content: ideation.optimization.optimizedText || ideation.captions[0]?.variation || req.baseCaption,
+        qualityScore: this.calculateQualityScore(ideation),
+        engagementScore: ideation.optimization.expectedEngagementIncrease || 0,
+        originalityScore: this.calculateOriginalityScore(ideation, tactics),
+        platformOptimization: ideation.optimization,
+      };
+
+      sink.push({ requestId, ideation, tactics, noveltyScore, contentDetails });
     }
   }
 
@@ -69,5 +88,21 @@ export class ContentIdeationWorkflow {
     const tacticTexts = JSON.stringify(tactics);
     const novel = improvements.filter((i) => !tacticTexts.includes(i)).length;
     return novel / improvements.length;
+  }
+
+  private calculateQualityScore(ideation: GenerateContentResponse): number {
+    // Placeholder for quality score calculation
+    // This would ideally involve more sophisticated NLP or a trained model
+    const engagement = ideation.optimization.expectedEngagementIncrease || 0;
+    const clarity = ideation.optimization.improvements.includes('clarity') ? 0.2 : 0;
+    return Math.min(1, Math.max(0, 0.5 + engagement * 0.3 + clarity * 0.2));
+  }
+
+  private calculateOriginalityScore(ideation: GenerateContentResponse, tactics?: any): number {
+    // Placeholder for originality score calculation
+    // This could involve comparing generated content against a database of common content or competitor tactics
+    const noveltyFromTactics = this.calculateNovelty(ideation.optimization.improvements, tactics);
+    const captionLengthScore = ideation.captions[0] ? Math.min(1, ideation.captions[0].variation.length / 150) : 0;
+    return Math.min(1, Math.max(0, noveltyFromTactics * 0.7 + captionLengthScore * 0.3));
   }
 } 

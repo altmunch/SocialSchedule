@@ -103,6 +103,12 @@ describe('Payment Flow - Core Functionality', () => {
       toString: function() { return this._currentHref; },
       valueOf: function() { return this; }
     };
+    mockLocationHref.mockClear();
+    ((window as any).location.assign as jest.Mock).mockClear();
+    ((window as any).location.replace as jest.Mock).mockClear();
+
+    // Mock for tracking Stripe redirects (if still used by MockPricingSection)
+    (window as any).mockStripeRedirect = null;
   });
 
   afterAll(() => {

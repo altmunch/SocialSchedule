@@ -1,10 +1,20 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import ConnectPage from '@/app/dashboard/connect/page';
+import { AuthProvider } from '@/providers/AuthProvider';
+
+// Helper component to wrap ConnectPage with AuthProvider
+const renderWithAuthProvider = (ui: React.ReactElement) => {
+  return render(
+    <AuthProvider>
+      {ui}
+    </AuthProvider>
+  );
+};
 
 describe('ConnectPage Platform Icons', () => {
   it('renders platform names with their respective icons', () => {
-    render(<ConnectPage />);
+    renderWithAuthProvider(<ConnectPage />);
     
     // Check that platform names are displayed
     expect(screen.getByText('TikTok')).toBeInTheDocument();
@@ -20,14 +30,14 @@ describe('ConnectPage Platform Icons', () => {
   });
 
   it('shows connect buttons for all platforms initially', () => {
-    render(<ConnectPage />);
+    renderWithAuthProvider(<ConnectPage />);
     
     const connectButtons = screen.getAllByText('Connect');
     expect(connectButtons).toHaveLength(10); // 5 social + 5 commerce platforms
   });
 
   it('shows disconnect status icons initially', () => {
-    render(<ConnectPage />);
+    renderWithAuthProvider(<ConnectPage />);
     
     // All platforms should show XCircle (disconnect) icon initially
     const disconnectIcons = document.querySelectorAll('svg');
@@ -35,7 +45,7 @@ describe('ConnectPage Platform Icons', () => {
   });
 
   it('handles platform connection process', async () => {
-    render(<ConnectPage />);
+    renderWithAuthProvider(<ConnectPage />);
     
     const firstConnectButton = screen.getAllByText('Connect')[0];
     fireEvent.click(firstConnectButton);
@@ -48,14 +58,14 @@ describe('ConnectPage Platform Icons', () => {
   });
 
   it('groups platforms correctly', () => {
-    render(<ConnectPage />);
+    renderWithAuthProvider(<ConnectPage />);
     
     expect(screen.getByText('Social Media Platforms')).toBeInTheDocument();
     expect(screen.getByText('E-Commerce Platforms')).toBeInTheDocument();
   });
 
   it('renders section headers with icons', () => {
-    render(<ConnectPage />);
+    renderWithAuthProvider(<ConnectPage />);
     
     const socialSection = screen.getByText('Social Media Platforms').closest('h2');
     const commerceSection = screen.getByText('E-Commerce Platforms').closest('h2');

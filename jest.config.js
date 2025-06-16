@@ -41,7 +41,7 @@ module.exports = {
       useESM: false,
       tsconfig: 'tsconfig.jest.json',
     }],
-    '^.+\\.(js|jsx)$': ['babel-jest', {
+    '^.+\\.(js|jsx|mjs)$': ['babel-jest', {
       presets: [
         ['@babel/preset-env', { targets: { node: 'current' } }],
         ['@babel/preset-react', { runtime: 'automatic' }],
@@ -52,7 +52,7 @@ module.exports = {
 
   // Transform ignore patterns for better compatibility
   transformIgnorePatterns: [
-    'node_modules/(?!(@react-native|react-native|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|framer-motion|lucide-react|@radix-ui|jose|@supabase/auth-helpers-nextjs|@supabase/auth-helpers-shared|@supabase/ssr|@supabase/supabase-js)/)',
+    'node_modules/(?!(@react-native|react-native|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|framer-motion|lucide-react|@radix-ui|jose|@supabase/auth-helpers-nextjs|@supabase/auth-helpers-shared|@supabase/ssr|@supabase/supabase-js|@upstash/redis|uncrypto)/)',
   ],
 
   // File extensions to consider

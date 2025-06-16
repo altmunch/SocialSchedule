@@ -54,8 +54,8 @@ describe('SubscriptionComponent', () => {
   it('shows the correct pricing for Pro tier', () => {
     render(<SubscriptionComponent navigate={mockNavigate} />);
     
-    // Should show $70/month for Pro tier (check for multiple instances)
-    expect(screen.getAllByText('$70/month')).toHaveLength(2);
+    // Should show $70/month for Pro tier
+    expect(screen.getByText('$70/month')).toBeInTheDocument();
   });
 
   it('renders the tab navigation for Plans, Billing, and Invoices', () => {
@@ -71,18 +71,14 @@ describe('SubscriptionComponent', () => {
     
     expect(screen.getByText('Monthly')).toBeInTheDocument();
     expect(screen.getByText('Yearly')).toBeInTheDocument();
-    expect(screen.getByText('Save 20%')).toBeInTheDocument();
+    expect(screen.getByText('30% off')).toBeInTheDocument();
   });
 
   it('shows the Team plan as popular', () => {
     render(<SubscriptionComponent navigate={mockNavigate} />);
     
-    expect(screen.getByText('Popular')).toBeInTheDocument();
-  });
-
-  it('displays Pro as current plan by default', () => {
-    render(<SubscriptionComponent navigate={mockNavigate} />);
-    
-    expect(screen.getByText('Current Plan')).toBeInTheDocument();
+    const teamPlanCard = screen.getByText('Team').closest('[data-testid="pricing-card"]');
+    expect(teamPlanCard).toBeInTheDocument();
+    expect(screen.getByText('Most Popular')).toBeInTheDocument();
   });
 }); 

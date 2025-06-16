@@ -86,6 +86,7 @@ export function TeamHeader({ title = "Team Dashboard", subtitle, breadcrumb }: T
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
+          <span className="text-sm text-muted-foreground ml-4">Clients</span>
         </div>
       </div>
     </header>

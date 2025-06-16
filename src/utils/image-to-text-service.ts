@@ -3,8 +3,15 @@
  */
 
 import fetch from 'node-fetch';
-import { Config } from '../types/index.js';
-import { logger } from './logger.js';
+import { logger } from './logger';
+
+interface Config {
+  enableImageToText: boolean;
+  apiKey: string;
+  apiBaseUrl: string;
+  defaultModel: string;
+  imageToTextPrompt?: string;
+}
 
 export class ImageToTextService {
   private config: Config;

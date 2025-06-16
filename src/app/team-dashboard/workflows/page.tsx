@@ -31,8 +31,11 @@ import {
   Copy,
   Edit,
   Trash2,
-  BarChart3
+  BarChart3,
+  PlusCircle,
+  FolderKanban
 } from 'lucide-react';
+import GlassCard from '@/components/ui/GlassCard';
 
 // Mock workflow data
 interface Workflow {
@@ -115,6 +118,8 @@ export default function TeamWorkflowsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [isAddWorkflowModalOpen, setIsAddWorkflowModalOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setCurrentTab('operations');
@@ -222,132 +227,77 @@ export default function TeamWorkflowsPage() {
         
         <main className="flex-1 overflow-auto p-6">
           <div className="space-y-6">
-            {/* Page Header */}
-            <div className="flex items-center justify-between">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fadeIn">
               <div>
-                <h1 className="text-2xl font-bold text-creative">Workflow Automation</h1>
-                <p className="text-muted-foreground">
-                  Manage automated workflows for {totalClientCount.toLocaleString()} clients
-                </p>
+                <h1 className="text-5xl md:text-6xl font-bold tracking-tight gradient-text">Team Workflows</h1>
+                <p className="text-xl text-gray-400 mt-2">Automate your agency operations with intelligent workflows</p>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Workflow
-                </Button>
-                <Button variant="outline">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Templates
-                </Button>
-              </div>
+              <Button
+                onClick={() => setIsAddWorkflowModalOpen(true)}
+                className="btn-primary flex items-center gap-2"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Create New Workflow
+              </Button>
             </div>
 
-            {/* Workflow Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <Play className="h-4 w-4 text-mint" />
-                    <span className="text-sm font-medium">Active Workflows</span>
-                  </div>
-                  <div className="mt-2">
-                    <div className="text-2xl font-bold">{activeWorkflows}</div>
-                    <div className="text-xs text-muted-foreground">Currently running</div>
-                  </div>
-                </CardContent>
-              </Card>
+            {error && (
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 text-red-400 bg-red-500/10 px-4 py-2 rounded-lg border border-red-500/20">
+                  {error}
+                </div>
+              </div>
+            )}
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm font-medium">Completed</span>
-                  </div>
-                  <div className="mt-2">
-                    <div className="text-2xl font-bold">{completedWorkflows}</div>
-                    <div className="text-xs text-muted-foreground">This week</div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <XCircle className="h-4 w-4 text-red-500" />
-                    <span className="text-sm font-medium">Failed</span>
-                  </div>
-                  <div className="mt-2">
-                    <div className="text-2xl font-bold">{failedWorkflows}</div>
-                    <div className="text-xs text-muted-foreground">Need attention</div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-info" />
-                    <span className="text-sm font-medium">Clients Affected</span>
-                  </div>
-                  <div className="mt-2">
-                    <div className="text-2xl font-bold">{totalClientsInWorkflows.toLocaleString()}</div>
-                    <div className="text-xs text-muted-foreground">Across all workflows</div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Filters and Search */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search workflows..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      className="px-3 py-2 border rounded-md text-sm"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="active">Active</option>
-                      <option value="paused">Paused</option>
-                      <option value="completed">Completed</option>
-                      <option value="failed">Failed</option>
-                    </select>
-                    
-                    <select
-                      value={typeFilter}
-                      onChange={(e) => setTypeFilter(e.target.value)}
-                      className="px-3 py-2 border rounded-md text-sm"
-                    >
-                      <option value="all">All Types</option>
-                      <option value="content">Content</option>
-                      <option value="engagement">Engagement</option>
-                      <option value="analytics">Analytics</option>
-                      <option value="outreach">Outreach</option>
-                    </select>
+            {/* Filter and Sort */}
+            <GlassCard className="animate-slideUp p-4">
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search workflows..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                
+                <div className="flex gap-2">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-3 py-2 border rounded-md text-sm"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  
+                  <select
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                    className="px-3 py-2 border rounded-md text-sm"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="content">Content</option>
+                    <option value="engagement">Engagement</option>
+                    <option value="analytics">Analytics</option>
+                    <option value="outreach">Outreach</option>
+                  </select>
+                </div>
+              </div>
+            </GlassCard>
 
-            {/* Workflows List */}
-            <div className="space-y-4">
-              {filteredWorkflows.map((workflow) => (
-                <Card key={workflow.id}>
-                  <CardContent className="p-6">
+            {/* Workflows Grid/List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredWorkflows.length > 0 ? (filteredWorkflows.map((workflow) => (
+                <GlassCard key={workflow.id} className="hover-lift animate-slideUp flex flex-col">
+                  <div className="p-6 border-b border-gray-700/50 flex-grow-0">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
@@ -457,9 +407,19 @@ export default function TeamWorkflowsPage() {
                         </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                </GlassCard>
+              ))) : (
+                <GlassCard className="col-span-full text-center py-12 text-gray-500 animate-fadeIn">
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <FolderKanban className="h-12 w-12 text-gray-600" />
+                    <p className="text-lg">No workflows found matching your criteria.</p>
+                    <Button onClick={() => setIsAddWorkflowModalOpen(true)} className="btn-primary">
+                      Create Your First Workflow
+                    </Button>
+                  </div>
+                </GlassCard>
+              )}
             </div>
 
             {/* Workflow Components */}
@@ -470,6 +430,16 @@ export default function TeamWorkflowsPage() {
           </div>
         </main>
       </div>
+
+      {/* Add/Edit Workflow Modal */}
+      {isAddWorkflowModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <GlassCard className="w-full max-w-2xl p-6">
+            <h2 className="text-2xl font-bold text-white mb-4">Create New Workflow</h2>
+            {/* Add workflow form content here */}
+          </GlassCard>
+        </div>
+      )}
     </div>
   );
 } 

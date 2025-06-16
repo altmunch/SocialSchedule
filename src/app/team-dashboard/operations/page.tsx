@@ -40,6 +40,8 @@ import {
   TrendingUp,
   Workflow
 } from 'lucide-react';
+import { GlassCard } from '@/components/ui/glass-card';
+import { AnimatedButton } from '@/components/ui/animated-button';
 
 interface ContentAutomationJob {
   id: string;
@@ -227,69 +229,69 @@ export default function OperationsPage() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-          <CardContent className="p-4 text-center">
+        <GlassCard className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <GlassCardContent className="p-4 text-center">
             <FileVideo className="h-6 w-6 mx-auto mb-2 text-mint" />
             <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.videosInQueue)}</div>
             <div className="text-xs text-secondaryText">Videos in Queue</div>
-          </CardContent>
-        </Card>
+          </GlassCardContent>
+        </GlassCard>
 
-        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-          <CardContent className="p-4 text-center">
+        <GlassCard className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <GlassCardContent className="p-4 text-center">
             <Zap className="h-6 w-6 mx-auto mb-2 text-info" />
             <div className="text-xl font-bold text-creative">{operationsStats.activeJobs}</div>
             <div className="text-xs text-secondaryText">Active Jobs</div>
-          </CardContent>
-        </Card>
+          </GlassCardContent>
+        </GlassCard>
 
-        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-          <CardContent className="p-4 text-center">
+        <GlassCard className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <GlassCardContent className="p-4 text-center">
             <CheckCircle2 className="h-6 w-6 mx-auto mb-2 text-mint" />
             <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.completedToday)}</div>
             <div className="text-xs text-secondaryText">Completed Today</div>
-          </CardContent>
-        </Card>
+          </GlassCardContent>
+        </GlassCard>
 
-        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-          <CardContent className="p-4 text-center">
+        <GlassCard className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <GlassCardContent className="p-4 text-center">
             <Users className="h-6 w-6 mx-auto mb-2 text-lavender" />
             <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.clientsProcessed)}</div>
             <div className="text-xs text-secondaryText">Clients Processed</div>
-          </CardContent>
-        </Card>
+          </GlassCardContent>
+        </GlassCard>
 
-        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-          <CardContent className="p-4 text-center">
+        <GlassCard className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <GlassCardContent className="p-4 text-center">
             <Calendar className="h-6 w-6 mx-auto mb-2 text-coral" />
             <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.postsScheduled)}</div>
             <div className="text-xs text-secondaryText">Posts Scheduled</div>
-          </CardContent>
-        </Card>
+          </GlassCardContent>
+        </GlassCard>
 
-        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-          <CardContent className="p-4 text-center">
+        <GlassCard className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <GlassCardContent className="p-4 text-center">
             <BarChart3 className="h-6 w-6 mx-auto mb-2 text-info" />
             <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.reportsGenerated)}</div>
             <div className="text-xs text-secondaryText">Reports Generated</div>
-          </CardContent>
-        </Card>
+          </GlassCardContent>
+        </GlassCard>
 
-        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-          <CardContent className="p-4 text-center">
+        <GlassCard className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <GlassCardContent className="p-4 text-center">
             <Mail className="h-6 w-6 mx-auto mb-2 text-warning" />
             <div className="text-xl font-bold text-creative">{formatNumber(operationsStats.emailsSent)}</div>
             <div className="text-xs text-secondaryText">Emails Sent</div>
-          </CardContent>
-        </Card>
+          </GlassCardContent>
+        </GlassCard>
 
-        <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-          <CardContent className="p-4 text-center">
+        <GlassCard className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+          <GlassCardContent className="p-4 text-center">
             <Clock className="h-6 w-6 mx-auto mb-2 text-mint" />
             <div className="text-xl font-bold text-creative">{operationsStats.avgProcessingTime}</div>
             <div className="text-xs text-secondaryText">Avg Processing</div>
-          </CardContent>
-        </Card>
+          </GlassCardContent>
+        </GlassCard>
       </div>
 
       {/* Main Content Tabs */}
@@ -325,17 +327,17 @@ export default function OperationsPage() {
           </div>
 
           {/* Bulk Upload Section */}
-          <Card className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-creative">
+          <GlassCard className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+            <GlassCardHeader>
+              <GlassCardTitle className="flex items-center space-x-2 text-creative">
                 <Upload className="h-5 w-5" />
                 <span>Bulk Video Upload</span>
-              </CardTitle>
-              <CardDescription className="text-secondaryText">
+              </GlassCardTitle>
+              <GlassCardDescription className="text-secondaryText">
                 Upload thousands of videos for automated processing
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </GlassCardDescription>
+            </GlassCardHeader>
+            <GlassCardContent className="space-y-4">
               <div className="border-2 border-dashed border-border/50 rounded-lg p-8 text-center hover:border-mint/50 transition-colors">
                 <Upload className="h-12 w-12 mx-auto mb-4 text-secondaryText" />
                 <h3 className="text-lg font-medium text-creative mb-2">Drop videos here or click to upload</h3>
@@ -380,8 +382,8 @@ export default function OperationsPage() {
                   </ul>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </GlassCardContent>
+          </GlassCard>
 
           {/* Active Jobs */}
           <div className="space-y-4">
@@ -390,8 +392,8 @@ export default function OperationsPage() {
               {automationJobs.map((job) => {
                 const IconComponent = getJobIcon(job.type);
                 return (
-                  <Card key={job.id} className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
-                    <CardContent className="p-6">
+                  <GlassCard key={job.id} className="border-border/50 bg-gradient-to-br from-panel to-panel/80">
+                    <GlassCardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-3">
                           <div className="p-2 rounded-lg bg-mint/10 border border-mint/20">
@@ -499,8 +501,8 @@ export default function OperationsPage() {
                           </div>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </GlassCardContent>
+                  </GlassCard>
                 );
               })}
             </div>

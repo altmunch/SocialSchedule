@@ -303,7 +303,7 @@ export default function RoleManagementPanel({
         {canInviteMembers() && (
           <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
+              <Button className="flex items-center gap-2" data-testid={canInviteMembers() ? 'invite-member' : undefined}>
                 <UserPlus className="h-4 w-4" />
                 Invite Member
               </Button>
@@ -492,6 +492,7 @@ export default function RoleManagementPanel({
                               variant="outline"
                               size="sm"
                               onClick={() => setSelectedMember(member)}
+                              data-testid={canManageMember(member) ? 'change-role' : undefined}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -543,6 +544,7 @@ export default function RoleManagementPanel({
                           size="sm"
                           onClick={() => handleRemoveMember(member.id)}
                           className="text-red-600 hover:text-red-700"
+                          data-testid={canManageMember(member) ? 'remove-member' : undefined}
                         >
                           <UserMinus className="h-4 w-4" />
                         </Button>

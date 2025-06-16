@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { PricingSection } from '../PricingSection';
+import PricingSection from '@/app/landing/components/PricingSection';
 
 // Mock Next.js router
 jest.mock('next/router', () => ({

@@ -44,15 +44,13 @@ jest.mock('../ui/card', () => ({
   ),
 }));
 
-// Mock window.location
-const mockLocation = {
-  href: '',
-  origin: 'https://example.com',
-};
-Object.defineProperty(window, 'location', {
-  value: mockLocation,
-  writable: true,
-});
+// Mock window.location globally
+const mockLocationHref = jest.fn();
+const mockLocationAssign = jest.fn();
+const mockLocationReplace = jest.fn();
+const mockLocationReload = jest.fn();
+
+let originalWindowLocation: Location;
 
 describe('PricingCard Component', () => {
   const mockUser: User = {
@@ -100,9 +98,50 @@ describe('PricingCard Component', () => {
     interval: 'year',
   };
 
+  beforeAll(() => {
+    originalWindowLocation = window.location;
+    try {
+      delete (window as any).location;
+    } catch (e) {
+      console.warn("Could not delete window.location, proceeding with assignment", e);
+    }
+    (window as any).location = {
+      _currentHref: 'http://localhost:3000/initial-mock-path',
+      assign: mockLocationAssign,
+      replace: mockLocationReplace,
+      reload: mockLocationReload,
+      ancestorOrigins: {} as DOMStringList,
+      hash: '',
+      host: 'localhost:3000',
+      hostname: 'localhost',
+      origin: 'http://localhost:3000',
+      pathname: '/initial-mock-path',
+      port: '3000',
+      protocol: 'http:',
+      search: '',
+      get href(): string {
+        return this._currentHref;
+      },
+      set href(value: string) {
+        this._currentHref = value;
+        mockLocationHref(value);
+      },
+      toString: function() { return this._currentHref; },
+      valueOf: function() { return this; }
+    };
+  });
+
+  afterAll(() => {
+    (window as any).location = originalWindowLocation;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLocation.href = '';
+    mockLocationHref.mockClear();
+    mockLocationAssign.mockClear();
+    mockLocationReplace.mockClear();
+    mockLocationReload.mockClear();
+    (window.location as any)._currentHref = 'http://localhost:3000/initial-mock-path';
     console.error = jest.fn();
   });
 
@@ -194,7 +233,7 @@ describe('PricingCard Component', () => {
       const button = screen.getByText('Choose Plan');
       fireEvent.click(button);
       
-      expect(mockLocation.href).toBe('/sign-in?redirect=pricing');
+      expect(mockLocationHref).toHaveBeenCalledWith('/sign-in?redirect=pricing');
     });
 
     it('should not call Supabase functions for unauthenticated users', () => {
@@ -240,7 +279,7 @@ describe('PricingCard Component', () => {
       fireEvent.click(button);
       
       await waitFor(() => {
-        expect(mockLocation.href).toBe(checkoutUrl);
+        expect(mockLocationHref).toHaveBeenCalledWith(checkoutUrl);
       });
     });
 

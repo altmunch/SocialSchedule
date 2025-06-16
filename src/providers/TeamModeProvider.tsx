@@ -64,9 +64,11 @@ export function TeamModeProvider({ children }: { children: ReactNode }) {
 
   // Initialize with mock data
   useEffect(() => {
-    initializeMockData();
+    // TODO: Replace with actual API call to fetch initial client data.
+    // initializeMockData(); // Remove this call once API integration is complete.
   }, []);
 
+  // TODO: Remove this mock data generation function once real API data is available.
   const initializeMockData = async () => {
     setIsLoading(true);
     
@@ -74,14 +76,15 @@ export function TeamModeProvider({ children }: { children: ReactNode }) {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Set total count (simulating millions of clients)
-    setTotalClientCount(1_247_832);
+    // setTotalClientCount(1_247_832);
     
     // Load initial batch
-    await loadMoreClients(0, 49);
+    // await loadMoreClients(0, 49);
     
     setIsLoading(false);
   };
 
+  // TODO: Remove this mock client generation function once real API data is available.
   const generateMockClient = (index: number): Client => {
     const industries = ['Technology', 'Fashion', 'Food & Beverage', 'Fitness', 'Beauty', 'Travel', 'Education', 'Finance'];
     const statuses: Client['status'][] = ['active', 'paused', 'needs_attention'];
@@ -120,6 +123,7 @@ export function TeamModeProvider({ children }: { children: ReactNode }) {
     
     for (let i = startIndex; i <= stopIndex; i++) {
       if (!newCache[i]) {
+        // TODO: Replace with actual client data fetched from the backend.
         const client = generateMockClient(i);
         newClients.push(client);
         newCache[i] = client;
@@ -141,7 +145,8 @@ export function TeamModeProvider({ children }: { children: ReactNode }) {
   const refreshClients = async (): Promise<void> => {
     setClients([]);
     setClientCache({});
-    await loadMoreClients(0, 49);
+    // TODO: Call the actual API to refresh clients.
+    // await loadMoreClients(0, 49); // This should be replaced by a real API call
   };
 
   const toggleClientSelection = (clientId: string) => {

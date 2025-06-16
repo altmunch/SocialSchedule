@@ -30,6 +30,8 @@ import {
   Globe,
   Zap
 } from 'lucide-react';
+import { GlassCard } from '@/components/ui/glass-card';
+import { AnimatedButton } from '@/components/ui/animated-button';
 
 // Mock analytics data
 interface AnalyticsData {
@@ -299,12 +301,16 @@ export default function TeamAnalyticsPage() {
 
             {/* Overview Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <DollarSign className="h-4 w-4 text-mint" />
-                    <span className="text-sm font-medium">Total Revenue</span>
-                  </div>
+              <GlassCard>
+                <GlassCard.Header>
+                  <GlassCard.Title>
+                    <div className="flex items-center space-x-2">
+                      <DollarSign className="h-4 w-4 text-mint" />
+                      <span className="text-sm font-medium">Total Revenue</span>
+                    </div>
+                  </GlassCard.Title>
+                </GlassCard.Header>
+                <GlassCard.Content>
                   <div className="mt-2">
                     <div className="text-2xl font-bold">
                       {formatCurrency(analyticsData.overview.totalRevenue)}
@@ -314,15 +320,19 @@ export default function TeamAnalyticsPage() {
                       <span className="ml-1">+{analyticsData.overview.revenueGrowth}% this month</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </GlassCard.Content>
+              </GlassCard>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <Heart className="h-4 w-4 text-coral" />
-                    <span className="text-sm font-medium">Avg Engagement</span>
-                  </div>
+              <GlassCard>
+                <GlassCard.Header>
+                  <GlassCard.Title>
+                    <div className="flex items-center space-x-2">
+                      <Heart className="h-4 w-4 text-coral" />
+                      <span className="text-sm font-medium">Avg Engagement</span>
+                    </div>
+                  </GlassCard.Title>
+                </GlassCard.Header>
+                <GlassCard.Content>
                   <div className="mt-2">
                     <div className="text-2xl font-bold">
                       {analyticsData.overview.totalEngagement}%
@@ -332,15 +342,19 @@ export default function TeamAnalyticsPage() {
                       <span className="ml-1">+{analyticsData.overview.engagementGrowth}% this month</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </GlassCard.Content>
+              </GlassCard>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <Eye className="h-4 w-4 text-lavender" />
-                    <span className="text-sm font-medium">Total Reach</span>
-                  </div>
+              <GlassCard>
+                <GlassCard.Header>
+                  <GlassCard.Title>
+                    <div className="flex items-center space-x-2">
+                      <Eye className="h-4 w-4 text-lavender" />
+                      <span className="text-sm font-medium">Total Reach</span>
+                    </div>
+                  </GlassCard.Title>
+                </GlassCard.Header>
+                <GlassCard.Content>
                   <div className="mt-2">
                     <div className="text-2xl font-bold">
                       {formatNumber(analyticsData.overview.totalReach)}
@@ -350,15 +364,19 @@ export default function TeamAnalyticsPage() {
                       <span className="ml-1">+{analyticsData.overview.reachGrowth}% this month</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </GlassCard.Content>
+              </GlassCard>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-info" />
-                    <span className="text-sm font-medium">Active Clients</span>
-                  </div>
+              <GlassCard>
+                <GlassCard.Header>
+                  <GlassCard.Title>
+                    <div className="flex items-center space-x-2">
+                      <Users className="h-4 w-4 text-info" />
+                      <span className="text-sm font-medium">Active Clients</span>
+                    </div>
+                  </GlassCard.Title>
+                </GlassCard.Header>
+                <GlassCard.Content>
                   <div className="mt-2">
                     <div className="text-2xl font-bold">
                       {analyticsData.overview.activeClients.toLocaleString()}
@@ -368,20 +386,20 @@ export default function TeamAnalyticsPage() {
                       <span className="ml-1">+{analyticsData.overview.clientGrowth}% this month</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </GlassCard.Content>
+              </GlassCard>
             </div>
 
             {/* Platform Performance */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+            <GlassCard>
+              <GlassCard.Header>
+                <GlassCard.Title className="flex items-center space-x-2">
                   <Globe className="h-5 w-5" />
                   <span>Platform Performance</span>
-                </CardTitle>
-                <CardDescription>Revenue and engagement by platform</CardDescription>
-              </CardHeader>
-              <CardContent>
+                </GlassCard.Title>
+                <GlassCard.Description>Revenue and engagement by platform</GlassCard.Description>
+              </GlassCard.Header>
+              <GlassCard.Content>
                 <div className="space-y-4">
                   {analyticsData.platformMetrics.map((platform) => (
                     <div key={platform.platform} className="flex items-center justify-between p-4 border rounded-lg">
@@ -414,21 +432,21 @@ export default function TeamAnalyticsPage() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </GlassCard.Content>
+            </GlassCard>
 
             {/* Top Performers and Insights */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Top Performers */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+              <GlassCard>
+                <GlassCard.Header>
+                  <GlassCard.Title className="flex items-center space-x-2">
                     <Target className="h-5 w-5" />
                     <span>Top Performers</span>
-                  </CardTitle>
-                  <CardDescription>Highest revenue generating clients</CardDescription>
-                </CardHeader>
-                <CardContent>
+                  </GlassCard.Title>
+                  <GlassCard.Description>Highest revenue generating clients</GlassCard.Description>
+                </GlassCard.Header>
+                <GlassCard.Content>
                   <div className="space-y-4">
                     {analyticsData.topPerformers.map((performer, index) => (
                       <div key={performer.id} className="flex items-center justify-between">
@@ -457,19 +475,19 @@ export default function TeamAnalyticsPage() {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                </GlassCard.Content>
+              </GlassCard>
 
               {/* Recent Insights */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
+              <GlassCard>
+                <GlassCard.Header>
+                  <GlassCard.Title className="flex items-center space-x-2">
                     <Zap className="h-5 w-5" />
                     <span>Recent Insights</span>
-                  </CardTitle>
-                  <CardDescription>AI-powered analytics insights</CardDescription>
-                </CardHeader>
-                <CardContent>
+                  </GlassCard.Title>
+                  <GlassCard.Description>AI-powered analytics insights</GlassCard.Description>
+                </GlassCard.Header>
+                <GlassCard.Content>
                   <div className="space-y-4">
                     {analyticsData.recentInsights.map((insight) => (
                       <div key={insight.id} className="p-3 border rounded-lg">
@@ -491,8 +509,8 @@ export default function TeamAnalyticsPage() {
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                </GlassCard.Content>
+              </GlassCard>
             </div>
 
             {/* Analytics Components */}

@@ -2,6 +2,7 @@
 require('@testing-library/jest-dom');
 const { TextEncoder, TextDecoder } = require('util');
 const nodeFetch = require('node-fetch');
+require('dotenv').config({ path: '.env.local' });
 
 // =============================================================================
 // GLOBAL POLYFILLS AND UTILITIES

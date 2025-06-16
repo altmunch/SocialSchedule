@@ -20,8 +20,7 @@ const nextConfig = {
     webVitalsAttribution: ['CLS', 'LCP'],
     optimizeCss: true,
     scrollRestoration: true,
-    // Enable OpenTelemetry instrumentation
-    instrumentationHook: true,
+    // Note: instrumentationHook is no longer needed as instrumentation.js is loaded by default
   },
 
   turbopack: {

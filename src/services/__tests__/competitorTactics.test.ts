@@ -177,7 +177,7 @@ describe('competitorTactics service', () => {
       expect(result.longTermStrategies).toBeInstanceOf(Array);
       expect(result.competitiveGaps).toBeInstanceOf(Array);
       expect(result.riskAssessment).toBeDefined();
-      expect(result.immediateActions.every(action => action.priority && action.impact)).toBe(true);
+      expect(result.immediateActions.every((action: { priority: string; impact: string; }) => action.priority && action.impact)).toBe(true);
     });
 
     it('should perform competitive benchmarking', async () => {
@@ -271,7 +271,7 @@ describe('competitorTactics service', () => {
       expect(result.contentPillars).toBeInstanceOf(Array);
       expect(result.seasonalTrends).toBeDefined();
       expect(result.contentGaps).toBeInstanceOf(Array);
-      expect(Object.values(result.topicDistribution).reduce((a, b) => a + b, 0)).toBeCloseTo(1, 1);
+      expect(Object.values(result.topicDistribution).reduce((a: number, b: number) => a + b, 0)).toBeCloseTo(1, 1);
     });
   });
 
@@ -608,7 +608,7 @@ describe('competitorTactics service', () => {
       expect(result.marketPositioning.followers).toBeInstanceOf(Array);
 
       // Validate competitive gaps
-      result.competitiveGaps.forEach(gap => {
+      result.competitiveGaps.forEach((gap: { area: string; opportunity: string; impact: string; effort: string; }) => {
         expect(gap).toHaveProperty('area');
         expect(gap).toHaveProperty('opportunity');
         expect(gap).toHaveProperty('impact');

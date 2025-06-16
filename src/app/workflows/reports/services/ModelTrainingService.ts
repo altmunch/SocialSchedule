@@ -81,8 +81,26 @@ export class ModelTrainingService {
   private viralScaler: StandardScaler = new StandardScaler();
 
   constructor(config?: Partial<ModelConfig>) {
-    this.engagementModel = new LightGBMModel(false); // Regression (LightGBM-style)
-    this.viralModel = new LightGBMModel(true); // Classification (LightGBM-style)
+    this.engagementModel = new LightGBMModel({
+      numTrees: 100,
+      learningRate: 0.1,
+      maxDepth: 6,
+      numLeaves: 31,
+      featureFraction: 0.9,
+      baggingFraction: 0.8,
+      minDataInLeaf: 20,
+      objective: 'regression'
+    });
+    this.viralModel = new LightGBMModel({
+      numTrees: 100,
+      learningRate: 0.1,
+      maxDepth: 6,
+      numLeaves: 31,
+      featureFraction: 0.9,
+      baggingFraction: 0.8,
+      minDataInLeaf: 20,
+      objective: 'binary'
+    });
     
     this.config = {
       engagementModel: {
@@ -136,11 +154,11 @@ export class ModelTrainingService {
     const valViralFeatures = scaledViralFeatures.slice(splitIndex);
     const valViralTargets = viralTargets.slice(splitIndex);
 
-    // Train engagement model
-    this.engagementModel.train(trainEngagementFeatures, trainEngagementTargets, 200, 0.001);
-    
+        // Train engagement model
+    await this.engagementModel.train(trainEngagementFeatures, trainEngagementTargets, validEngagementFeatures, validEngagementTargets);
+
     // Train viral model
-    this.viralModel.train(trainViralFeatures, trainViralTargets, 150, 0.01);
+    await this.viralModel.train(trainViralFeatures, trainViralTargets, validViralFeatures, validViralTargets);
 
     this.isModelsTrained = true;
 

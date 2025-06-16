@@ -82,6 +82,41 @@ export async function middleware(request: NextRequest) {
     url.searchParams.set('redirected', 'true');
     return NextResponse.redirect(url);
   }
+
+  // Check for team dashboard access control
+  if (pathname.startsWith('/team-dashboard') || pathname.startsWith('/team_dashboard')) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', session.user.id)
+      .single();
+
+    const tier = profile?.subscription_tier || 'lite';
+    
+    // Only team tier users can access team dashboard
+    if (tier !== 'team') {
+      const url = new URL('/pricing', request.url);
+      url.searchParams.set('upgrade', 'team');
+      url.searchParams.set('reason', 'team_dashboard_access');
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Redirect team users from root to team dashboard
+  if (pathname === '/') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('subscription_tier')
+      .eq('id', session.user.id)
+      .single();
+
+    const tier = profile?.subscription_tier || 'lite';
+    
+    if (tier === 'team') {
+      const url = new URL('/team-dashboard', request.url);
+      return NextResponse.redirect(url);
+    }
+  }
   
   return response;
 }

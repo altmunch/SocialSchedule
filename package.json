@@ -21,7 +21,21 @@
     "test:e2e:ui": "playwright test --config=playwright.config.ts --ui",
     "test:visual": "playwright test --config=playwright.config.ts --grep='visual'",
     "test:all": "npm run test && npm run test:e2e",
-    "test:ci": "jest --config=jest.config.js --ci --coverage --watchAll=false"
+    "test:ci": "jest --config=jest.config.js --ci --coverage --watchAll=false",
+    "lint": "next lint",
+    "train-ai-models": "tsx src/app/workflows/AI_improvement/cli/train-ai-models.ts",
+    "collect-data": "tsx src/app/workflows/data_collection/cli/collect-data.ts",
+    "validate-data": "tsx src/app/workflows/AI_improvement/cli/validate-data.ts",
+    "ai:collect-data": "tsx src/app/workflows/AI_improvement/cli/collect-data.ts",
+    "ai:validate-data": "tsx src/app/workflows/AI_improvement/cli/validate-data.ts",
+    "ai:train-models": "tsx src/app/workflows/AI_improvement/cli/train-ai-models.ts",
+    "ai:setup-database": "node scripts/setup-database-final.js",
+    "ai:manage-models": "tsx src/app/workflows/AI_improvement/cli/manage-models.ts",
+    "ai:list-models": "tsx src/app/workflows/AI_improvement/cli/manage-models.ts list",
+    "ai:deploy-model": "tsx src/app/workflows/AI_improvement/cli/manage-models.ts deploy",
+    "ai:model-info": "tsx src/app/workflows/AI_improvement/cli/manage-models.ts info",
+    "ai:compare-models": "tsx src/app/workflows/AI_improvement/cli/manage-models.ts compare",
+    "ai:search-models": "tsx src/app/workflows/AI_improvement/cli/manage-models.ts search"
   },
   "dependencies": {
     "@alloc/quick-lru": "^5.2.0",
@@ -75,7 +89,7 @@
     "embla-carousel-react": "^8.5.2",
     "express": "^5.1.0",
     "fluent-ffmpeg": "^2.1.3",
-    "framer-motion": "^12.12.1",
+    "framer-motion": "^12.18.1",
     "ioredis": "^5.6.1",
     "jstat": "^1.9.6",
     "lucide-react": "^0.468.0",
@@ -150,6 +164,7 @@
     "tailwindcss": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
     "ts-jest": "^29.3.4",
+    "tsx": "^4.20.3",
     "typescript": "5.8.3"
   }
 }

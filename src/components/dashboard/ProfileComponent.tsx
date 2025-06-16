@@ -12,10 +12,10 @@ import { Loader2, CheckCircle2, User, Shield, CircleUserRound } from 'lucide-rea
 
 export default function ProfileComponent() {
   const { user } = useAuth();
-  const [fullName, setFullName] = useState('John Doe'); // In a real app, fetch from user profile
-  const [username, setUsername] = useState('johndoe'); // In a real app, fetch from user profile
-  const [bio, setBio] = useState('Content creator and social media enthusiast');
-  const [website, setWebsite] = useState('https://example.com');
+  const [fullName, setFullName] = useState(''); // TODO: In a real app, fetch from user profile
+  const [username, setUsername] = useState(''); // TODO: In a real app, fetch from user profile
+  const [bio, setBio] = useState(''); // TODO: In a real app, fetch from user profile
+  const [website, setWebsite] = useState(''); // TODO: In a real app, fetch from user profile
   const [email, setEmail] = useState(user?.email || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -27,8 +27,17 @@ export default function ProfileComponent() {
   // Initialize connection status to prevent hydration mismatch
   const [connectionStatus, setConnectionStatus] = useState<Record<string, { connected: boolean; buttonText: string }>>({});
 
-  // Set random connection status after hydration
+  // Set user data and random connection status after hydration
   useEffect(() => {
+    // TODO: Replace with actual API call to fetch user profile data
+    if (user) {
+      // Simulate fetching user data
+      setFullName(user.user_metadata?.full_name || 'John Doe');
+      setUsername(user.user_metadata?.username || 'johndoe');
+      setBio(user.user_metadata?.bio || 'Content creator and social media enthusiast');
+      setWebsite(user.user_metadata?.website || 'https://example.com');
+    }
+
     const platforms = ['Instagram', 'Twitter', 'Facebook', 'LinkedIn', 'TikTok'];
     const status: Record<string, { connected: boolean; buttonText: string }> = {};
     
@@ -41,7 +50,7 @@ export default function ProfileComponent() {
     });
     
     setConnectionStatus(status);
-  }, []);
+  }, [user]);
 
   const getInitials = (name: string) => {
     return name

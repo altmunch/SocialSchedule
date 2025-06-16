@@ -14,6 +14,8 @@ export type Database = {
           id: string;
           full_name: string | null;
           avatar_url: string | null;
+          subscription_tier: 'lite' | 'pro' | 'team' | null;
+          role: 'user' | 'admin' | null;
           created_at: string;
           updated_at: string;
         };
@@ -21,6 +23,8 @@ export type Database = {
           id: string;
           full_name?: string | null;
           avatar_url?: string | null;
+          subscription_tier?: 'lite' | 'pro' | 'team' | null;
+          role?: 'user' | 'admin' | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -28,6 +32,8 @@ export type Database = {
           id?: string;
           full_name?: string | null;
           avatar_url?: string | null;
+          subscription_tier?: 'lite' | 'pro' | 'team' | null;
+          role?: 'user' | 'admin' | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -425,6 +431,44 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_tracking: {
+        Row: {
+          id: string;
+          user_id: string;
+          operation_type: 'content_generation' | 'video_optimization' | 'data_analysis' | 'ai_recommendation';
+          execution_count: number;
+          cost_units: number;
+          timestamp: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          operation_type: 'content_generation' | 'video_optimization' | 'data_analysis' | 'ai_recommendation';
+          execution_count: number;
+          cost_units: number;
+          timestamp?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          operation_type?: 'content_generation' | 'video_optimization' | 'data_analysis' | 'ai_recommendation';
+          execution_count?: number;
+          cost_units?: number;
+          timestamp?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "usage_tracking_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     }
     Views: {
       [_ in never]: never

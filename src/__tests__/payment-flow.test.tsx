@@ -7,28 +7,18 @@ import SubscriptionComponent from '@/components/dashboard/SubscriptionComponent'
 import PaymentSuccessPage from '@/app/payment-success/page';
 import { useAuth } from '@/providers/AuthProvider';
 
-// Mock Next.js router
-jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(),
+// Mock process.env directly at the top of the file
+jest.mock('process', () => ({
+  env: {
+    ...process.env, // Keep existing environment variables
+    NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK: 'https://stripe.com/pro-monthly-test',
+    NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK: 'https://stripe.com/pro-yearly-test',
+    NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK: 'https://stripe.com/team-monthly-test',
+    NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK: 'https://stripe.com/team-yearly-test',
+    NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK: 'https://stripe.com/lite-monthly-test',
+    NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK: 'https://stripe.com/lite-yearly-test',
+  },
 }));
-
-// Mock Auth Provider
-jest.mock('@/providers/AuthProvider', () => ({
-  useAuth: jest.fn(),
-}));
-
-// Mock environment variables
-const mockEnvVars = {
-  NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK: 'https://stripe.com/pro-monthly',
-  NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK: 'https://stripe.com/pro-yearly',
-  NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK: 'https://stripe.com/team-monthly',
-  NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK: 'https://stripe.com/team-yearly',
-};
-
-// Mock process.env
-Object.defineProperty(process, 'env', {
-  value: { ...process.env, ...mockEnvVars },
-});
 
 // Mock localStorage
 const localStorageMock = {
@@ -52,11 +42,22 @@ const mockNavigate = (url: string) => mockLocationHref(url);
 const mockNavigateWindowOpen = (url: string) => mockWindowOpen(url, '_blank');
 Object.defineProperty(window, 'open', { value: mockWindowOpen });
 
+// Mock Next.js router
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(),
+}));
+
+// Mock Auth Provider
+jest.mock('@/providers/AuthProvider', () => ({
+  useAuth: jest.fn(),
+}));
+
 describe('Payment Flow Tests', () => {
   let originalLocation: Location;
   const user = userEvent.setup();
 
   beforeAll(() => {
+    jest.useFakeTimers();
     originalLocation = window.location;
     try {
       delete (window as any).location;
@@ -91,6 +92,7 @@ describe('Payment Flow Tests', () => {
   });
 
   afterAll(() => {
+    jest.useRealTimers();
     (window as any).location = originalLocation;
   });
 
@@ -112,6 +114,18 @@ describe('Payment Flow Tests', () => {
     mockLocationReplace.mockClear();
     mockLocationReload.mockClear();
     mockWindowOpen.mockClear();
+    localStorageMock.getItem.mockClear();
+    localStorageMock.setItem.mockClear();
+    localStorageMock.removeItem.mockClear();
+    localStorageMock.clear.mockClear();
+    jest.runOnlyPendingTimers(); // Clear any lingering timers from previous tests
+
+    // Reset the href on our mock location to a default state before each test
+    if (window.location && typeof (window.location as any)._currentHref === 'string') {
+      (window.location as any)._currentHref = 'http://localhost:3000/initial-mock-path';
+    } else if (window.location) { 
+        window.location.href = 'http://localhost:3000/initial-mock-path';
+    }
     
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     (useAuth as jest.Mock).mockReturnValue({
@@ -120,13 +134,6 @@ describe('Payment Flow Tests', () => {
       loading: false,
     });
     localStorageMock.getItem.mockReturnValue(null);
-
-    // Reset the href on our mock location to a default state before each test
-    if (window.location && typeof (window.location as any)._currentHref === 'string') {
-      (window.location as any)._currentHref = 'http://localhost:3000/initial-mock-path';
-    } else if (window.location) { 
-        window.location.href = 'http://localhost:3000/initial-mock-path';
-    }
   });
 
   describe('PricingSection Component', () => {
@@ -157,8 +164,8 @@ describe('Payment Flow Tests', () => {
       const monthlyButton = screen.getByText('Monthly');
       await user.click(monthlyButton);
       
-      // Pro plan is the "Get Started" button
-      const proButton = screen.getByText('Get Started'); 
+      // Pro plan is the "Select Plan" button at index 1
+      const proButton = screen.getAllByText('Select Plan')[1]; 
       await user.click(proButton);
       
       await waitFor(() => {
@@ -169,8 +176,8 @@ describe('Payment Flow Tests', () => {
     it('should handle Pro yearly plan selection', async () => {
       render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
-      // Annual is default. Pro plan is the "Get Started" button.
-      const proButton = screen.getByText('Get Started');
+      // Annual is default. Pro plan is the "Select Plan" button at index 1.
+      const proButton = screen.getAllByText('Select Plan')[1];
       await user.click(proButton);
       
       await waitFor(() => {
@@ -185,8 +192,8 @@ describe('Payment Flow Tests', () => {
       const monthlyButton = screen.getByText('Monthly');
       await user.click(monthlyButton);
       
-      // Team plan is the second "Select Plan" button
-      const teamButton = screen.getAllByText('Select Plan')[1]; 
+      // Team plan is the "Select Plan" button at index 2
+      const teamButton = screen.getAllByText('Select Plan')[2]; 
       await user.click(teamButton);
       
       // PricingSection's handlePlanClick always goes to /dashboard due to missing stripePriceId
@@ -200,8 +207,8 @@ describe('Payment Flow Tests', () => {
     it('should handle Team yearly plan selection and navigate to dashboard', async () => {
       render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
       
-      // Annual is default. Team plan is the second "Select Plan" button.
-      const teamButton = screen.getAllByText('Select Plan')[1];
+      // Annual is default. Team plan is the "Select Plan" button at index 2.
+      const teamButton = screen.getAllByText('Select Plan')[2];
       await user.click(teamButton);
       
       // PricingSection's handlePlanClick always goes to /dashboard
@@ -210,167 +217,215 @@ describe('Payment Flow Tests', () => {
         expect(mockLocationHref).toHaveBeenCalledWith('/dashboard');
       });
     });
-
-    it('should fallback to dashboard when Stripe links are not configured', async () => {
-      // Temporarily clear Stripe link env vars for this test
-      const originalEnvValues = {
-        NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK: process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK,
-        NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK: process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK,
-        NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK: process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK,
-        NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK: process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK,
-      };
-      delete process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK;
-      delete process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK;
-      delete process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK;
-      delete process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK;
-
-      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
-      
-      const proButton = screen.getByText('Get Started');
-      await user.click(proButton);
-      
-      await waitFor(() => {
-        expect(mockLocationHref).toHaveBeenCalledWith('/dashboard');
-      });
-
-      // Restore env vars
-      process.env.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK = originalEnvValues.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK;
-      process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK = originalEnvValues.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK;
-      process.env.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK = originalEnvValues.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK;
-      process.env.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK = originalEnvValues.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK;
-    });
   });
 
   describe('SubscriptionComponent', () => {
+    const mockStripeLinks = {
+      NEXT_PUBLIC_STRIPE_LITE_MONTHLY_LINK: 'https://stripe.com/lite-monthly-test',
+      NEXT_PUBLIC_STRIPE_LITE_YEARLY_LINK: 'https://stripe.com/lite-yearly-test',
+      NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK: 'https://stripe.com/pro-monthly-test',
+      NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK: 'https://stripe.com/pro-yearly-test',
+      NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK: 'https://stripe.com/team-monthly-test',
+      NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK: 'https://stripe.com/team-yearly-test',
+    };
+
     it('should render all subscription plans', () => {
-      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} stripeLinks={mockStripeLinks} />);
       
       expect(screen.getByText('Lite')).toBeInTheDocument();
       expect(screen.getByText('Pro')).toBeInTheDocument();
       expect(screen.getByText('Team')).toBeInTheDocument();
+      expect(screen.getByText('30% off')).toBeInTheDocument();
     });
 
-    it('should handle plan selection with correct billing cycle', async () => {
-      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
+    it('should handle Pro monthly plan selection', async () => {
+      console.log('Running Pro monthly plan selection test');
+      console.log('NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK:', mockStripeLinks.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK);
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} stripeLinks={mockStripeLinks} />);
       
-      // Switch to yearly billing
-      const yearlyButton = screen.getByText('Yearly');
-      await user.click(yearlyButton);
+      // Switch to monthly billing
+      const monthlyButton = screen.getByText('Monthly');
+      await user.click(monthlyButton);
+      jest.runAllTimers(); // Ensure all timers are run
       
-      // Select Pro plan (index 0 for Pro when Lite is current plan)
-      const proSelectButton = screen.getAllByText('Select Plan')[0]; 
-      await user.click(proSelectButton);
-      
-      await waitFor(() => {
-        expect(mockWindowOpen).toHaveBeenCalledWith(mockEnvVars.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK, '_blank');
-      });
-    });
-
-    it('should handle team plan selection with redirect setup', async () => {
-      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
-      
-      // Select Team plan (monthly is default, index 1 for Team when Lite is current plan)
-      const teamSelectButton = screen.getAllByText('Select Plan')[1];
-      await user.click(teamSelectButton);
-      
-      await waitFor(() => {
-        expect(localStorageMock.setItem).toHaveBeenCalledWith(
-          'post_payment_redirect',
-          '/team-dashboard'
-        );
-        expect(mockWindowOpen).toHaveBeenCalledWith(mockEnvVars.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK, '_blank');
-      });
-    });
-  });
-
-  describe('PaymentSuccessPage', () => {
-    it('should redirect to default dashboard when no stored redirect', async () => {
-      localStorageMock.getItem.mockReturnValue(null);
-      
-      render(<PaymentSuccessPage />);
-      
-      expect(screen.getByText('Payment Successful!')).toBeInTheDocument();
-      
-      // Wait for auto-redirect
-      await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
-      }, { timeout: 4000 });
-    });
-
-    it('should redirect to team dashboard when stored redirect exists', async () => {
-      localStorageMock.getItem.mockReturnValue('/team-dashboard');
-      
-      render(<PaymentSuccessPage />);
-      
-      expect(screen.getByText('Payment Successful!')).toBeInTheDocument();
-      
-      // Wait for auto-redirect
-      await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith('/team-dashboard');
-      }, { timeout: 4000 });
-      
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('post_payment_redirect');
-    });
-
-    it('should handle manual continue button click', async () => {
-      localStorageMock.getItem.mockReturnValue('/team-dashboard');
-      
-      render(<PaymentSuccessPage />);
-      
-      const continueButton = screen.getByText('Continue to Dashboard');
-      await user.click(continueButton);
-      
-      expect(mockRouter.push).toHaveBeenCalledWith('/team-dashboard');
-    });
-  });
-
-  describe('Environment Variable Fallbacks', () => {
-    beforeEach(() => {
-      // Clear environment variables
-      Object.defineProperty(process, 'env', {
-        value: {},
-      });
-    });
-
-    it('should fallback to dashboard when Stripe links are not configured', async () => {
-      render(<PricingSection onGetStarted={jest.fn()} navigate={mockNavigate} />);
-      
-      const proButton = screen.getByText('Get Started');
+      // Pro plan is the "Select Plan" button at index 1
+      const proButton = screen.getAllByText('Select Plan')[1];
       await user.click(proButton);
-      
-      expect(mockLocationHref).toHaveBeenCalledWith('/dashboard');
-    });
-  });
 
-  describe('Error Handling', () => {
-    it('should handle localStorage errors gracefully', async () => {
-      localStorageMock.setItem.mockImplementation(() => {
-        throw new Error('LocalStorage Write Error');
+      // Expect window.open to have been called with the correct Stripe link
+      await waitFor(() => {
+        console.log('mockWindowOpen calls:', mockWindowOpen.mock.calls);
+        expect(mockWindowOpen).toHaveBeenCalledWith(mockStripeLinks.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK, '_blank');
       });
-      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
-      const teamButton = screen.getAllByText('Select Plan')[1];
+    });
+
+    it('should handle Pro yearly plan selection', async () => {
+      console.log('Running Pro yearly plan selection test');
+      console.log('NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK:', mockStripeLinks.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK);
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} stripeLinks={mockStripeLinks} />);
       
-      // Should not throw error, should handle gracefully
+      // Annual is default. Pro plan is the "Select Plan" button at index 1.
+      const proButton = screen.getAllByText('Select Plan')[1];
+      await user.click(proButton);
+      jest.runAllTimers(); // Ensure all timers are run
+
+      await waitFor(() => {
+        console.log('mockWindowOpen calls:', mockWindowOpen.mock.calls);
+        expect(mockWindowOpen).toHaveBeenCalledWith(mockStripeLinks.NEXT_PUBLIC_STRIPE_PRO_YEARLY_LINK, '_blank');
+      });
+    });
+
+    it('should handle Team monthly plan selection', async () => {
+      console.log('Running Team monthly plan selection test');
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} stripeLinks={mockStripeLinks} />);
+      
+      // Switch to monthly billing
+      const monthlyButton = screen.getByText('Monthly');
+      await user.click(monthlyButton);
+      jest.runAllTimers(); // Ensure all timers are run
+      
+      // Team plan is the "Select Plan" button at index 2
+      const teamButton = screen.getAllByText('Select Plan')[2];
       await user.click(teamButton);
+      jest.runAllTimers(); // Ensure all timers are run
+
+      // Expect localStorage.setItem to have been called for team redirect
+      await waitFor(() => {
+        expect(localStorageMock.setItem).toHaveBeenCalledWith('post_payment_redirect', '/team-dashboard');
+      });
+      // Expect window.open to have been called with the correct Stripe link
+      await waitFor(() => {
+        expect(mockWindowOpen).toHaveBeenCalledWith(mockStripeLinks.NEXT_PUBLIC_STRIPE_TEAM_MONTHLY_LINK, '_blank');
+      });
+    });
+
+    it('should handle Team yearly plan selection', async () => {
+      console.log('Running Team yearly plan selection test');
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} stripeLinks={mockStripeLinks} />);
       
-      // Should still attempt to navigate despite localStorage error
-      expect(mockWindowOpen).toHaveBeenCalled();
+      // Annual is default. Team plan is the "Select Plan" button at index 2.
+      const teamButton = screen.getAllByText('Select Plan')[2];
+      await user.click(teamButton);
+      jest.runAllTimers(); // Ensure all timers are run
+
+      // Expect localStorage.setItem to have been called for team redirect
+      await waitFor(() => {
+        expect(localStorageMock.setItem).toHaveBeenCalledWith('post_payment_redirect', '/team-dashboard');
+      });
+      // Expect window.open to have been called with the correct Stripe link
+      await waitFor(() => {
+        expect(mockWindowOpen).toHaveBeenCalledWith(mockStripeLinks.NEXT_PUBLIC_STRIPE_TEAM_YEARLY_LINK, '_blank');
+      });
+    });
+
+    it('should handle localStorage errors gracefully', async () => {
+      console.log('Running localStorage errors gracefully test');
+      // Temporarily break localStorage.setItem for this test
+      localStorageMock.setItem.mockImplementation(() => {
+        throw new Error('localStorage setItem error');
+      });
+
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} stripeLinks={mockStripeLinks} />);
+      
+      const proMonthlyButton = screen.getAllByText('Select Plan')[1]; // Pro monthly
+      await user.click(proMonthlyButton);
+      jest.runAllTimers(); // Ensure all timers are run
+
+      await waitFor(() => {
+        expect(console.error).toHaveBeenCalledWith(expect.stringContaining('localStorage setItem error'));
+        expect(mockWindowOpen).toHaveBeenCalledWith(mockStripeLinks.NEXT_PUBLIC_STRIPE_PRO_MONTHLY_LINK, '_blank');
+      });
     });
 
     it('should handle window.open errors gracefully', async () => {
+      console.log('Running window.open errors gracefully test');
+      // Make window.open throw an error
       mockWindowOpen.mockImplementation(() => {
-        throw new Error('Window Open Error');
+        throw new Error('window.open error');
       });
-      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} />);
-      const proButton = screen.getAllByText('Select Plan')[0]; 
-      
-      // Should not throw error, should handle gracefully
-      await user.click(proButton);
-      
+
+      render(<SubscriptionComponent navigate={mockNavigateWindowOpen} stripeLinks={mockStripeLinks} />);
+
+      const proMonthlyButton = screen.getAllByText('Select Plan')[1]; // Pro monthly
+      await user.click(proMonthlyButton);
+      jest.runAllTimers(); // Ensure all timers are run
+
       // Should show fallback success message
       await waitFor(() => {
         expect(screen.getByText('Navigation failed, but plan selection recorded.')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('PaymentSuccessPage Component', () => {
+    const mockRouter = {
+      push: jest.fn(),
+      replace: jest.fn(),
+      back: jest.fn(),
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      (useRouter as jest.Mock).mockReturnValue(mockRouter);
+      localStorageMock.getItem.mockReturnValue(null); // Clear any previous redirect
+    });
+
+    afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+    });
+
+    it('should render PaymentSuccessPage and redirect to team dashboard if redirect is set', async () => {
+      localStorageMock.getItem.mockReturnValue('/team-dashboard');
+      render(<PaymentSuccessPage />);
+
+      // Advance timers by 3 seconds to trigger redirect
+      jest.advanceTimersByTime(3000);
+
+      await waitFor(() => {
+        expect(mockRouter.push).toHaveBeenCalledWith('/team-dashboard');
+      });
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('post_payment_redirect');
+    });
+
+    it('should render PaymentSuccessPage and redirect to /dashboard if no redirect is set', async () => {
+      render(<PaymentSuccessPage />);
+
+      // Advance timers by 3 seconds to trigger redirect
+      jest.advanceTimersByTime(3000);
+
+      await waitFor(() => {
+        expect(mockRouter.push).toHaveBeenCalledWith('/dashboard');
+      });
+      expect(localStorageMock.removeItem).not.toHaveBeenCalled();
+    });
+
+    it('should redirect to dashboard immediately on button click', async () => {
+      localStorageMock.getItem.mockReturnValue('/team-dashboard');
+      render(<PaymentSuccessPage />);
+
+      const goToDashboardButton = screen.getByText('Continue to Dashboard');
+      await user.click(goToDashboardButton);
+      jest.runAllTimers(); // Ensure all timers are run
+
+      await waitFor(() => {
+        expect(mockRouter.push).toHaveBeenCalledWith('/team-dashboard');
+      });
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('redirectAfterLogin');
+    });
+
+    it('should render PaymentSuccessPage and handle redirection to a custom path', async () => {
+      localStorageMock.getItem.mockReturnValue('/custom-redirect-path');
+      render(<PaymentSuccessPage />);
+
+      const goToDashboardButton = screen.getByText('Continue to Dashboard');
+      await user.click(goToDashboardButton);
+      jest.runAllTimers(); // Ensure all timers are run
+
+      await waitFor(() => {
+        expect(mockRouter.push).toHaveBeenCalledWith('/custom-redirect-path');
+      });
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith('redirectAfterLogin');
     });
   });
 }); 

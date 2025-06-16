@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload } from "lucide-react";
+import { Upload, Sparkles, Copy, Save, Share, Lightbulb, Brain, Zap, Image as ImageIcon, Video, Hash, Mic } from "lucide-react";
+import GlassCard from '@/components/ui/GlassCard';
 
 export default function IdeatorPage() {
   const [description, setDescription] = useState("");
@@ -25,140 +25,356 @@ export default function IdeatorPage() {
     setError(null);
     setResults(null);
     try {
-      // Simulate API call to content generator workflow
+      // TODO: Replace this simulated API call with an actual call to an AI content generation service.
+      // The service should take `description` and potentially `image` as input
+      // and return dynamically generated content ideas, script, visuals, audio suggestions, and hashtags.
       await new Promise((res) => setTimeout(res, 2000));
       setResults({
         hooks: [
-          "Unlock the secret to viral growth for your product!",
-          "Why everyone is talking about this new solution...",
+          "Dynamically generated hook 1 based on your product!",
+          "Another AI-powered hook to grab attention!",
         ],
-        script: "Start with a bold claim, show proof, end with a call to action.",
-        visuals: ["Show product in action", "Use bold colors"],
-        audio: ["Upbeat background music", "Clear voiceover"],
-        guidelines: "Emphasize the unique value of your product. Keep it concise and visual.",
+        script: "This script structure is dynamically generated based on best practices for your product category.",
+        visuals: [
+          "Visualize your product in a futuristic setting (AI suggestion)",
+          "Dynamic visual trend based on current viral content",
+        ],
+        audio: [
+          "AI-recommended upbeat background music (dynamic BPM)",
+          "Clear, engaging voiceover (dynamic tone suggestion)",
+        ],
+        hashtags: [
+          "#DynamicProductLaunch", "#AIGeneratedContent", "#FutureIsNow", 
+        ],
+        guidelines: "These guidelines are dynamically tailored to maximize engagement for your specific content type and target audience.",
       });
     } catch (err: any) {
-      setError("Failed to generate content ideas.");
+      setError("Failed to generate content ideas. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const copyAllResults = () => {
+    if (results) {
+      const allContent = `
+HOOKS:
+${results.hooks.map((hook: string, i: number) => `${i + 1}. ${hook}`).join('\n')}
+
+SCRIPT STRUCTURE:
+${results.script}
+
+VISUAL GUIDELINES:
+${results.visuals.map((v: string, i: number) => `• ${v}`).join('\n')}
+
+AUDIO SUGGESTIONS:
+${results.audio.map((a: string, i: number) => `• ${a}`).join('\n')}
+
+HASHTAGS:
+${results.hashtags.join(' ')}
+
+GUIDELINES:
+${results.guidelines}
+      `;
+      navigator.clipboard.writeText(allContent);
+    }
+  };
+
   return (
-    <div className="min-h-screen p-6 bg-background text-text flex flex-col gap-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-creative">Content Idea Generator</h1>
-        <p className="text-secondaryText">Describe your product or service to generate content ideas and templates.</p>
-      </div>
-      <Card className="max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle>Describe your product or service</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6 p-8">
-          <div className="space-y-4">
-            <Textarea
-              placeholder="Describe your product or service in detail... Include features, benefits, target audience, and what makes it unique. The more details you provide, the better content ideas we can generate for you."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={12}
-              disabled={loading}
-              className="w-full min-h-[300px] text-base leading-relaxed p-6 rounded-xl border-2 border-border focus:border-primary resize-none"
-            />
+    <div className="min-h-screen" style={{
+      background: 'linear-gradient(135deg, #0a0b0f 0%, #111318 50%, #1a1d25 100%)'
+    }}>
+      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+        
+        {/* Enhanced Header */}
+        <div className="text-center space-y-4 animate-fadeIn">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight gradient-text">Ideator</h1>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            Transform your product description into viral-ready content ideas with AI-powered creativity
+          </p>
+        </div>
+
+        {/* Enhanced Input Section */}
+        <GlassCard className="animate-slideUp">
+          <div className="p-6 border-b border-gray-700/50">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+              <Brain className="h-6 w-6 text-violet-400" />
+              Describe Your Product or Service
+            </h2>
+            <p className="text-gray-400 mt-1">The more details you provide, the better content ideas we can generate</p>
           </div>
-          <div className="flex items-center gap-4 pt-4">
-            <label className="flex items-center cursor-pointer">
-              <Upload className="h-5 w-5 mr-2" />
-              <span>Attach image</span>
-              <Input type="file" accept="image/*" className="hidden" onChange={handleImageChange} disabled={loading} />
-            </label>
-            {image && <span className="text-xs text-secondaryText">{image.name}</span>}
-          </div>
-        </CardContent>
-        <CardFooter className="p-8 pt-0">
-          <Button onClick={handleGenerate} disabled={loading || !description} className="w-full h-12 text-lg">
-            {loading ? "Generating..." : "Generate Ideas"}
-          </Button>
-        </CardFooter>
-      </Card>
-      {error && <div className="text-red-500 text-center">{error}</div>}
-      {results && (
-        <div className="max-w-4xl mx-auto mt-8">
-          <h2 className="text-xl font-semibold mb-4">Suggestions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Hooks</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {results.hooks.map((hook: string, i: number) => (
-                    <li key={i} className="bg-gray-50 p-2 rounded text-sm flex justify-between items-center">
-                      {hook}
-                      <Button size="icon" variant="ghost" onClick={() => navigator.clipboard.writeText(hook)}>
-                        Copy
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Script</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-gray-50 p-2 rounded text-sm mb-2">{results.script}</div>
-                <Button size="icon" variant="ghost" onClick={() => navigator.clipboard.writeText(results.script)}>
-                  Copy
-                </Button>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Visuals</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {results.visuals.map((v: string, i: number) => (
-                    <li key={i} className="bg-gray-50 p-2 rounded text-sm flex justify-between items-center">
-                      {v}
-                      <Button size="icon" variant="ghost" onClick={() => navigator.clipboard.writeText(v)}>
-                        Copy
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Audio</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {results.audio.map((a: string, i: number) => (
-                    <li key={i} className="bg-gray-50 p-2 rounded text-sm flex justify-between items-center">
-                      {a}
-                      <Button size="icon" variant="ghost" onClick={() => navigator.clipboard.writeText(a)}>
-                        Copy
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-          <div className="mt-8 bg-panel rounded-lg p-6 shadow-md border border-border">
-            <h3 className="text-lg font-semibold mb-2">General Guidelines</h3>
-            <div className="text-sm mb-2">{results.guidelines}</div>
-            <div className="flex gap-4 mt-2">
-              <Button variant="outline" onClick={() => navigator.clipboard.writeText(JSON.stringify(results, null, 2))}>Copy All</Button>
-              <Button variant="outline">Save in Library</Button>
-              <Button variant="outline">Share</Button>
+          
+          <div className="p-8 space-y-6">
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Describe your product or service in detail... Include features, benefits, target audience, and what makes it unique. Mention your industry, competitors, and any specific goals you have for your content marketing."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={12}
+                disabled={loading}
+                className="w-full text-base leading-relaxed p-6 rounded-xl border-2 border-gray-700 bg-gray-800 text-white placeholder-gray-500 focus:border-violet-500 resize-none transition-colors min-h-[300px]"
+              />
+              <div className="text-xs text-gray-500 text-right">
+                {description.length}/2000 characters
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-6 pt-4">
+              <label className="flex items-center cursor-pointer hover-lift">
+                <div className="flex items-center gap-3 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg hover:border-gray-600 transition-colors">
+                  <Upload className="h-5 w-5 text-violet-400" />
+                  <span className="text-white">Attach image</span>
+                </div>
+                <Input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={handleImageChange} 
+                  disabled={loading} 
+                />
+              </label>
+              {image && (
+                <div className="flex items-center gap-2 text-sm text-emerald-400 bg-emerald-500/10 px-3 py-2 rounded-lg">
+                  <ImageIcon className="h-4 w-4" />
+                  <span>{image.name}</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-center pt-4">
+              <Button 
+                onClick={handleGenerate} 
+                disabled={loading || !description.trim()} 
+                className="btn-primary text-lg px-8 py-4 flex items-center gap-3"
+              >
+                {loading ? (
+                  <>
+                    <Sparkles className="h-5 w-5 animate-spin" />
+                    Generating Ideas...
+                  </>
+                ) : (
+                  <>
+                    <Lightbulb className="h-5 w-5" />
+                    Generate Ideas
+                  </>
+                )}
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </GlassCard>
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 text-red-400 bg-red-500/10 px-4 py-2 rounded-lg border border-red-500/20">
+              {error}
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Results Section */}
+        {results && (
+          <div className="space-y-6 animate-slideUp">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-white mb-2">Your Content Strategy</h2>
+              <p className="text-gray-400">AI-generated ideas tailored to your product</p>
+            </div>
+            
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              
+              {/* Hooks Section */}
+              <GlassCard className="p-6 hover-lift">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-violet-500/20 rounded-lg">
+                      <Zap className="h-5 w-5 text-violet-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">Hooks</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {results.hooks.map((hook: string, i: number) => (
+                      <div key={i} className="group relative">
+                        <div className="p-3 bg-gray-800/50 rounded-lg text-sm text-gray-300 border border-gray-700/50 group-hover:border-violet-500/30 transition-colors">
+                          "{hook}"
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                          onClick={() => copyToClipboard(hook)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </GlassCard>
+
+              {/* Script Section */}
+              <GlassCard className="p-6 hover-lift">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/20 rounded-lg">
+                      <Video className="h-5 w-5 text-blue-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">Script Structure</h3>
+                  </div>
+                  <div className="relative group">
+                    <div className="p-4 bg-gray-800/50 rounded-lg text-sm text-gray-300 border border-gray-700/50 group-hover:border-blue-500/30 transition-colors leading-relaxed">
+                      {results.script}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                      onClick={() => copyToClipboard(results.script)}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </GlassCard>
+
+              {/* Visuals Section */}
+              <GlassCard className="p-6 hover-lift">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-emerald-500/20 rounded-lg">
+                      <ImageIcon className="h-5 w-5 text-emerald-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">Visual Guidelines</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {results.visuals.map((visual: string, i: number) => (
+                      <div key={i} className="group relative">
+                        <div className="p-3 bg-gray-800/50 rounded-lg text-sm text-gray-300 border border-gray-700/50 group-hover:border-emerald-500/30 transition-colors">
+                          • {visual}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                          onClick={() => copyToClipboard(visual)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </GlassCard>
+
+              {/* Audio Section */}
+              <GlassCard className="p-6 hover-lift">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-500/20 rounded-lg">
+                      <Mic className="h-5 w-5 text-orange-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">Audio Suggestions</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {results.audio.map((audio: string, i: number) => (
+                      <div key={i} className="group relative">
+                        <div className="p-3 bg-gray-800/50 rounded-lg text-sm text-gray-300 border border-gray-700/50 group-hover:border-orange-500/30 transition-colors">
+                          • {audio}
+                        </div>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                          onClick={() => copyToClipboard(audio)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </GlassCard>
+            </div>
+
+            {/* Hashtags Section */}
+            <GlassCard className="p-6 hover-lift">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-cyan-500/20 rounded-lg">
+                    <Hash className="h-5 w-5 text-cyan-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Recommended Hashtags</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {results.hashtags.map((tag: string, i: number) => (
+                    <button
+                      key={i}
+                      onClick={() => copyToClipboard(tag)}
+                      className="px-3 py-1 bg-cyan-500/10 text-cyan-400 rounded-full text-sm border border-cyan-500/20 hover:border-cyan-500/40 hover:bg-cyan-500/20 transition-colors cursor-pointer"
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Guidelines Section */}
+            <GlassCard className="p-6 hover-lift">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-500/20 rounded-lg">
+                    <Brain className="h-5 w-5 text-purple-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Strategic Guidelines</h3>
+                </div>
+                <div className="relative group">
+                  <div className="p-4 bg-gray-800/50 rounded-lg text-sm text-gray-300 border border-gray-700/50 group-hover:border-purple-500/30 transition-colors leading-relaxed">
+                    {results.guidelines}
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+                    onClick={() => copyToClipboard(results.guidelines)}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
+              <Button 
+                onClick={copyAllResults}
+                className="btn-primary flex items-center gap-2"
+              >
+                <Copy className="h-4 w-4" />
+                Copy All Content
+              </Button>
+              <Button 
+                variant="outline" 
+                className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 flex items-center gap-2"
+              >
+                <Save className="h-4 w-4" />
+                Save in Library
+              </Button>
+              <Button 
+                variant="outline" 
+                className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 flex items-center gap-2"
+              >
+                <Share className="h-4 w-4" />
+                Share Strategy
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 } 

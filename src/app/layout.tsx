@@ -1,6 +1,8 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/providers/AuthProvider';
+import { SettingsProvider } from '@/providers/SettingsProvider';
+import AppLayout from '@/components/layout/AppLayout';
 
 const inter = Inter({ 
   subsets: ['latin'], 
@@ -58,9 +60,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased flex flex-col h-screen`}>
         <AuthProvider>
-          <div className="flex-grow overflow-y-auto">
-            {children}
-          </div>
+          <SettingsProvider>
+            <AppLayout>
+              {children}
+            </AppLayout>
+          </SettingsProvider>
         </AuthProvider>
       </body>
     </html>

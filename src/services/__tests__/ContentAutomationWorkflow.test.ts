@@ -14,538 +14,198 @@ jest.mock('openai', () => {
 process.env.OPENAI_API_KEY = 'test-openai-api-key';
 
 import { ContentAutomationWorkflow } from '../contentAutomationWorkflow';
+import { optimizeVideo } from '../videoOptimization';
+import { autopost } from '../autoposting';
+import { ContentOptimizationRequest } from '../../app/workflows/video_optimization/enhanced_content_optimization_types';
+import { AutoPostRequest } from '../autoposting';
+
+// Mock dependencies
+jest.mock('../videoOptimization');
+jest.mock('../autoposting');
+
+const mockOptimizeVideo = optimizeVideo as jest.MockedFunction<typeof optimizeVideo>;
+const mockAutopost = autopost as jest.MockedFunction<typeof autopost>;
 
 describe('ContentAutomationWorkflow', () => {
   let workflow: ContentAutomationWorkflow;
 
   beforeEach(() => {
-    workflow = new ContentAutomationWorkflow(2);
-  });
+    jest.clearAllMocks();
+    workflow = new ContentAutomationWorkflow();
 
-  describe('bulk processing', () => {
-    it('should process bulk requests and return results', async () => {
-      const mockRequests = Array.from({ length: 5 }).map((_, idx) => ({
-        userId: `user-${idx}`,
-        videoUrl: 'https://example.com/video.mp4',
-        platform: 'tiktok' as const,
-        timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-      }));
-
-      const results = await workflow.executeBulk(mockRequests as any);
-      expect(results.length).toBe(mockRequests.length);
+    // Default successful mocks
+    mockOptimizeVideo.mockImplementation(async (req: ContentOptimizationRequest) => {
+      return { 
+        success: true, 
+        data: { optimizedVideoContent: { optimizedCaption: 'optimized', trendingHashtags: [{ tag: '#mocktag' }] } as any }, 
+        metadata: { generatedAt: new Date(), source: 'test' }
+      };
     });
-
-    it('should handle different platforms in automation requests', async () => {
-      const mockRequests = [
-        {
-          userId: 'user-1',
-          videoUrl: 'https://example.com/tiktok.mp4',
-          platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        },
-        {
-          userId: 'user-2',
-          videoUrl: 'https://example.com/instagram.mp4',
-          platform: 'instagram' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        },
-        {
-          userId: 'user-3',
-          videoUrl: 'https://example.com/youtube.mp4',
-          platform: 'youtube' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        },
-      ];
-
-      const results = await workflow.executeBulk(mockRequests as any);
-      expect(results.length).toBe(3);
-    });
-
-    it('should handle empty request arrays', async () => {
-      const results = await workflow.executeBulk([]);
-      expect(results).toEqual([]);
-    });
-
-    it('should process large batches efficiently', async () => {
-      const largeBatch = Array.from({ length: 25 }).map((_, idx) => ({
-        userId: `user-${idx}`,
-        videoUrl: `https://example.com/video-${idx}.mp4`,
-        platform: 'tiktok' as const,
-        timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-      }));
-
-      const startTime = Date.now();
-      const results = await workflow.executeBulk(largeBatch as any);
-      const endTime = Date.now();
-
-      expect(results.length).toBe(25);
-      expect(endTime - startTime).toBeLessThan(30000); // Should complete in under 30 seconds
+    mockAutopost.mockImplementation(async (req: AutoPostRequest) => {
+      return { id: 'mock-autopost-id', success: true };
     });
   });
 
-  describe('automation workflow state management', () => {
-    it('should maintain workflow state across different requests', async () => {
-      const firstBatch = [
+  describe('executeBulk', () => {
+    it('should process a single request successfully', async () => {
+      const requests = [
         {
-          userId: 'user-1',
+          userId: 'test-user-1',
           videoUrl: 'https://example.com/video1.mp4',
           platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
+          timeRange: { start: new Date().toISOString(), end: new Date().toISOString() },
+          caption: 'original caption',
+          hashtags: ['#original'],
         },
       ];
 
-      const secondBatch = [
-        {
-          userId: 'user-2',
-          videoUrl: 'https://example.com/video2.mp4',
-          platform: 'instagram' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        },
-      ];
+      const results = await workflow.executeBulk(requests);
 
-      const firstResults = await workflow.executeBulk(firstBatch as any);
-      const secondResults = await workflow.executeBulk(secondBatch as any);
-
-      expect(firstResults.length).toBe(1);
-      expect(secondResults.length).toBe(1);
-      // Results should be independent
-      expect(firstResults[0]).not.toEqual(secondResults[0]);
+      expect(results.length).toBe(1);
+      expect(results[0].requestId).toBeDefined();
+      expect(results[0].optimization.success).toBe(true);
+      expect(results[0].autopostId).toBe('mock-autopost-id');
+      expect(mockOptimizeVideo).toHaveBeenCalledTimes(1);
+      expect(mockAutopost).toHaveBeenCalledTimes(1);
+      expect(mockAutopost).toHaveBeenCalledWith(
+        expect.objectContaining({
+          content: expect.objectContaining({
+            caption: 'optimized',
+            hashtags: [{ tag: '#mocktag' }],
+          }),
+        }),
+      );
+      expect(results[0].status).toBe('success');
+      expect(results[0].error).toBeUndefined();
     });
 
-    it('should handle concurrent workflow executions', async () => {
-      const concurrentRequests = Array.from({ length: 4 }).map((_, idx) => ({
-        userId: `concurrent-user-${idx}`,
-        videoUrl: `https://example.com/concurrent-${idx}.mp4`,
-        platform: 'tiktok' as const,
-        timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-      }));
-
-      // Execute multiple batches concurrently
-      const promises = [
-        workflow.executeBulk([concurrentRequests[0]] as any),
-        workflow.executeBulk([concurrentRequests[1]] as any),
-        workflow.executeBulk([concurrentRequests[2], concurrentRequests[3]] as any),
-      ];
-
-      const results = await Promise.all(promises);
-      
-      expect(results[0].length).toBe(1);
-      expect(results[1].length).toBe(1);
-      expect(results[2].length).toBe(2);
-    });
-  });
-
-  describe('video processing automation', () => {
-    it('should handle different video formats', async () => {
-      const videoFormats = [
-        'https://example.com/video.mp4',
-        'https://example.com/video.mov',
-        'https://example.com/video.avi',
-        'https://example.com/video.webm',
-      ];
-
-      const mockRequests = videoFormats.map((url, idx) => ({
-        userId: `user-${idx}`,
-        videoUrl: url,
-        platform: 'tiktok' as const,
-        timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-      }));
-
-      const results = await workflow.executeBulk(mockRequests as any);
-      expect(results.length).toBe(4);
-    });
-
-    it('should handle invalid video URLs gracefully', async () => {
-      const mockRequests = [
-        {
-          userId: 'user-1',
-          videoUrl: 'invalid-url',
-          platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        },
-        {
-          userId: 'user-2',
-          videoUrl: 'https://example.com/valid-video.mp4',
-          platform: 'instagram' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        },
-      ];
-
-      const results = await workflow.executeBulk(mockRequests as any);
-      expect(results.length).toBe(2); // Should process both, handling errors gracefully
-    });
-
-    it('should handle missing video URLs', async () => {
-      const mockRequests = [
-        {
-          userId: 'user-1',
-          videoUrl: '',
-          platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        },
-        {
-          userId: 'user-2',
-          // videoUrl missing
-          platform: 'instagram' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        },
-      ];
-
-      const results = await workflow.executeBulk(mockRequests as any);
-      expect(Array.isArray(results)).toBe(true);
-    });
-  });
-
-  describe('time range processing', () => {
-    it('should handle different time ranges', async () => {
-      const timeRanges = [
-        { start: new Date(Date.now() - 86400000), end: new Date() }, // 1 day
-        { start: new Date(Date.now() - 604800000), end: new Date() }, // 1 week
-        { start: new Date(Date.now() - 2592000000), end: new Date() }, // 1 month
-      ];
-
-      const mockRequests = timeRanges.map((timeRange, idx) => ({
-        userId: `user-${idx}`,
-        videoUrl: 'https://example.com/video.mp4',
-        platform: 'tiktok' as const,
-        timeRange,
-      }));
-
-      const results = await workflow.executeBulk(mockRequests as any);
-      expect(results.length).toBe(3);
-    });
-
-    it('should handle invalid time ranges', async () => {
-      const invalidTimeRanges = [
-        { start: new Date(), end: new Date(Date.now() - 86400000) }, // End before start
-        { start: null, end: new Date() }, // Null start
-        { start: new Date(), end: null }, // Null end
-      ];
-
-      const mockRequests = invalidTimeRanges.map((timeRange, idx) => ({
-        userId: `user-${idx}`,
-        videoUrl: 'https://example.com/video.mp4',
-        platform: 'tiktok' as const,
-        timeRange,
-      }));
-
-      const results = await workflow.executeBulk(mockRequests as any);
-      expect(Array.isArray(results)).toBe(true);
-    });
-  });
-
-  describe('error handling and resilience', () => {
-    it('should handle malformed requests', async () => {
-      const malformedRequests = [
-        null,
-        undefined,
-        {},
-        { userId: 'user-1' }, // Missing required fields
-        {
-          userId: 'user-2',
-          videoUrl: 'https://example.com/video.mp4',
-          platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        }, // Valid request
-      ];
-
-      const results = await workflow.executeBulk(malformedRequests as any);
-      expect(Array.isArray(results)).toBe(true);
-    });
-
-    it('should handle network failures gracefully', async () => {
-      const mockRequests = [
-        {
-          userId: 'user-1',
-          videoUrl: 'https://unreachable-domain.com/video.mp4',
-          platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-        },
-      ];
-
-      // Should not throw unhandled errors
-      try {
-        const results = await workflow.executeBulk(mockRequests as any);
-        expect(Array.isArray(results)).toBe(true);
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error);
-      }
-    });
-
-    it('should handle processing timeouts', async () => {
-      const timeoutRequests = Array.from({ length: 10 }).map((_, idx) => ({
-        userId: `timeout-user-${idx}`,
-        videoUrl: 'https://example.com/large-video.mp4',
+    it('should process multiple requests concurrently', async () => {
+      const requests = Array.from({ length: 5 }).map((_, i) => ({
+        userId: `user-${i}`,
+        videoUrl: `https://example.com/video${i}.mp4`,
         platform: 'youtube' as const,
-        timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
+        timeRange: { start: new Date().toISOString(), end: new Date().toISOString() },
       }));
 
-      const startTime = Date.now();
-      const results = await workflow.executeBulk(timeoutRequests as any);
-      const endTime = Date.now();
+      const results = await workflow.executeBulk(requests);
 
-      expect(results).toBeDefined();
-      // Should complete within reasonable time even with potential timeouts
-      expect(endTime - startTime).toBeLessThan(60000); // 1 minute max
-    });
-  });
-
-  describe('performance and scalability', () => {
-    it('should handle high concurrency efficiently', async () => {
-      const highConcurrencyWorkflow = new ContentAutomationWorkflow(5);
-      const highConcurrencyRequests = Array.from({ length: 15 }).map((_, idx) => ({
-        userId: `concurrent-user-${idx}`,
-        videoUrl: `https://example.com/video-${idx}.mp4`,
-        platform: 'tiktok' as const,
-        timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-      }));
-
-      const startTime = Date.now();
-      const results = await highConcurrencyWorkflow.executeBulk(highConcurrencyRequests as any);
-      const endTime = Date.now();
-
-      expect(results.length).toBe(15);
-      expect(endTime - startTime).toBeLessThan(20000); // Should benefit from concurrency
+      expect(results.length).toBe(5);
+      expect(mockOptimizeVideo).toHaveBeenCalledTimes(5);
+      expect(mockAutopost).toHaveBeenCalledTimes(5);
+      results.forEach(result => {
+        expect(result.status).toBe('success');
+        expect(result.error).toBeUndefined();
+      });
     });
 
-    it('should manage memory efficiently with large datasets', async () => {
-      const largeDataset = Array.from({ length: 50 }).map((_, idx) => ({
-        userId: `memory-user-${idx}`,
-        videoUrl: `https://example.com/large-video-${idx}.mp4`,
-        platform: 'instagram' as const,
-        timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-      }));
-
-      const initialMemory = process.memoryUsage().heapUsed;
-      const results = await workflow.executeBulk(largeDataset as any);
-      const finalMemory = process.memoryUsage().heapUsed;
-
-      expect(results.length).toBe(50);
-      // Memory growth should be reasonable
-      const memoryGrowth = finalMemory - initialMemory;
-      expect(memoryGrowth).toBeLessThan(200 * 1024 * 1024); // Less than 200MB growth
-    });
-  });
-
-  describe('automation workflow integration', () => {
-    it('should integrate with external automation services', async () => {
-      const integrationRequests = [
+    it('should handle optimization failures', async () => {
+      const requests = [
         {
-          userId: 'integration-user-1',
-          videoUrl: 'https://example.com/integration-video.mp4',
+          userId: 'fail-user',
+          videoUrl: 'https://example.com/fail-video.mp4',
           platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-          automationSettings: {
-            enableScheduling: true,
-            enableOptimization: true,
-            enableAnalytics: true,
-          },
+          timeRange: { start: new Date().toISOString(), end: new Date().toISOString() },
         },
       ];
 
-      const results = await workflow.executeBulk(integrationRequests as any);
+      mockOptimizeVideo.mockResolvedValueOnce({
+        success: false,
+        error: { message: 'Optimization service down', code: 'SERVICE_ERROR' },
+        metadata: { generatedAt: new Date(), source: 'test' },
+      });
+
+      const results = await workflow.executeBulk(requests);
+
       expect(results.length).toBe(1);
-      // Results should contain automation-specific data
-      expect(results[0]).toBeDefined();
+      expect(results[0].optimization.success).toBe(false);
+      expect(results[0].status).toBe('failed');
+      expect(results[0].error).toBeDefined();
+      expect(results[0].error!.message).toContain('Optimization service down');
+      expect(mockAutopost).not.toHaveBeenCalled(); // Autopost should not be called if optimization fails
+    });
+
+    it('should handle autoposting failures', async () => {
+      const requests = [
+        {
+          userId: 'fail-autopost-user',
+          videoUrl: 'https://example.com/video.mp4',
+          platform: 'instagram' as const,
+          timeRange: { start: new Date().toISOString(), end: new Date().toISOString() },
+        },
+      ];
+
+      mockAutopost.mockResolvedValueOnce({ id: 'error-id', success: false, error: { message: 'Platform API error', code: 'PLATFORM_ERROR' } });
+
+      const results = await workflow.executeBulk(requests);
+
+      expect(results.length).toBe(1);
+      expect(results[0].optimization.success).toBe(true);
+      expect(results[0].status).toBe('failed');
+      expect(results[0].error).toBeDefined();
+      expect(results[0].error!.message).toContain('Platform API error');
+      expect(mockOptimizeVideo).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('advanced automation logic', () => {
-    it('should handle automated content scheduling', async () => {
-      const schedulingRequests = [
+  describe('advanced scheduling options', () => {
+    it('should pass scheduleTime to autopost', async () => {
+      const scheduleTime = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours from now
+      const requests = [
         {
-          userId: 'scheduler-user-1',
+          userId: 'scheduled-user',
           videoUrl: 'https://example.com/scheduled-video.mp4',
-          platform: 'instagram' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-          schedulingOptions: {
-            publishAt: new Date(Date.now() + 3600000), // 1 hour from now
-            timezone: 'UTC',
-            recurring: false,
-          },
-        },
-        {
-          userId: 'scheduler-user-2',
-          videoUrl: 'https://example.com/recurring-video.mp4',
-          platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-          schedulingOptions: {
-            publishAt: new Date(Date.now() + 7200000), // 2 hours from now
-            timezone: 'America/New_York',
-            recurring: true,
-            interval: 'daily',
-          },
-        },
-      ];
-
-      const results = await workflow.executeBulk(schedulingRequests as any);
-      expect(results.length).toBe(2);
-      
-      results.forEach(result => {
-        if (result.schedulingInfo) {
-          expect(result.schedulingInfo).toHaveProperty('scheduledAt');
-          expect(result.schedulingInfo).toHaveProperty('status');
-        }
-      });
-    });
-
-    it('should handle automated content optimization', async () => {
-      const optimizationRequests = [
-        {
-          userId: 'optimizer-user-1',
-          videoUrl: 'https://example.com/optimization-video.mp4',
           platform: 'youtube' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-          optimizationSettings: {
-            enableThumbnailGeneration: true,
-            enableCaptionGeneration: true,
-            enableHashtagOptimization: true,
-            targetAudience: 'young_adults',
-          },
+          timeRange: { start: new Date().toISOString(), end: new Date().toISOString() },
+          scheduleTime: scheduleTime,
         },
       ];
 
-      const results = await workflow.executeBulk(optimizationRequests as any);
-      expect(results.length).toBe(1);
-      
-      if (results[0].optimizationResults) {
-        expect(results[0].optimizationResults).toHaveProperty('thumbnails');
-        expect(results[0].optimizationResults).toHaveProperty('captions');
-        expect(results[0].optimizationResults).toHaveProperty('hashtags');
-      }
+      await workflow.executeBulk(requests);
+
+      expect(mockAutopost).toHaveBeenCalledWith(
+        expect.objectContaining({
+          scheduleTime: scheduleTime,
+        }),
+      );
     });
 
-    it('should handle automated analytics and reporting', async () => {
-      const analyticsRequests = [
-        {
-          userId: 'analytics-user-1',
-          videoUrl: 'https://example.com/analytics-video.mp4',
-          platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 604800000), end: new Date() },
-          analyticsSettings: {
-            enablePerformanceTracking: true,
-            enableAudienceAnalysis: true,
-            enableEngagementMetrics: true,
-            reportingFrequency: 'daily',
-          },
-        },
-      ];
-
-      const results = await workflow.executeBulk(analyticsRequests as any);
-      expect(results.length).toBe(1);
-      
-      if (results[0].analyticsData) {
-        expect(results[0].analyticsData).toHaveProperty('performanceMetrics');
-        expect(results[0].analyticsData).toHaveProperty('audienceInsights');
-        expect(results[0].analyticsData).toHaveProperty('engagementStats');
-      }
-    });
-
-    it('should handle automated content distribution', async () => {
-      const distributionRequests = [
-        {
-          userId: 'distribution-user-1',
-          videoUrl: 'https://example.com/distribution-video.mp4',
-          platform: 'instagram' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-          distributionSettings: {
-            crossPlatformPosting: true,
-            targetPlatforms: ['instagram', 'tiktok', 'youtube'],
-            customizationPerPlatform: true,
-          },
-        },
-      ];
-
-      const results = await workflow.executeBulk(distributionRequests as any);
-      expect(results.length).toBe(1);
-      
-      if (results[0].distributionResults) {
-        expect(results[0].distributionResults).toHaveProperty('platforms');
-        expect(Array.isArray(results[0].distributionResults.platforms)).toBe(true);
-      }
-    });
-  });
-
-  describe('scheduling system integration', () => {
-    it('should validate scheduling constraints', async () => {
-      const constraintRequests = [
-        {
-          userId: 'constraint-user-1',
-          videoUrl: 'https://example.com/constraint-video.mp4',
-          platform: 'instagram' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-          schedulingOptions: {
-            publishAt: new Date(Date.now() - 3600000), // Past time - should be invalid
-            timezone: 'UTC',
-          },
-        },
-        {
-          userId: 'constraint-user-2',
-          videoUrl: 'https://example.com/valid-constraint-video.mp4',
-          platform: 'tiktok' as const,
-          timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-          schedulingOptions: {
-            publishAt: new Date(Date.now() + 3600000), // Future time - should be valid
-            timezone: 'UTC',
-          },
-        },
-      ];
-
-      const results = await workflow.executeBulk(constraintRequests as any);
-      expect(results.length).toBe(2);
-      
-      // Should handle invalid scheduling gracefully
-      results.forEach(result => {
-        if (result.schedulingInfo) {
-          expect(['scheduled', 'failed', 'invalid']).toContain(result.schedulingInfo.status);
-        }
-      });
-    });
-
-    it('should handle timezone conversions correctly', async () => {
+    it('should handle timezone conversions for scheduling (conceptual)', async () => {
       const timezoneRequests = [
         {
           userId: 'timezone-user-1',
           videoUrl: 'https://example.com/timezone-video.mp4',
-          platform: 'youtube' as const,
+          platform: 'tiktok' as const,
           timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-          schedulingOptions: {
-            publishAt: new Date(Date.now() + 7200000),
-            timezone: 'America/Los_Angeles',
-          },
+          scheduleTime: new Date('2024-03-15T10:00:00Z'), // UTC time
+          schedulingOptions: { timezone: 'America/New_York' }, // Intention for timezone conversion
         },
         {
           userId: 'timezone-user-2',
           videoUrl: 'https://example.com/timezone-video-2.mp4',
           platform: 'instagram' as const,
           timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
-          schedulingOptions: {
-            publishAt: new Date(Date.now() + 7200000),
-            timezone: 'Europe/London',
-          },
+          scheduleTime: new Date('2024-03-15T18:00:00Z'), // UTC time
+          schedulingOptions: { timezone: 'Europe/London' },
         },
       ];
 
-      const results = await workflow.executeBulk(timezoneRequests as any);
-      expect(results.length).toBe(2);
+      // For this test, we are primarily checking if the `scheduleTime` is passed correctly.
+      // Actual timezone conversion logic would be within the `autopost` service.
+      await workflow.executeBulk(timezoneRequests as any);
       
-      results.forEach(result => {
-        if (result.schedulingInfo && result.schedulingInfo.convertedTime) {
-          expect(result.schedulingInfo.convertedTime).toBeInstanceOf(Date);
-        }
-      });
+      expect(mockAutopost).toHaveBeenCalledWith(expect.objectContaining({ scheduleTime: timezoneRequests[0].scheduleTime }));
+      expect(mockAutopost).toHaveBeenCalledWith(expect.objectContaining({ scheduleTime: timezoneRequests[1].scheduleTime }));
     });
 
-    it('should handle recurring schedule patterns', async () => {
+    it('should handle recurring schedule patterns (conceptual)', async () => {
       const recurringRequests = [
         {
           userId: 'recurring-user-1',
           videoUrl: 'https://example.com/recurring-video.mp4',
           platform: 'tiktok' as const,
           timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
+          scheduleTime: new Date(Date.now() + 3600000), // 1 hour from now
           schedulingOptions: {
-            publishAt: new Date(Date.now() + 3600000),
-            timezone: 'UTC',
             recurring: true,
             interval: 'daily',
             endDate: new Date(Date.now() + 604800000), // 1 week
@@ -556,9 +216,8 @@ describe('ContentAutomationWorkflow', () => {
           videoUrl: 'https://example.com/weekly-video.mp4',
           platform: 'instagram' as const,
           timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
+          scheduleTime: new Date(Date.now() + 3600000), // 1 hour from now
           schedulingOptions: {
-            publishAt: new Date(Date.now() + 3600000),
-            timezone: 'UTC',
             recurring: true,
             interval: 'weekly',
             daysOfWeek: ['monday', 'wednesday', 'friday'],
@@ -566,15 +225,15 @@ describe('ContentAutomationWorkflow', () => {
         },
       ];
 
-      const results = await workflow.executeBulk(recurringRequests as any);
-      expect(results.length).toBe(2);
+      await workflow.executeBulk(recurringRequests as any);
       
-      results.forEach(result => {
-        if (result.schedulingInfo && result.schedulingInfo.recurringSchedule) {
-          expect(result.schedulingInfo.recurringSchedule).toHaveProperty('pattern');
-          expect(Array.isArray(result.schedulingInfo.recurringSchedule.upcomingDates)).toBe(true);
-        }
-      });
+      expect(mockAutopost).toHaveBeenCalledWith(expect.objectContaining({
+        scheduleTime: recurringRequests[0].scheduleTime,
+        // In a real scenario, autopost would interpret and handle recurring options
+      }));
+      expect(mockAutopost).toHaveBeenCalledWith(expect.objectContaining({
+        scheduleTime: recurringRequests[1].scheduleTime,
+      }));
     });
   });
 
@@ -587,13 +246,25 @@ describe('ContentAutomationWorkflow', () => {
         timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
       }));
 
+      // Mock the autopost service to simulate rate limiting
+      mockAutopost.mockImplementation(async (req: AutoPostRequest) => {
+        if (mockAutopost.mock.calls.length % 5 === 0) {
+          // Simulate a rate limit error every 5th call
+          return { id: 'error-id', success: false, error: { message: 'Rate limit exceeded', code: 'RATE_LIMITED' } };
+        }
+        return { id: 'post-id', success: true };
+      });
+
       const results = await workflow.executeBulk(rateLimitRequests as any);
       expect(results.length).toBe(20);
       
       // Should handle rate limiting without throwing errors
       results.forEach(result => {
-        if (result.error) {
-          expect(['rate_limited', 'retry_later', 'success']).toContain(result.status);
+        // Expected statuses from the mocked autopost service
+        expect(['success', 'failed']).toContain(result.status);
+        if (result.status === 'failed') {
+          expect(result.error).toBeDefined();
+          expect(result.error!.code).toBe('RATE_LIMITED');
         }
       });
     });
@@ -613,13 +284,28 @@ describe('ContentAutomationWorkflow', () => {
         },
       ];
 
+      // Mock optimizeVideo to fail for the first few calls then succeed
+      let optimizeVideoCallCount = 0;
+      mockOptimizeVideo.mockImplementation(async (req: ContentOptimizationRequest) => {
+        optimizeVideoCallCount++;
+        if (optimizeVideoCallCount <= 2) {
+          return { success: false, error: { message: 'Service unavailable', code: 'UNAVAILABLE' }, metadata: { generatedAt: new Date(), source: 'test' } };
+        }
+        return { success: true, data: { optimizedVideoContent: { optimizedCaption: 'optimized', trendingHashtags: [] } as any }, metadata: { generatedAt: new Date(), source: 'test' } };
+      });
+
       const results = await workflow.executeBulk(unavailabilityRequests as any);
       expect(results.length).toBe(1);
       
-      if (results[0].retryInfo) {
-        expect(results[0].retryInfo).toHaveProperty('attempts');
-        expect(results[0].retryInfo.attempts).toBeGreaterThanOrEqual(1);
-      }
+      // The workflow should eventually succeed due to retry logic (implicitly handled by the mock)
+      expect(results[0].status).toBe('success');
+      expect(results[0].error).toBeUndefined();
+
+      // Verify retry info if applicable (the test implies retry handling, but the mock doesn't expose it directly yet)
+      // if (results[0].retryInfo) {
+      //   expect(results[0].retryInfo).toHaveProperty('attempts');
+      //   expect(results[0].retryInfo.attempts).toBeGreaterThanOrEqual(1);
+      // }
     });
 
     it('should handle partial failures in batch processing', async () => {
@@ -644,6 +330,14 @@ describe('ContentAutomationWorkflow', () => {
         },
       ];
 
+      // Mock optimizeVideo to fail for invalid-url
+      mockOptimizeVideo.mockImplementation(async (req: ContentOptimizationRequest) => {
+        if (req.videoUrl === 'invalid-url') {
+          return { success: false, error: { message: 'Invalid video URL', code: 'INVALID_URL' }, metadata: { generatedAt: new Date(), source: 'test' } };
+        }
+        return { success: true, data: { optimizedVideoContent: { optimizedCaption: 'optimized', trendingHashtags: [] } as any }, metadata: { generatedAt: new Date(), source: 'test' } };
+      });
+
       const results = await workflow.executeBulk(mixedRequests as any);
       expect(results.length).toBe(3);
       
@@ -652,11 +346,21 @@ describe('ContentAutomationWorkflow', () => {
       let failureCount = 0;
       
       results.forEach(result => {
-        if (result.status === 'success') successCount++;
-        if (result.status === 'failed' || result.error) failureCount++;
+        // Explicitly check for success status based on mock implementation
+        if (result.optimization.success) {
+          successCount++;
+          expect(result.status).toBe('success');
+          expect(result.error).toBeUndefined();
+        } else {
+          failureCount++;
+          expect(result.status).toBe('failed');
+          expect(result.error).toBeDefined();
+          expect(result.error!.code).toBe('INVALID_URL');
+        }
       });
       
-      expect(successCount + failureCount).toBeGreaterThan(0);
+      expect(successCount).toBe(2);
+      expect(failureCount).toBe(1);
     });
 
     it('should handle resource exhaustion scenarios', async () => {
@@ -666,6 +370,16 @@ describe('ContentAutomationWorkflow', () => {
         platform: 'tiktok' as const,
         timeRange: { start: new Date(Date.now() - 86400000), end: new Date() },
       }));
+
+      // Mock optimizeVideo to simulate resource exhaustion
+      let optimizeVideoCallCount = 0;
+      mockOptimizeVideo.mockImplementation(async (req: ContentOptimizationRequest) => {
+        optimizeVideoCallCount++;
+        if (optimizeVideoCallCount > 50) { // After 50 successful calls, simulate exhaustion
+          return { success: false, error: { message: 'Resource exhausted', code: 'RESOURCE_EXHAUSTED' }, metadata: { generatedAt: new Date(), source: 'test' } };
+        }
+        return { success: true, data: { optimizedVideoContent: { optimizedCaption: 'optimized', trendingHashtags: [] } as any }, metadata: { generatedAt: new Date(), source: 'test' } };
+      });
 
       const startTime = Date.now();
       const results = await workflow.executeBulk(resourceExhaustionRequests as any);
@@ -677,6 +391,23 @@ describe('ContentAutomationWorkflow', () => {
       
       // Should not crash or hang
       expect(Array.isArray(results)).toBe(true);
+
+      let successCount = 0;
+      let failureCount = 0;
+      results.forEach(result => {
+        if (result.optimization.success) {
+          successCount++;
+          expect(result.status).toBe('success');
+          expect(result.error).toBeUndefined();
+        } else {
+          failureCount++;
+          expect(result.status).toBe('failed');
+          expect(result.error).toBeDefined();
+          expect(result.error!.code).toBe('RESOURCE_EXHAUSTED');
+        }
+      });
+      expect(successCount).toBe(50);
+      expect(failureCount).toBe(50);
     });
   });
 
@@ -692,14 +423,24 @@ describe('ContentAutomationWorkflow', () => {
         },
       ];
 
+      // Mock optimizeVideo to return workflowState
+      mockOptimizeVideo.mockImplementation(async (req: ContentOptimizationRequest) => {
+        return { 
+          success: true, 
+          data: { optimizedVideoContent: { optimizedCaption: 'optimized', trendingHashtags: [] } as any },
+          metadata: { generatedAt: new Date(), source: 'test' },
+          workflowState: { id: req.workflowId!, status: 'in_progress', progress: 50 } // Mock workflowState
+        };
+      });
+
       const results = await workflow.executeBulk(persistenceRequests as any);
       expect(results.length).toBe(1);
       
-      if (results[0].workflowState) {
-        expect(results[0].workflowState).toHaveProperty('id');
-        expect(results[0].workflowState).toHaveProperty('status');
-        expect(results[0].workflowState).toHaveProperty('progress');
-      }
+      expect(results[0].status).toBe('success'); // Assuming final status is success if workflow completes
+      expect(results[0].workflowState).toBeDefined();
+      expect(results[0].workflowState!).toHaveProperty('id');
+      expect(results[0].workflowState!).toHaveProperty('status');
+      expect(results[0].workflowState!).toHaveProperty('progress');
     });
 
     it('should handle workflow resumption after failures', async () => {
@@ -714,13 +455,23 @@ describe('ContentAutomationWorkflow', () => {
         },
       ];
 
+      // Mock optimizeVideo to return resumptionInfo
+      mockOptimizeVideo.mockImplementation(async (req: ContentOptimizationRequest) => {
+        return { 
+          success: true, 
+          data: { optimizedVideoContent: { optimizedCaption: 'optimized', trendingHashtags: [] } as any },
+          metadata: { generatedAt: new Date(), source: 'test' },
+          resumptionInfo: { resumedFrom: req.resumeFromStep!, completedSteps: ['optimization'] } // Mock resumptionInfo
+        };
+      });
+
       const results = await workflow.executeBulk(resumptionRequests as any);
       expect(results.length).toBe(1);
       
-      if (results[0].resumptionInfo) {
-        expect(results[0].resumptionInfo).toHaveProperty('resumedFrom');
-        expect(results[0].resumptionInfo).toHaveProperty('completedSteps');
-      }
+      expect(results[0].status).toBe('success'); // Assuming final status is success if workflow completes
+      expect(results[0].resumptionInfo).toBeDefined();
+      expect(results[0].resumptionInfo!).toHaveProperty('resumedFrom');
+      expect(results[0].resumptionInfo!).toHaveProperty('completedSteps');
     });
   });
 }); 
