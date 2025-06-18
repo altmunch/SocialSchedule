@@ -1,8 +1,0 @@
----
-description: when using gemini models
-globs: 
-alwaysApply: false
----
-large scale operations involving multiple files
-
-- do not ask for context, simple search the codebase for the related files

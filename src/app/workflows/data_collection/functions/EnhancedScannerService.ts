@@ -9,10 +9,9 @@ import EventEmitter from 'events';
 import { Platform as DeliverablePlatform } from '../../deliverables/types/deliverables_types';
 import { retryWithBackoff } from '../../../shared_infra';
 import PlatformFactory from '../lib/platforms/consolidated/PlatformFactory';
-import { TikTokClient } from '../lib/platforms/TikTokClient';
-import { InstagramClient } from '../lib/platforms/InstagramClient';
 import { ApiConfig } from '../lib/platforms/types';
 import { IAuthTokenManager, PlatformCredentials, PlatformClientIdentifier, AuthStrategy } from '../lib/auth.types';
+import { PlatformClient } from '../lib/platforms/types';
 
 // Circuit breaker states
 export enum CircuitBreakerState {
@@ -23,7 +22,7 @@ export enum CircuitBreakerState {
 
 // Enhanced scanner service with improved caching, monitoring, and resilience
 export class EnhancedScannerService {
-  private readonly platformClients: Map<Platform, any> = new Map();
+  private readonly platformClients: Map<Platform, PlatformClient> = new Map();
   private readonly scanResults: Map<string, ScanResult> = new Map();
   private readonly SCAN_EXPIRATION_MS = 24 * 60 * 60 * 1000; // 24 hours
   private readonly SCAN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
@@ -346,23 +345,6 @@ export class EnhancedScannerService {
     for (const p of platforms) {
       const { platform, accessToken, userId } = p;
 
-      // Create a default ApiConfig
-      let defaultConfig: ApiConfig = {
-        baseUrl: '', // Will be set per platform
-        version: '', // Will be set per platform
-        timeout: 20000,
-        headers: { 'Content-Type': 'application/json; charset=UTF-8' },
-      };
-
-      if (platform === 'tiktok') {
-        defaultConfig.baseUrl = 'https://open.tiktokapis.com/v2';
-        defaultConfig.version = 'v2';
-      } else if (platform === 'instagram') {
-        defaultConfig.baseUrl = 'https://graph.instagram.com'; // Common base
-        defaultConfig.version = 'v19.0'; // Example version, adjust as needed
-      }
-      // Add other platforms as needed
-
       // The AuthTokenManagerService needs a proper implementation that can actually store and retrieve tokens
       // For now, it's a simple mock based on the single accessToken passed.
       // In a production environment, this would interact with a secure token store.
@@ -382,21 +364,22 @@ export class EnhancedScannerService {
       };
 
       try {
-        switch (platform) {
-          case 'tiktok':
-            this.platformClients.set(platform, new TikTokClient(accessToken, authTokenManager, this.monitoringSystem, userId));
-            break;
-          case 'instagram':
-            this.platformClients.set(platform, new InstagramClient(accessToken, authTokenManager, this.monitoringSystem, userId));
-            break;
-          // Add other platform initializations here
-          default:
-            this.logStructured('warn', `Platform client initialization not implemented for ${platform}`, { platform });
-            continue; // Skip if platform client is not implemented
-        }
-        this.logStructured('info', `Successfully initialized ${platform} client directly with token.`, { platform, userId });
+        const client = PlatformFactory.createClient(platform, authTokenManager, userId, {
+          // Define base URL and version per platform here for the factory
+          // These values might be specific to the API version you're targeting
+          // And will be used by the BasePlatformClient constructor within the factory
+          baseUrl: platform === 'tiktok' ? 'https://open.tiktokapis.com/v2' :
+                     platform === 'instagram' ? 'https://graph.instagram.com' :
+                     'https://www.googleapis.com/youtube/v3',
+          version: platform === 'tiktok' ? 'v2' :
+                     platform === 'instagram' ? 'v19.0' : // Or whatever Instagram Graph API version you're using
+                     'v3', // For YouTube
+          rateLimit: { requests: 100, perSeconds: 60 } // Example default rate limit
+        });
+        this.platformClients.set(platform, client);
+        this.logStructured('info', `Successfully initialized ${platform} client via PlatformFactory.`, { platform, userId });
       } catch (error) {
-        this.logStructured('error', `Failed to initialize ${platform} client directly with token.`, { platform, userId, error });
+        this.logStructured('error', `Failed to initialize ${platform} client via PlatformFactory.`, { platform, userId, error });
         // Optionally, re-throw or handle specific errors
       }
     }
@@ -886,38 +869,5 @@ export class EnhancedScannerService {
     this.eventEmitter.removeAllListeners();
     
     this.logStructured('info', 'Scanner service destroyed');
-  }
-  
-  // Example: initialize platform clients (should be called during service setup)
-  public initializePlatformClients(authTokenManager: any, userId?: string) {
-    // TODO: Implement a more robust AuthTokenManagerService for production
-    // This current implementation uses a dummy token manager and should be replaced with a proper one.
-    const dummyAuthTokenManager: IAuthTokenManager = {
-      getAuthToken: async (identifier: PlatformClientIdentifier) => {
-        console.warn(`Dummy AuthTokenManager: Getting token for ${identifier.platform} ${identifier.clientId || identifier.userId}`);
-        return { accessToken: 'mock_access_token', strategy: AuthStrategy.OAuth };
-      },
-      refreshAuthToken: async (identifier: PlatformClientIdentifier) => {
-        console.warn(`Dummy AuthTokenManager: Refreshing token for ${identifier.platform} ${identifier.clientId || identifier.userId}`);
-        return { accessToken: 'mock_refreshed_token', strategy: AuthStrategy.OAuth };
-      },
-      invalidateAuthToken: async (identifier: PlatformClientIdentifier) => {
-        console.warn(`Dummy AuthTokenManager: Invalidating token for ${identifier.platform} ${identifier.clientId || identifier.userId}`);
-        return true;
-      }
-    };
-
-    const finalAuthTokenManager = authTokenManager || dummyAuthTokenManager;
-
-    for (const platform of [
-      'tiktok',
-      'instagram',
-      'youtube',
-    ] as Platform[]) {
-      if (PlatformFactory.isPlatformSupported(platform)) {
-        const client = PlatformFactory.createClient(platform, finalAuthTokenManager, userId);
-        this.platformClients.set(platform, client);
-      }
-    }
   }
 }

@@ -35,6 +35,18 @@ type CalendarPost = {
   isOptimalTime?: boolean;
 };
 
+// Returns a Tailwind color class for heatmap intensity
+function getHeatmapColor(intensity: number): string {
+  switch (intensity) {
+    case 3:
+      return 'bg-emerald-500/40'; // Optimal
+    case 2:
+      return 'bg-emerald-500/20'; // Medium
+    default:
+      return 'bg-gray-700/40'; // Regular
+  }
+}
+
 export default function BlitzComponent() {
   const { user } = useAuth();
   const [content, setContent] = useState('');

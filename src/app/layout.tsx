@@ -3,7 +3,6 @@ import '../styles/dashboard-components.css';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { SettingsProvider } from '@/providers/SettingsProvider';
-import { AppLayout } from '@/components/layout/AppLayout';
 
 const inter = Inter({ 
   subsets: ['latin'], 
@@ -62,9 +61,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased flex flex-col overflow-x-hidden`}>
         <AuthProvider>
           <SettingsProvider>
-            <AppLayout>
-              {children}
-            </AppLayout>
+            {children}
           </SettingsProvider>
         </AuthProvider>
       </body>

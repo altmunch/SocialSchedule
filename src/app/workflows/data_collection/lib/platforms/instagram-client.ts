@@ -184,4 +184,40 @@ export class InstagramClient extends BasePlatformClient {
 
     return { data: { comments, nextPageCursor, hasMore } };
   }
+
+  /**
+   * Fetches a user's posts (media) for Instagram, adapting to the expected getUserPosts interface.
+   * @param userId Instagram user ID
+   * @param lookbackDays Number of days to look back (default: 30)
+   * @param maxPages Not used (Instagram API paginates with cursor)
+   * @param maxResultsPerPage Number of results per page (default: 20)
+   * @returns Promise<PlatformPost[]>
+   */
+  async getUserPosts(
+    userId: string,
+    lookbackDays: number = 30,
+    maxPages?: number,
+    maxResultsPerPage: number = 20
+  ): Promise<any[]> {
+    try {
+      const response = await this.getUserVideos({ userId, limit: maxResultsPerPage });
+      if (response.error) {
+        this.log('error', 'getUserPosts failed in getUserVideos', response.error);
+        return [];
+      }
+      let posts = response.data?.posts || [];
+      // Optionally filter by lookbackDays
+      if (lookbackDays && posts.length > 0) {
+        const cutoff = Date.now() - lookbackDays * 24 * 60 * 60 * 1000;
+        posts = posts.filter(post => {
+          const created = new Date(post.createdAt || post.timestamp).getTime();
+          return created >= cutoff;
+        });
+      }
+      return posts;
+    } catch (err) {
+      this.log('error', 'getUserPosts threw error', err);
+      return [];
+    }
+  }
 }

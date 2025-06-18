@@ -7,7 +7,7 @@ const IV_LENGTH = 16; // 128 bits
 // Ideally, derive this from a secure secret vault.
 const DEFAULT_SECRET = process.env.SECURE_TRANSFER_KEY || crypto.randomBytes(KEY_LENGTH).toString('hex');
 
-export function encrypt(data: any, secret: string): { iv: string; authTag: string; encrypted: string } {
+export function encrypt(data: unknown, secret: string): { iv: string; authTag: string; encrypted: string } {
   // Input validation
   if (!secret || secret.length === 0) {
     throw new Error('Secret key is required for encryption');
@@ -43,7 +43,7 @@ export function encrypt(data: any, secret: string): { iv: string; authTag: strin
   };
 }
 
-export function decrypt(encryptedData: { iv: string; authTag: string; encrypted: string }, secret: string): any {
+export function decrypt(encryptedData: { iv: string; authTag: string; encrypted: string }, secret: string): unknown {
   // Input validation
   if (!secret || secret.length === 0) {
     throw new Error('Secret key is required for decryption');

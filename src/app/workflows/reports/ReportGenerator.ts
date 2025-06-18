@@ -1,5 +1,7 @@
 // ReportGenerator.ts
 
+import type { ReportDataInput } from './ReportDataCollector';
+
 /**
  * Options for report generation and delivery.
  */
@@ -20,6 +22,18 @@ export class EmailService {
   }
 }
 
+export type ReportDataResult = {
+  summary: Record<string, number>;
+  timeSeries: Array<{ date: string; metrics: Record<string, number> }>;
+  comparisons?: {
+    previousPeriod: Record<string, number>;
+    percentageChanges: Record<string, number>;
+  };
+  eCommerceMetrics?: Record<string, number>;
+};
+
+export type ReportInsights = Record<string, number>; // Placeholder, refine as needed
+
 /**
  * Generates and schedules reports in various formats.
  */
@@ -27,8 +41,8 @@ export class ReportGenerator {
   constructor(private emailService?: EmailService) {}
 
   async generateReport(
-    data: any,
-    insights: any,
+    data: ReportDataResult,
+    insights: ReportInsights,
     options: ReportOptions
   ): Promise<string | Buffer> {
     // TODO: Implement HTML/JSON report generation

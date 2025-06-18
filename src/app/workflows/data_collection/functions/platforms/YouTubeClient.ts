@@ -436,4 +436,30 @@ export class YouTubeClient extends BasePlatformClient {
       }
     );
   }
+
+  /**
+   * Wrapper for pipeline compatibility: fetches a user's posts for YouTube as an array of PlatformPost.
+   * @param userId YouTube channel ID
+   * @param lookbackDays Number of days to look back (default: 30)
+   * @param maxPages Number of pages to fetch (default: 5)
+   * @param maxResultsPerPage Number of results per page (default: 20)
+   * @returns Promise<PlatformPost[]>
+   */
+  async getUserPosts(
+    userId: string,
+    lookbackDays: number = this.DEFAULT_LOOKBACK_DAYS,
+    maxPages: number = 5,
+    maxResultsPerPage: number = 20
+  ): Promise<PlatformPost[]> {
+    try {
+      const response = await this.getUserPosts(userId, lookbackDays, maxPages, maxResultsPerPage);
+      if (response && response.data) {
+        return response.data as PlatformPost[];
+      }
+      return [];
+    } catch (err) {
+      this.log && this.log('error', 'getUserPosts threw error', err);
+      return [];
+    }
+  }
 }

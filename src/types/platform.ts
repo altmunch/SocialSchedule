@@ -5,7 +5,7 @@ export interface PlatformConfig {
   name: string;
   icon: string;
   enabled: boolean;
-  credentials: Record<string, any>;
+  credentials: Record<string, unknown>;
   settings: {
     autoPost: boolean;
     optimalTimes: boolean;

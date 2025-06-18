@@ -1,7 +1,7 @@
 'use client';
 
-import LandingPage from './landing/page';
+import SimplifiedLanding from './landing/SimplifiedLanding';
 
 export default function Home() {
-  return <LandingPage />;
+  return <SimplifiedLanding />;
 } 

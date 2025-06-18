@@ -105,6 +105,12 @@ export interface PlatformClient {
     limit?: number;
   }): Promise<ApiResponse<{ posts: PlatformPost[]; nextPageCursor?: string; hasMore?: boolean }>>;
   getVideoComments(postId: string, options?: { cursor?: string; limit?: number; }): Promise<ApiResponse<{ comments: PlatformComment[]; nextPageCursor?: string; hasMore?: boolean }>>;
+  getUserPosts(
+    userId: string,
+    lookbackDays?: number,
+    maxPages?: number,
+    maxResultsPerPage?: number
+  ): Promise<PlatformPost[]>;
   // Add other platform-specific methods as needed
 }
 

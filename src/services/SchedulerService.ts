@@ -8,7 +8,7 @@ interface ScheduleOptions {
   timezone?: string;
   maxQueueSize?: number;
   maxConcurrentTasks?: number;
-  logger?: any;
+  logger?: Console;
 }
 
 export class SchedulerService {
@@ -136,13 +136,13 @@ export class SchedulerService {
   /**
    * Schedules a generic task to be executed.
    * @param taskType - Type of the task (e.g., 'email', 'report', 'dataSync').
-   * @param payload - Data associated with the task.
+   * @param payload - Data associated with the task. Type depends on taskType.
    * @param options - Scheduling options like run time, retry policy.
    * @returns A unique task ID.
    */
-  async scheduleTask(taskType: string, payload: any, options?: { runAt?: Date; cron?: string; }): Promise<string> {
+  async scheduleTask<T = unknown>(taskType: string, payload: T, options?: { runAt?: Date; cron?: string; }): Promise<string> {
     const taskId = `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    console.log(`SchedulerService: Scheduling task ${taskId} of type ${taskType} with options:`, options);
+    this.options.logger?.log(`SchedulerService: Scheduling task ${taskId} of type ${taskType} with options:`, options);
     // Real implementation would involve queuing the task, storing it etc.
     return taskId;
   }
@@ -150,23 +150,23 @@ export class SchedulerService {
   /**
    * Schedules a task to run once at a specific time.
    */
-  async scheduleOnce(taskType: string, payload: any, runAt: Date): Promise<string> {
-    return this.scheduleTask(taskType, payload, { runAt });
+  async scheduleOnce<T = unknown>(taskType: string, payload: T, runAt: Date): Promise<string> {
+    return this.scheduleTask<T>(taskType, payload, { runAt });
   }
 
   /**
    * Schedules a task to run on a recurring basis using cron syntax.
    */
-  async scheduleCronTask(taskType: string, payload: any, cronSchedule: string): Promise<string> {
-    return this.scheduleTask(taskType, payload, { cron: cronSchedule });
+  async scheduleCronTask<T = unknown>(taskType: string, payload: T, cronSchedule: string): Promise<string> {
+    return this.scheduleTask<T>(taskType, payload, { cron: cronSchedule });
   }
 
   /**
    * Schedules a task to run on a recurring basis.
    */
-  async scheduleRecurringTask(taskType: string, payload: any, intervalMs: number): Promise<string> {
+  async scheduleRecurringTask<T = unknown>(taskType: string, payload: T, intervalMs: number): Promise<string> {
     const taskId = `recurring-task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    console.log(`SchedulerService: Scheduling recurring task ${taskId} of type ${taskType} with interval ${intervalMs}ms`);
+    this.options.logger?.log(`SchedulerService: Scheduling recurring task ${taskId} of type ${taskType} with interval ${intervalMs}ms`);
     // Real implementation would set up a recurring job
     return taskId;
   }

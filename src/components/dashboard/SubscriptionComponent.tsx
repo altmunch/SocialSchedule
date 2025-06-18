@@ -79,14 +79,8 @@ const plans = [
     interval: 'monthly',
     description: 'For large teams and enterprises',
     features: [
-      'Everything in Pro',
-      'White-label solutions',
-      'Custom integrations',
-      'Dedicated account manager',
-      'SLA guarantee',
-      'Advanced security',
-      'Custom reporting',
-      'API access'
+      'Manage unlimited accounts',
+      'Brand Voice AI (for consistency)'
     ],
     icon: Users,
     color: 'text-violet-500'

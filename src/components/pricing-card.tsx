@@ -75,11 +75,8 @@ export default function PricingCard({
     ];
 
     const teamFeatures = [
-      "Everything in Pro",
       "Manage unlimited accounts",
-      "Brand Voice AI (for consistency)",
-      "Team collaboration mode",
-      "Advanced analytics & reporting",
+      "Brand Voice AI (for consistency)"
     ];
 
     // Check if planName exists before calling toLowerCase

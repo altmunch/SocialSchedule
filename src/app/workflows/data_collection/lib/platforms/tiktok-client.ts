@@ -561,4 +561,40 @@ export class TikTokClient extends BasePlatformClient {
       rateLimit: this.rateLimit || undefined,
     });
   }
+
+  /**
+   * Fetches a user's posts (videos) for TikTok, adapting to the expected getUserPosts interface.
+   * @param userId TikTok user ID (open_id)
+   * @param lookbackDays Number of days to look back (not used by TikTok API, but can be filtered post-fetch)
+   * @param maxPages Not used (TikTok API paginates with cursor)
+   * @param maxResultsPerPage Number of results per page (default: 20)
+   * @returns Promise<PlatformPost[]>
+   */
+  async getUserPosts(
+    userId: string,
+    lookbackDays: number = 30,
+    maxPages?: number,
+    maxResultsPerPage: number = 20
+  ): Promise<PlatformPost[]> {
+    try {
+      const response = await this.getUserVideos({ userId, limit: maxResultsPerPage });
+      if (response.error) {
+        this.log('error', 'getUserPosts failed in getUserVideos', response.error);
+        return [];
+      }
+      let posts = response.data?.posts || [];
+      // Optionally filter by lookbackDays
+      if (lookbackDays && posts.length > 0) {
+        const cutoff = Date.now() - lookbackDays * 24 * 60 * 60 * 1000;
+        posts = posts.filter(post => {
+          const created = new Date(post.createdAt).getTime();
+          return created >= cutoff;
+        });
+      }
+      return posts;
+    } catch (err) {
+      this.log('error', 'getUserPosts threw error', err);
+      return [];
+    }
+  }
 }

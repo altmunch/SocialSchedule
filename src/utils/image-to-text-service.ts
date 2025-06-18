@@ -74,7 +74,7 @@ export class ImageToTextService {
         throw new Error(`API调用失败: ${response.status} ${errorText}`);
       }
 
-      const result = await response.json() as any;
+      const result = await response.json() as unknown;
       
       if (!result.choices || !result.choices[0] || !result.choices[0].message) {
         logger.error('API响应格式错误', { result });

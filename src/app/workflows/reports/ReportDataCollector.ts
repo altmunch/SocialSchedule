@@ -25,10 +25,10 @@ export interface ReportDataInput {
 export async function collectReportData(
   input: ReportDataInput
 ): Promise<{
-  summary: Record<string, any>;
+  summary: Record<string, number>;
   timeSeries: Array<{ date: string; metrics: Record<string, number> }>;
   comparisons?: {
-    previousPeriod: Record<string, any>;
+    previousPeriod: Record<string, number>;
     percentageChanges: Record<string, number>;
   };
   eCommerceMetrics?: Record<string, number>;
