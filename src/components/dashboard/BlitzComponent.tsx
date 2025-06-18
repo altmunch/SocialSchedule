@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import GlassCard from '@/components/ui/GlassCard';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
@@ -12,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
-import { Calendar as CalendarIcon, Clock, Instagram, Twitter, Facebook, Linkedin, Loader2, CheckCircle2, Video, Image, Type, Star, GripVertical, Sparkles, TrendingUp, Zap } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Instagram, Twitter, Facebook, Linkedin, Loader2, CheckCircle2, Video, Image, Type, Star, GripVertical, Sparkles, TrendingUp, Zap, X } from 'lucide-react';
 
 type ScheduledPost = {
   id: string;
@@ -67,7 +66,7 @@ export default function BlitzComponent() {
   // Polling for post status updates
   useEffect(() => {
     // TODO: Replace with real-time updates from a backend or websocket for post status.
-    const interval = setInterval(async () => {
+    const interval = setInterval(() => {
       setScheduledPosts(prevPosts => prevPosts.map(post => {
         // This is a simulation. In a real app, you'd fetch actual status from backend.
         if (post.status === 'scheduled') {
@@ -167,29 +166,16 @@ export default function BlitzComponent() {
   };
 
   return (
-    <div className="min-h-screen" style={{
-      background: 'linear-gradient(135deg, #0a0b0f 0%, #111318 50%, #1a1d25 100%)'
-    }}>
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        
-        {/* Enhanced Header */}
-        <div className="text-center space-y-4 animate-fadeIn">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight gradient-text">Blitz</h1>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Schedule and autopost your content at optimal times with AI-powered timing intelligence
-          </p>
-        </div>
-
-        {/* Enhanced Calendar View */}
-        <GlassCard className="animate-slideUp">
-          <div className="p-6 border-b border-gray-700/50">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="single-view">
+      
+      {/* Compact Header */}
+      <div className={`single-view-header fade-in ${0 >= 0 ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                  <Sparkles className="h-6 w-6 text-violet-400" />
-                  Content Calendar
-                </h2>
-                <p className="text-gray-400 mt-1">Drag and drop to reschedule posts</p>
+            <h1 className="text-dynamic-2xl font-bold bg-gradient-to-r from-violet-400 to-emerald-400 bg-clip-text text-transparent">
+              Blitz Autoposting
+            </h1>
+            <p className="text-dynamic-base text-gray-400 mt-1">Schedule and autopost your content at optimal times with AI-powered timing intelligence</p>
               </div>
               <div className="flex items-center gap-2">
                 <Button 
@@ -212,112 +198,21 @@ export default function BlitzComponent() {
             </div>
           </div>
           
-          <div className="p-6">
-            <div className="overflow-x-auto">
-              <div className="min-w-[700px]">
-                {/* Calendar Header */}
-                <div className="grid grid-cols-8 gap-0 border border-gray-700 rounded-t-lg overflow-hidden">
-                  <div className="bg-gray-800/50 p-3 text-center text-sm font-medium text-gray-300">Time</div>
-                  {getWeekDays().map((day, index) => (
-                    <div key={index} className="bg-gray-800/50 p-3 text-center border-l border-gray-700">
-                      <div className="text-sm font-medium text-white">{format(day, 'EEE')}</div>
-                      <div className="text-xs text-gray-400">{format(day, 'MMM d')}</div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Calendar Body */}
-                <div className="border-l border-r border-b border-gray-700 rounded-b-lg overflow-hidden">
-                  {['09:00', '12:00', '15:00', '18:00', '21:00'].map((time) => (
-                    <div key={time} className="grid grid-cols-8 gap-0 min-h-[80px] border-b border-gray-700 last:border-b-0">
-                      <div className="bg-gray-800/20 p-3 text-sm font-medium border-r border-gray-700 flex items-center justify-center text-gray-300">
-                        {time}
-                      </div>
-                      {getWeekDays().map((day, dayIndex) => {
-                        const posts = getPostsForDate(day).filter(post => post.time === time);
-                        const isOptimalSlot = Object.values(optimalTimes).some(times => times.includes(time));
-                        return (
-                          <div 
-                            key={dayIndex} 
-                            className={`p-2 border-r border-gray-700 last:border-r-0 transition-colors hover:bg-gray-800/30 ${
-                              isOptimalSlot ? 'bg-violet-500/5' : ''
-                            }`}
-                          >
-                            {isOptimalSlot && posts.length === 0 && (
-                              <div className="h-full flex items-center justify-center opacity-30">
-                                <Star className="h-4 w-4 text-violet-400" />
-                              </div>
-                            )}
-                            <div className="space-y-1">
-                              {posts.map((post) => (
-                                <div 
-                                  key={post.id}
-                                  className={`p-2 rounded-lg border text-xs cursor-move hover-lift ${getPostTypeColor(post.type)} ${
-                                    post.isOptimalTime ? 'ring-1 ring-violet-400' : ''
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-1 mb-1">
-                                    {getPostTypeIcon(post.type)}
-                                    {getPlatformIcon(post.platform)}
-                                    {post.isOptimalTime && <Star className="h-2 w-2 text-violet-400" />}
-                                    <GripVertical className="h-3 w-3 ml-auto opacity-50" />
-                                  </div>
-                                  <div className="font-medium truncate">{post.content}</div>
-                                  <div className={`text-xs font-medium ${
-                                    post.status === 'posted' ? 'text-emerald-400' : 
-                                    post.status === 'failed' ? 'text-red-400' : 'text-blue-400'
-                                  }`}>
-                                    {post.status}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
+      {/* Main Content Grid */}
+      <div className="single-view-content grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Quick Schedule */}
+        <div className={`slide-up ${0 >= 1 ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="compact-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-dynamic-lg font-semibold text-white flex items-center gap-2">
+                <Zap className="h-5 w-5 text-violet-400" />
+                Quick Schedule
+              </h2>
+              <p className="text-dynamic-sm text-gray-400">Schedule a new post with optimal timing suggestions</p>
             </div>
             
-            {/* Enhanced Legend */}
-            <div className="mt-6 flex flex-wrap items-center gap-6 text-xs text-gray-400">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded border bg-violet-500/20 border-violet-500/30"></div>
-                <span>Video</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded border bg-blue-500/20 border-blue-500/30"></div>
-                <span>Image</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded border bg-emerald-500/20 border-emerald-500/30"></div>
-                <span>Carousel</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded border bg-cyan-500/20 border-cyan-500/30"></div>
-                <span>Text</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-3 w-3 text-violet-400" />
-                <span>Optimal time</span>
-              </div>
-            </div>
-          </div>
-        </GlassCard>
-
-        {/* Enhanced Quick Schedule */}
-        <GlassCard className="animate-slideUp">
-          <div className="p-6 border-b border-gray-700/50">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <Zap className="h-6 w-6 text-violet-400" />
-              Quick Schedule
-            </h2>
-            <p className="text-gray-400 mt-1">Schedule a new post with optimal timing suggestions</p>
-          </div>
-          
-          <div className="p-6 space-y-6">
+            <div className="space-y-6">
             {error && (
               <Alert className="bg-red-500/10 border-red-500/20 text-red-400">
                 <AlertDescription>{error}</AlertDescription>
@@ -353,205 +248,291 @@ export default function BlitzComponent() {
                     <SelectValue placeholder="Select platform" />
                   </SelectTrigger>
                   <SelectContent className="bg-gray-800 border-gray-700">
-                    <SelectItem value="instagram">📸 Instagram</SelectItem>
-                    <SelectItem value="tiktok">🎵 TikTok</SelectItem>
-                    <SelectItem value="twitter">🐦 Twitter</SelectItem>
-                    <SelectItem value="facebook">📘 Facebook</SelectItem>
-                    <SelectItem value="linkedin">💼 LinkedIn</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Time</label>
-                <Select value={selectedTime} onValueChange={setSelectedTime}>
-                  <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-gray-800 border-gray-700">
-                    {['09:00', '12:00', '15:00', '18:00', '21:00'].map(time => (
-                      <SelectItem key={time} value={time}>
-                        {time} {optimalTimes[selectedPlatform as keyof typeof optimalTimes]?.includes(time) && 
-                          <span className="text-violet-400">⭐</span>}
+                    {Object.keys(platformIcons).map(platform => (
+                      <SelectItem key={platform} value={platform}>
+                        <div className="flex items-center gap-2 capitalize">
+                          {getPlatformIcon(platform)} {platform}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {optimalTimes[selectedPlatform as keyof typeof optimalTimes]?.includes(selectedTime) && (
-                  <p className="text-xs text-violet-400 flex items-center gap-1">
-                    <Star className="h-3 w-3" />
-                    Optimal posting time
-                  </p>
-                )}
               </div>
               
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-300">Date</label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start bg-gray-800 border-gray-700 text-white hover:bg-gray-700">
+                    <Button
+                      variant={"outline"}
+                      className={`w-full justify-start text-left font-normal bg-gray-800 border-gray-700 text-white ${!selectedDate && "text-muted-foreground"}`}
+                    >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate ? format(selectedDate, 'MMM dd') : 'Pick date'}
+                      {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-gray-800 border-gray-700">
-                    <Calendar 
-                      mode="single" 
-                      selected={selectedDate} 
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
                       onSelect={setSelectedDate}
-                      className="bg-gray-800 text-white"
+                      initialFocus
+                      className="rounded-md border bg-gray-800/50 border-gray-700/50"
                     />
                   </PopoverContent>
                 </Popover>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">Time</label>
+                <Input
+                  type="time"
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="bg-gray-800 border-gray-700 text-white"
+                />
+                {selectedDate && optimalTimes[selectedPlatform as keyof typeof optimalTimes]?.includes(selectedTime) && (
+                  <p className="text-xs text-emerald-400 flex items-center gap-1 mt-1">
+                    <Star className="h-3 w-3 fill-emerald-400 text-emerald-400" /> Optimal time for {selectedPlatform}
+                  </p>
+                )}
               </div>
             </div>
             
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">Content</label>
-              <Textarea 
-                placeholder="What's your post about?"
+              <Textarea
+                placeholder="Write your post content here..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={4}
-                className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 resize-none"
+                className="bg-gray-800 border-gray-700 text-white placeholder-gray-500"
               />
             </div>
             
-            <div className="flex justify-end">
+            <div>
               <Button 
-                onClick={handleSchedule} 
-                disabled={isScheduling} 
-                className="btn-primary"
+                onClick={handleSchedule}
+                disabled={isScheduling}
+                className="btn-primary flex items-center gap-2 w-full"
               >
                 {isScheduling ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Scheduling...
-                  </>
+                  <><Loader2 className="h-5 w-5 animate-spin" /> Scheduling...</>
                 ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Schedule Post
-                  </>
+                  <><Zap className="h-5 w-5" /> Schedule Post</>
                 )}
               </Button>
             </div>
           </div>
-        </GlassCard>
+        </div>
 
-        {/* Enhanced Performance Heatmap */}
-        <GlassCard className="animate-slideUp">
-          <div className="p-6 border-b border-gray-700/50">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <TrendingUp className="h-6 w-6 text-violet-400" />
-              Posting Performance Heatmap
-            </h2>
-            <p className="text-gray-400 mt-1">Optimal posting times based on your audience engagement patterns</p>
-          </div>
-          
-          <div className="p-6">
-            <div className="space-y-4">
-              <div className="grid gap-1 text-xs" style={{ gridTemplateColumns: 'auto repeat(24, 1fr)' }}>
-                <div></div>
-                {Array.from({ length: 24 }, (_, i) => (
-                  <div key={i} className="text-center text-gray-400 font-mono">
-                    {i.toString().padStart(2, '0')}
+        {/* Calendar and Upcoming Posts */}
+        <div className={`slide-up ${0 >= 2 ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Calendar */}
+            <div className="md:col-span-1">
+              <div className="compact-card p-6 flex flex-col items-center">
+                <h2 className="text-dynamic-lg font-semibold text-white mb-4">Post Calendar</h2>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  className="rounded-md border bg-gray-800/50 border-gray-700/50"
+                />
+              </div>
+            </div>
+
+            {/* Upcoming Posts */}
+            <div className="md:col-span-1">
+              <div className="compact-card p-6 flex flex-col h-full">
+                <h2 className="text-dynamic-lg font-semibold text-white mb-4">Upcoming Posts</h2>
+                {scheduledPosts.filter(post => post.status === 'scheduled').length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Clock className="h-16 w-16 mx-auto mb-4" />
+                    <p>No upcoming posts scheduled.</p>
                   </div>
-                ))}
-                
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => (
-                  <React.Fragment key={day}>
-                    <div className="text-right text-gray-400 pr-2">{day}</div>
-                    {Array.from({ length: 24 }, (_, hour) => {
-                      const isPeak = (hour >= 6 && hour <= 9) || (hour >= 17 && hour <= 21);
-                      const isWeekend = dayIndex >= 5;
-                      const baseEngagement = ((hour + dayIndex * 3) % 10) / 25;
-                      const engagement = isPeak ? (isWeekend ? 0.6 : 0.8) : baseEngagement;
-                      
-                      const getHeatmapColor = (value: number) => {
-                        if (value > 0.7) return 'bg-violet-500 text-white';
-                        if (value > 0.5) return 'bg-violet-400/70 text-white';
-                        if (value > 0.3) return 'bg-violet-400/40';
-                        if (value > 0.1) return 'bg-violet-400/20';
-                        return 'bg-gray-800';
-                      };
+                ) : (
+                  <ul className="space-y-4">
+                    {scheduledPosts
+                      .filter(post => post.status === 'scheduled')
+                      .sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime())
+                      .map(post => (
+                        <li key={post.id} className="flex items-start gap-3 p-3 bg-gray-800/50 border border-gray-700/50 rounded-lg">
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center">
+                            {getPlatformIcon(post.platform)}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white text-sm font-medium mb-1">{post.content.substring(0, 70)}{post.content.length > 70 ? '...' : ''}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                              <Clock className="h-3 w-3" />
+                              <span>{format(post.scheduledDate, 'MMM dd, yyyy')} at {post.scheduledTime}</span>
+                              {post.isOptimalTime && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                  Optimal Time
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="icon" className="text-gray-500 hover:text-red-400">
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
-                      return (
-                        <div
-                          key={hour}
-                          className={`h-4 w-4 rounded-sm cursor-pointer transition-all hover:scale-110 ${getHeatmapColor(engagement)}`}
-                          title={`${day} ${hour}:00 - ${Math.round(engagement * 100)}% engagement`}
-                        />
-                      );
-                    })}
-                  </React.Fragment>
+        {/* All Scheduled Posts */}
+        <div className={`slide-up ${0 >= 3 ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="compact-card p-6">
+            <h2 className="text-dynamic-lg font-semibold text-white mb-4">All Scheduled Posts</h2>
+            <Tabs defaultValue="current" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-gray-800 border-gray-700 mb-4">
+                <TabsTrigger value="current" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg text-gray-300">Current</TabsTrigger>
+                <TabsTrigger value="past" className="data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg text-gray-300">Past</TabsTrigger>
+              </TabsList>
+              <TabsContent value="current" className="space-y-4">
+                {scheduledPosts.filter(post => post.status === 'scheduled').length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Clock className="h-16 w-16 mx-auto mb-4" />
+                    <p>No current scheduled posts.</p>
+                  </div>
+                ) : (
+                  <ul className="space-y-4">
+                    {scheduledPosts
+                      .filter(post => post.status === 'scheduled')
+                      .sort((a, b) => a.scheduledDate.getTime() - b.scheduledDate.getTime())
+                      .map(post => (
+                        <li key={post.id} className="flex items-start gap-3 p-3 bg-gray-800/50 border border-gray-700/50 rounded-lg">
+                          {post.thumbnail && (
+                            <img src={post.thumbnail} alt="Post Thumbnail" className="w-16 h-16 object-cover rounded-md flex-shrink-0" />
+                          )}
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center">
+                            {getPlatformIcon(post.platform)}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white text-sm font-medium mb-1">{post.content.substring(0, 100)}{post.content.length > 100 ? '...' : ''}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                              <Clock className="h-3 w-3" />
+                              <span>{format(post.scheduledDate, 'MMM dd, yyyy')} at {post.scheduledTime}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getPostTypeColor(post.type)}`}>
+                                {post.type}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" className="text-gray-500 hover:text-emerald-400">
+                              <CheckCircle2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-gray-500 hover:text-red-400">
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </TabsContent>
+              <TabsContent value="past" className="space-y-4">
+                {scheduledPosts.filter(post => post.status === 'posted' || post.status === 'failed').length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Clock className="h-16 w-16 mx-auto mb-4" />
+                    <p>No past scheduled posts.</p>
+                  </div>
+                ) : (
+                  <ul className="space-y-4">
+                    {scheduledPosts
+                      .filter(post => post.status === 'posted' || post.status === 'failed')
+                      .sort((a, b) => b.scheduledDate.getTime() - a.scheduledDate.getTime())
+                      .map(post => (
+                        <li key={post.id} className="flex items-start gap-3 p-3 bg-gray-800/50 border border-gray-700/50 rounded-lg">
+                          {post.thumbnail && (
+                            <img src={post.thumbnail} alt="Post Thumbnail" className="w-16 h-16 object-cover rounded-md flex-shrink-0" />
+                          )}
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-500/20 text-violet-400 flex items-center justify-center">
+                            {getPlatformIcon(post.platform)}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-white text-sm font-medium mb-1">{post.content.substring(0, 100)}{post.content.length > 100 ? '...' : ''}</p>
+                            <div className="flex items-center gap-2 text-xs text-gray-400">
+                              <Clock className="h-3 w-3" />
+                              <span>{format(post.scheduledDate, 'MMM dd, yyyy')} at {post.scheduledTime}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${getPostTypeColor(post.type)}`}>
+                                {post.type}
+                              </span>
+                              {post.status === 'failed' && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+                                  Failed
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" className="text-gray-500 hover:text-emerald-400">
+                              <CheckCircle2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-gray-500 hover:text-red-400">
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </li>
+                      ))}
+                  </ul>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+
+        {/* New Heatmap Section */}
+        <div className={`slide-up ${0 >= 4 ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="compact-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-dynamic-lg font-semibold text-white flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-emerald-400" />
+                Optimal Posting Times Heatmap
+              </h2>
+              <p className="text-dynamic-sm text-gray-400">Optimal posting times based on your audience engagement patterns</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="grid gap-1 text-dynamic-sm" style={{ gridTemplateColumns: 'auto repeat(24, 1fr)' }}>
+                <div className="col-span-1"></div> {/* Empty corner for alignment */}
+                {[...Array(24)].map((_, hour) => (
+                  <div key={hour} className="text-center text-gray-500 font-semibold text-xs">
+                    {hour < 10 ? `0${hour}` : hour}
+                  </div>
                 ))}
               </div>
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-gray-400">Low</span>
-                  <div className="flex gap-1">
-                    <div className="w-3 h-3 bg-gray-800 rounded-sm"></div>
-                    <div className="w-3 h-3 bg-violet-400/20 rounded-sm"></div>
-                    <div className="w-3 h-3 bg-violet-400/40 rounded-sm"></div>
-                    <div className="w-3 h-3 bg-violet-400/70 rounded-sm"></div>
-                    <div className="w-3 h-3 bg-violet-500 rounded-sm"></div>
+              {Object.entries(optimalTimes).map(([platform, times]) => (
+                <div key={platform} className="grid gap-1 items-center" style={{ gridTemplateColumns: 'auto repeat(24, 1fr)' }}>
+                  <div className="text-xs text-gray-400 capitalize flex items-center gap-1">
+                    {getPlatformIcon(platform)} {platform}
                   </div>
-                  <span className="text-gray-400">High</span>
+                  {[...Array(24)].map((_, hour) => {
+                    const hourStr = hour < 10 ? `0${hour}:00` : `${hour}:00`;
+                    const isOptimal = times.includes(hourStr.substring(0, 5));
+                    const intensity = isOptimal ? 3 : 1;
+                    const bgColor = getHeatmapColor(intensity);
+                    return (
+                      <div 
+                        key={hour}
+                        className={`h-6 rounded-sm ${bgColor} ${isOptimal ? 'border border-emerald-400/30' : 'border-transparent'}`}
+                        title={`${platform} - ${hourStr}: ${isOptimal ? 'Optimal' : 'Regular'}`}
+                      >
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="text-xs text-gray-500">
-                  Hover for details
-                </div>
-              </div>
+              ))}
             </div>
           </div>
-        </GlassCard>
+        </div>
 
-        {/* Enhanced Recent Posts */}
-        {scheduledPosts.length > 0 && (
-          <GlassCard className="animate-slideUp">
-            <div className="p-6 border-b border-gray-700/50">
-              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                <Clock className="h-6 w-6 text-violet-400" />
-                Recent Scheduled Posts
-              </h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-3">
-                {scheduledPosts.slice(0, 5).map(post => (
-                  <div key={post.id} className="enhanced-card p-4 hover-lift">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg border ${getPostTypeColor(post.type)}`}>
-                          {getPostTypeIcon(post.type)}
-                        </div>
-                        <div>
-                          <div className="font-medium text-white">{post.content}</div>
-                          <div className="text-sm text-gray-400 flex items-center gap-2">
-                            {getPlatformIcon(post.platform)} 
-                            <span>{post.platform}</span>
-                            <span>•</span>
-                            <span>{format(post.scheduledDate, 'MMM d')} at {post.scheduledTime}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {post.isOptimalTime && <Star className="h-4 w-4 text-violet-400" />}
-                        <span className={`text-xs font-medium px-3 py-1 rounded-full ${
-                          post.status === 'posted' ? 'bg-emerald-500/20 text-emerald-400' : 
-                          post.status === 'failed' ? 'bg-red-500/20 text-red-400' : 'bg-blue-500/20 text-blue-400'
-                        }`}>
-                          {post.status}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </GlassCard>
-        )}
       </div>
     </div>
   );

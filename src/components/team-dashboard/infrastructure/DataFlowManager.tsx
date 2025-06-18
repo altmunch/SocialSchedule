@@ -21,7 +21,6 @@ import {
   Server,
   Layers,
   GitBranch,
-  Sync,
   Download,
   Upload,
   Filter,
@@ -34,6 +33,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { Sync } from 'lucide-react';
 
 interface DataSource {
   id: string;

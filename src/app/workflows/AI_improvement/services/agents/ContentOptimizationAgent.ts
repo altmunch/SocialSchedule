@@ -56,12 +56,16 @@ export class ContentOptimizationAgent {
   private isActive: boolean = false;
   private currentTask: ContentOptimizationTask | null = null;
   private performanceScore: number = 0.8; // Initial performance score
+  private taskSuccessCount: number = 0;
+  private taskFailureCount: number = 0;
+  private totalTasksCompleted: number = 0;
+  private resourceConsumptionHistory: number[] = [];
   private bandit: EpsilonGreedyBandit = new EpsilonGreedyBandit();
 
   constructor() {
-    // Optionally initialize bandit arms from persisted variations
-    // (In production, load from DB)
-    this.bandit = new EpsilonGreedyBandit();
+    // Initialize the bandit with some dummy arms for demonstration, or load from config/DB
+    // this.bandit.addArm({ id: 'default_caption', context: { length: 100 }, estimatedReward: 0.5, count: 0 });
+    // this.bandit.addArm({ id: 'default_hashtags', context: { count: 10 }, estimatedReward: 0.5, count: 0 });
   }
 
   /**
@@ -69,7 +73,8 @@ export class ContentOptimizationAgent {
    */
   async start(): Promise<void> {
     this.isActive = true;
-    console.log('🚀 Content Optimization Agent started');
+    console.log(`ContentOptimizationAgent started.`);
+    // Potentially load historical performance data or initial tasks
   }
 
   /**
@@ -78,19 +83,16 @@ export class ContentOptimizationAgent {
   async stop(): Promise<void> {
     this.isActive = false;
     this.currentTask = null;
-    console.log('🛑 Content Optimization Agent stopped');
+    console.log(`ContentOptimizationAgent stopped.`);
   }
 
   /**
    * Execute a content optimization task
    */
   async executeTask(task: ContentOptimizationTask): Promise<void> {
-    if (!this.isActive) {
-      throw new Error('Content Optimization Agent is not active');
-    }
-
     this.currentTask = task;
-    console.log(`📊 Executing content optimization task: ${task.type}`);
+    this.totalTasksCompleted++;
+    const startTime = process.hrtime.bigint();
 
     try {
       switch (task.type) {
@@ -104,18 +106,19 @@ export class ContentOptimizationAgent {
           await this.generateVariations(task);
           break;
         default:
-          // This ensures that if a new task type is added to the interface
-          // and not handled here, TypeScript will warn us.
-          const exhaustiveCheck: never = task.type; 
-          throw new Error(`Unknown task type: ${exhaustiveCheck}`);
+          console.warn(`Unknown task type for ContentOptimizationAgent: ${task.type}`);
+          this.taskFailureCount++;
+          break;
       }
-      console.log(`✅ Task ${task.type} completed successfully`);
+      this.taskSuccessCount++;
     } catch (error) {
-      console.error(`❌ Task ${task.type} failed:`, error);
-      // Potentially update agent performance score based on failure
-      this.performanceScore = Math.max(0.1, this.performanceScore - 0.1);
-      throw error;
+      console.error(`ContentOptimizationAgent task failed: ${error}`);
+      this.taskFailureCount++;
     } finally {
+      const endTime = process.hrtime.bigint();
+      const durationMs = Number(endTime - startTime) / 1_000_000; // Convert nanoseconds to milliseconds
+      this.recordResourceConsumption(durationMs);
+      this.updatePerformanceScore();
       this.currentTask = null;
     }
   }
@@ -176,24 +179,45 @@ export class ContentOptimizationAgent {
   // Agent status and performance methods (similar to DataCollectionAgent)
   async getStatus(): Promise<'active' | 'idle' | 'error'> {
     if (!this.isActive) return 'idle';
-    // Basic error check: if performance is too low, report error
     if (this.performanceScore < 0.3) return 'error';
     return this.currentTask ? 'active' : 'idle';
   }
 
   async getPerformance(): Promise<number> {
-    // Could be a more complex calculation based on successful task completions,
-    // quality of optimizations, etc.
     return this.performanceScore;
   }
 
   async getResourceUtilization(): Promise<number> {
-    // Simulate resource utilization
-    return this.currentTask ? Math.random() * 0.5 + 0.3 : Math.random() * 0.2; // Higher if active
+    if (this.resourceConsumptionHistory.length === 0) return 0;
+    const sum = this.resourceConsumptionHistory.reduce((acc, val) => acc + val, 0);
+    const average = sum / this.resourceConsumptionHistory.length;
+    // Normalize average duration to a 0-1 scale. Assuming typical task duration up to 1000ms uses 100% of "resource"
+    // This is a simplistic model and can be refined with actual CPU/memory metrics.
+    return Math.min(1, average / 1000);
   }
 
   async getCurrentTask(): Promise<string | undefined> {
-    return this.currentTask ? `${this.currentTask.type} for niche: ${this.currentTask.niche || 'N/A'}` : undefined;
+    return this.currentTask ? `${this.currentTask.type}${this.currentTask.niche ? ` - ${this.currentTask.niche}` : ''}` : undefined;
+  }
+
+  private recordResourceConsumption(durationMs: number): void {
+    this.resourceConsumptionHistory.push(durationMs);
+    // Keep history to a reasonable size, e.g., last 100 tasks
+    if (this.resourceConsumptionHistory.length > 100) {
+      this.resourceConsumptionHistory.shift();
+    }
+  }
+
+  private updatePerformanceScore(): void {
+    if (this.totalTasksCompleted === 0) {
+      this.performanceScore = 0.8; // Default initial score
+      return;
+    }
+    const successRate = this.taskSuccessCount / this.totalTasksCompleted;
+    // Simple heuristic: performance is primarily driven by success rate, with some decay and lower bound.
+    // More complex models could incorporate resource utilization, task complexity, etc.
+    this.performanceScore = 0.5 * successRate + 0.3 * (1 - this.getResourceUtilization()) + 0.2 * this.performanceScore; // Weighted average
+    this.performanceScore = Math.max(0.1, Math.min(1.0, this.performanceScore)); // Keep within 0.1 and 1.0
   }
 
   // T4.2: Persist reward signal (engagement) for online bandit training

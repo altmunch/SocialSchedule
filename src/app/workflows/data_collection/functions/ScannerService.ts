@@ -10,6 +10,7 @@ import { TikTokClient } from '../lib/platforms/TikTokClient';
 import { InstagramClient } from '../lib/platforms/InstagramClient';
 import { ApiConfig } from '../lib/platforms/types';
 import { IAuthTokenManager, PlatformCredentials, PlatformClientIdentifier, AuthStrategy } from '../lib/auth.types';
+import { MonitoringSystem } from '../lib/platforms/types';
 
 /**
  * @interface CircuitBreakerState
@@ -378,11 +379,9 @@ export class ScannerService {
     for (const p of platforms) {
       const { platform, accessToken, userId } = p;
 
-      // Create a default ApiConfig
       let defaultConfig: ApiConfig = {
         baseUrl: '', // Will be set per platform
         version: '', // Will be set per platform
-        rateLimit: { requests: 10, perSeconds: 1 }, // Default placeholder
         timeout: 20000,
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
       };
@@ -396,7 +395,9 @@ export class ScannerService {
       }
       // Add other platforms as needed
 
-      // Create a simple AuthTokenManager for the given accessToken
+      // The AuthTokenManagerService needs a proper implementation that can actually store and retrieve tokens
+      // For now, it's a simple mock based on the single accessToken passed.
+      // TODO: In a production environment, this should interact with a secure token store (e.g., database, Vault).
       const authTokenManager: IAuthTokenManager = {
         getValidCredentials: async (id: PlatformClientIdentifier): Promise<PlatformCredentials | null> => {
           if (id.platform === platform && (!id.userId || id.userId === userId)) {
@@ -408,20 +409,30 @@ export class ScannerService {
           }
           return null;
         },
-        storeCredentials: async (id: PlatformClientIdentifier, credentials: PlatformCredentials) => { /* no-op */ },
-        clearCredentials: async (id: PlatformClientIdentifier) => { /* no-op */ },
+        storeCredentials: async (id: PlatformClientIdentifier, credentials: PlatformCredentials) => { /* no-op for this simple case */ },
+        clearCredentials: async (id: PlatformClientIdentifier) => { /* no-op for this simple case */ },
       };
 
       try {
+        // In ScannerService, we don't have direct access to monitoringSystem in the constructor
+        // This is a simplified initialization for testing/basic use. In a full app,
+        // the monitoring system would be passed down or injected properly.
+        const dummyMonitoringSystem: MonitoringSystem = {
+          monitor: async (op, fn, opts) => fn(op),
+          getAlertManager: () => ({ fireAlert: () => {} }),
+          getMetricsCollector: () => ({ recordMetric: () => {} }),
+          getCacheSystem: () => ({ get: async () => null, set: async () => {} }) as any,
+        };
+
         switch (platform) {
           case 'tiktok':
-            this.platformClients.set(platform, new TikTokClient(defaultConfig, authTokenManager, userId));
+            this.platformClients.set(platform, new TikTokClient(accessToken, authTokenManager, dummyMonitoringSystem, userId));
             break;
           case 'instagram':
-            this.platformClients.set(platform, new InstagramClient(defaultConfig, authTokenManager, userId));
+            this.platformClients.set(platform, new InstagramClient(accessToken, authTokenManager, dummyMonitoringSystem, userId));
             break;
           // case 'youtube': // Ensure YouTubeClient is handled if used
-          //   this.platformClients.set(platform, new YouTubeClient(defaultConfig, authTokenManager, userId));
+          //   this.platformClients.set(platform, new YouTubeClient(accessToken, authTokenManager, dummyMonitoringSystem, userId));
           //   break;
           default:
             this.logStructured('warn', `Platform client initialization not implemented in initializePlatforms for ${platform}`, { platform });

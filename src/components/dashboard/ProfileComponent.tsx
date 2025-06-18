@@ -2,358 +2,323 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  Input 
+} from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle2, User, Shield, CircleUserRound } from 'lucide-react';
+import { Camera, Mail, User, Phone, MapPin, Globe, Briefcase, Plus, Save, Award, Loader2, CheckCircle2 } from 'lucide-react';
 
 export default function ProfileComponent() {
-  const { user } = useAuth();
-  const [fullName, setFullName] = useState(''); // TODO: In a real app, fetch from user profile
-  const [username, setUsername] = useState(''); // TODO: In a real app, fetch from user profile
-  const [bio, setBio] = useState(''); // TODO: In a real app, fetch from user profile
-  const [website, setWebsite] = useState(''); // TODO: In a real app, fetch from user profile
+  const { user, signOut } = useAuth();
+  const [fullName, setFullName] = useState(user?.user_metadata?.full_name || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  
-  // Initialize connection status to prevent hydration mismatch
-  const [connectionStatus, setConnectionStatus] = useState<Record<string, { connected: boolean; buttonText: string }>>({});
+  const [bio, setBio] = useState(user?.user_metadata?.bio || '');
+  const [phone, setPhone] = useState(user?.user_metadata?.phone || '');
+  const [address, setAddress] = useState(user?.user_metadata?.address || '');
+  const [website, setWebsite] = useState(user?.user_metadata?.website || '');
+  const [industry, setIndustry] = useState(user?.user_metadata?.industry || '');
+  const [company, setCompany] = useState(user?.user_metadata?.company || '');
+  const [avatarUrl, setAvatarUrl] = useState(user?.user_metadata?.avatar_url || '');
+  const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [animationStage, setAnimationStage] = useState(0);
 
-  // Set user data and random connection status after hydration
   useEffect(() => {
-    // TODO: Replace with actual API call to fetch user profile data
-    if (user) {
-      // Simulate fetching user data
-      setFullName(user.user_metadata?.full_name || 'John Doe');
-      setUsername(user.user_metadata?.username || 'johndoe');
-      setBio(user.user_metadata?.bio || 'Content creator and social media enthusiast');
-      setWebsite(user.user_metadata?.website || 'https://example.com');
-    }
-
-    const platforms = ['Instagram', 'Twitter', 'Facebook', 'LinkedIn', 'TikTok'];
-    const status: Record<string, { connected: boolean; buttonText: string }> = {};
-    
-    platforms.forEach(platform => {
-      const isConnected = Math.random() > 0.5;
-      status[platform] = {
-        connected: isConnected,
-        buttonText: isConnected ? 'Disconnect' : 'Connect'
-      };
+    const stages = [0, 1, 2, 3];
+    stages.forEach((stage, index) => {
+      setTimeout(() => setAnimationStage(stage), index * 300);
     });
-    
-    setConnectionStatus(status);
-  }, [user]);
+  }, []);
+
+  const handleSave = async () => {
+    setLoading(true);
+    setSaved(false);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    // In a real app, you would update the user profile in your database/auth system
+    console.log('Saving profile...', { fullName, email, bio, phone, address, website, industry, company, avatarUrl });
+    setLoading(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result as string);
+        // In a real app, you would upload this file to storage (e.g., Supabase Storage) and get a URL
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
-  };
-
-  const handleUpdateProfile = async () => {
-    setIsUpdating(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      // In a real implementation, this would update the user's profile in Supabase
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setSuccessMessage('Profile updated successfully');
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while updating your profile');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleUpdatePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      setError('New passwords do not match');
-      return;
-    }
-
-    setIsUpdating(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    try {
-      // In a real implementation, this would update the user's password in Supabase
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setSuccessMessage('Password updated successfully');
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while updating your password');
-    } finally {
-      setIsUpdating(false);
-    }
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 md:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight gradient-text">Profile</h1>
-        <p className="text-muted-foreground mt-1">Manage your account settings and preferences</p>
+    <div className="single-view">
+      
+      {/* Compact Header */}
+      <div className={`single-view-header fade-in ${animationStage >= 0 ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="text-center space-y-2">
+          <h1 className="text-dynamic-2xl font-bold bg-gradient-to-r from-violet-400 to-emerald-400 bg-clip-text text-transparent">
+            User Profile
+          </h1>
+          <p className="text-dynamic-base text-gray-400 max-w-3xl mx-auto">
+            Manage your personal and business information
+          </p>
+        </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="md:w-1/3">
-          <Card className="bg-card border-border shadow-sm">
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center">
-                <Avatar className="h-24 w-24 ring-2 ring-primary/20">
-                  <AvatarImage src="" alt={fullName} />
-                  <AvatarFallback className="text-lg bg-gradient-to-br from-mint to-lavender text-background">{getInitials(fullName)}</AvatarFallback>
-                </Avatar>
-                <h2 className="mt-4 text-xl font-semibold text-creative">{fullName}</h2>
-                <p className="text-sm text-muted-foreground">@{username}</p>
-                <p className="mt-2 text-sm text-center text-muted-foreground">{bio}</p>
-                <div className="mt-4 flex space-x-2">
-                  <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10">
-                    Change Avatar
-                  </Button>
-                </div>
+      {/* Profile Form Grid */}
+      <div className="single-view-content grid grid-cols-12 gap-4">
+        
+        {/* Profile Picture and Basic Info */}
+        <div className={`col-span-12 lg:col-span-4 compact-card flex flex-col items-center p-6 slide-up ${animationStage >= 1 ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="relative mb-6">
+            <Avatar className="w-32 h-32 border-4 border-violet-500/50 shadow-lg">
+              <AvatarImage src={avatarUrl} alt={fullName || 'User'} />
+              <AvatarFallback className="bg-gradient-to-r from-violet-500 to-emerald-500 text-white text-5xl font-bold">
+                {getInitials(fullName || 'U')}
+              </AvatarFallback>
+            </Avatar>
+            <label htmlFor="avatar-upload" className="absolute bottom-0 right-0 bg-violet-600 p-2 rounded-full cursor-pointer border-2 border-white hover:bg-violet-700 transition-colors shadow-md">
+              <input 
+                id="avatar-upload" 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handleAvatarUpload}
+              />
+              <Camera className="h-5 w-5 text-white" />
+            </label>
+          </div>
+          <h2 className="text-dynamic-xl font-bold text-white mb-2 text-center">{fullName || 'New User'}</h2>
+          <p className="text-dynamic-base text-gray-400 text-center mb-4">{user?.email}</p>
+
+          <div className="w-full space-y-3">
+            <div className="flex items-center gap-2 text-dynamic-sm text-gray-300">
+              <Mail className="h-4 w-4 text-violet-400" />
+              <span>{email}</span>
+            </div>
+            {phone && (
+              <div className="flex items-center gap-2 text-dynamic-sm text-gray-300">
+                <Phone className="h-4 w-4 text-emerald-400" />
+                <span>{phone}</span>
               </div>
-            </CardContent>
-          </Card>
+            )}
+            {address && (
+              <div className="flex items-center gap-2 text-dynamic-sm text-gray-300">
+                <MapPin className="h-4 w-4 text-orange-400" />
+                <span>{address}</span>
+              </div>
+            )}
+            {website && (
+              <div className="flex items-center gap-2 text-dynamic-sm text-gray-300">
+                <Globe className="h-4 w-4 text-blue-400" />
+                <a href={website} target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-400">{website}</a>
+              </div>
+            )}
+            {company && (
+              <div className="flex items-center gap-2 text-dynamic-sm text-gray-300">
+                <Briefcase className="h-4 w-4 text-purple-400" />
+                <span>{company}</span>
+              </div>
+            )}
+            {industry && (
+              <div className="flex items-center gap-2 text-dynamic-sm text-gray-300">
+                <Award className="h-4 w-4 text-pink-400" />
+                <span>{industry}</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex-1">
-          <Tabs defaultValue="general">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="general">
-                <CircleUserRound className="h-4 w-4 mr-2" />
-                General
-              </TabsTrigger>
-              <TabsTrigger value="security">
-                <Shield className="h-4 w-4 mr-2" />
-                Security
-              </TabsTrigger>
-              <TabsTrigger value="connections">
-                <User className="h-4 w-4 mr-2" />
-                Connected Accounts
-              </TabsTrigger>
-            </TabsList>
+        {/* Editable Profile Details */}
+        <div className={`col-span-12 lg:col-span-8 compact-card p-6 space-y-6 slide-up ${animationStage >= 2 ? 'opacity-100' : 'opacity-0'}`}>
+          <h2 className="text-dynamic-xl font-bold text-white mb-4 flex items-center gap-3">
+            <User className="h-6 w-6 text-violet-400" />
+            Edit Profile
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="fullName" className="text-dynamic-sm font-medium text-gray-300">Full Name</label>
+              <Input 
+                id="fullName" 
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Your full name" 
+                className="mt-1 bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="text-dynamic-sm font-medium text-gray-300">Email</label>
+              <Input 
+                id="email" 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Your email" 
+                className="mt-1 bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="phone" className="text-dynamic-sm font-medium text-gray-300">Phone Number</label>
+              <Input 
+                id="phone" 
+                type="tel" 
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="e.g., +1234567890" 
+                className="mt-1 bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="address" className="text-dynamic-sm font-medium text-gray-300">Address</label>
+              <Input 
+                id="address" 
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Your address" 
+                className="mt-1 bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="website" className="text-dynamic-sm font-medium text-gray-300">Website</label>
+              <Input 
+                id="website" 
+                type="url" 
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="e.g., https://yourwebsite.com" 
+                className="mt-1 bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+              />
+            </div>
+            <div>
+              <label htmlFor="company" className="text-dynamic-sm font-medium text-gray-300">Company</label>
+              <Input 
+                id="company" 
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="Your company name" 
+                className="mt-1 bg-gray-800 border-gray-700 text-white placeholder-gray-500"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="industry" className="text-dynamic-sm font-medium text-gray-300">Industry</label>
+              <Select value={industry} onValueChange={setIndustry}>
+                <SelectTrigger className="mt-1 bg-gray-800 border-gray-700 text-white">
+                  <SelectValue placeholder="Select your industry" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                  <SelectItem value="ecommerce">E-commerce</SelectItem>
+                  <SelectItem value="saas">SaaS</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
+                  <SelectItem value="finance">Finance</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="bio" className="text-dynamic-sm font-medium text-gray-300">Bio</label>
+              <Textarea 
+                id="bio" 
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell us about yourself or your business goals..." 
+                className="mt-1 bg-gray-800 border-gray-700 text-white placeholder-gray-500 min-h-[80px]"
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-3 pt-4">
+            {saved && <span className="text-emerald-400 text-dynamic-sm flex items-center"><CheckCircle2 className="h-4 w-4 mr-1" /> Saved!</span>}
+            <Button 
+              onClick={handleSave} 
+              disabled={loading} 
+              className="btn-primary flex items-center gap-2"
+            >
+              {loading ? (
+                <><Loader2 className="h-5 w-5 animate-spin" /> Saving...</>
+              ) : (
+                <><Save className="h-5 w-5" /> Save Profile</>
+              )}
+            </Button>
+            <Button 
+              onClick={signOut} 
+              variant="outline"
+              className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white flex items-center gap-2"
+            >
+              Sign Out
+            </Button>
+          </div>
+        </div>
 
-            <TabsContent value="general" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>General Information</CardTitle>
-                  <CardDescription>
-                    Update your account details and public profile
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {successMessage && (
-                    <Alert className="bg-green-50 text-green-800 border-green-200">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <AlertDescription>{successMessage}</AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
+        {/* Usage Limits Card */}
+        <div className={`col-span-12 slide-up ${animationStage >= 3 ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="compact-card p-6">
+            <h2 className="text-dynamic-xl font-bold text-white mb-4 flex items-center gap-3">
+              <Award className="h-6 w-6 text-yellow-400" />
+              Usage & Limits
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Current Plan: <span className="bg-gradient-to-r from-violet-500 to-purple-500 text-white px-2 py-1 rounded-full text-sm font-bold">{user?.user_metadata?.subscription_tier || 'Free'}</span></h3>
+                <p className="text-gray-400 text-sm mb-4">Your current subscription details and usage.</p>
 
-                  <div className="space-y-2">
-                    <label htmlFor="fullName" className="text-sm font-medium">
-                      Full Name
-                    </label>
-                    <Input
-                      id="fullName"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                    />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-gray-300 text-sm">
+                    <span>Video Optimizations</span>
+                    <span className="font-semibold">15/50 used</span>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="username" className="text-sm font-medium">
-                      Username
-                    </label>
-                    <Input
-                      id="username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                    />
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-violet-500 to-purple-400 h-2 rounded-full" style={{ width: '30%' }}></div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Email
-                    </label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="bio" className="text-sm font-medium">
-                      Bio
-                    </label>
-                    <Input
-                      id="bio"
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="website" className="text-sm font-medium">
-                      Website
-                    </label>
-                    <Input
-                      id="website"
-                      value={website}
-                      onChange={(e) => setWebsite(e.target.value)}
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    onClick={handleUpdateProfile}
-                    disabled={isUpdating}
-                  >
-                    {isUpdating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Updating...
-                      </>
-                    ) : (
-                      'Update Profile'
-                    )}
-                  </Button>
-                </CardFooter>
-              </Card>
-            </TabsContent>
 
-            <TabsContent value="security" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Security Settings</CardTitle>
-                  <CardDescription>
-                    Update your password and security preferences
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {successMessage && (
-                    <Alert className="bg-green-50 text-green-800 border-green-200">
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <AlertDescription>{successMessage}</AlertDescription>
-                    </Alert>
-                  )}
-                  
-                  {error && (
-                    <Alert variant="destructive">
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
+                  <div className="flex items-center justify-between text-gray-300 text-sm">
+                    <span>Scheduled Posts</span>
+                    <span className="font-semibold">28/100 used</span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-emerald-500 to-green-400 h-2 rounded-full" style={{ width: '28%' }}></div>
+                  </div>
 
-                  <div className="space-y-2">
-                    <label htmlFor="currentPassword" className="text-sm font-medium">
-                      Current Password
-                    </label>
-                    <Input
-                      id="currentPassword"
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                    />
+                  <div className="flex items-center justify-between text-gray-300 text-sm">
+                    <span>AI Idea Generations</span>
+                    <span className="font-semibold">5/10 used</span>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="newPassword" className="text-sm font-medium">
-                      New Password
-                    </label>
-                    <Input
-                      id="newPassword"
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                    />
+                  <div className="w-full bg-gray-700 rounded-full h-2">
+                    <div className="bg-gradient-to-r from-orange-500 to-amber-400 h-2 rounded-full" style={{ width: '50%' }}></div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor="confirmPassword" className="text-sm font-medium">
-                      Confirm New Password
-                    </label>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    onClick={handleUpdatePassword}
-                    disabled={isUpdating}
-                  >
-                    {isUpdating ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Updating...
-                      </>
-                    ) : (
-                      'Update Password'
-                    )}
-                  </Button>
-                </CardFooter>
-              </Card>
-            </TabsContent>
+                </div>
+              </div>
 
-            <TabsContent value="connections" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Connected Accounts</CardTitle>
-                  <CardDescription>
-                    Manage your connected social media accounts
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {['Instagram', 'Twitter', 'Facebook', 'LinkedIn', 'TikTok'].map((platform) => {
-                      const status = connectionStatus[platform];
-                      return (
-                        <div key={platform} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
-                              <span className="text-sm font-medium">{platform[0]}</span>
-                            </div>
-                            <div>
-                              <p className="font-medium">{platform}</p>
-                              <p className="text-xs text-gray-500">
-                                {status ? (status.connected ? 'Connected' : 'Not connected') : 'Loading...'}
-                              </p>
-                            </div>
-                          </div>
-                          <Button variant="outline" size="sm">
-                            {status ? status.buttonText : 'Connect'}
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+              <div className="flex flex-col justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-2">Need More?</h3>
+                  <p className="text-gray-400 text-sm mb-4">Upgrade your plan for higher limits and exclusive features.</p>
+                </div>
+                <Button className="btn-primary flex items-center gap-2 mt-auto">
+                  <Plus className="h-5 w-5" />
+                  Upgrade Plan
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -350,7 +350,6 @@ export class EnhancedScannerService {
       let defaultConfig: ApiConfig = {
         baseUrl: '', // Will be set per platform
         version: '', // Will be set per platform
-        rateLimit: { requests: 10, perSeconds: 1 }, // Default placeholder
         timeout: 20000,
         headers: { 'Content-Type': 'application/json; charset=UTF-8' },
       };
@@ -364,7 +363,9 @@ export class EnhancedScannerService {
       }
       // Add other platforms as needed
 
-      // Create a simple AuthTokenManager for the given accessToken
+      // The AuthTokenManagerService needs a proper implementation that can actually store and retrieve tokens
+      // For now, it's a simple mock based on the single accessToken passed.
+      // In a production environment, this would interact with a secure token store.
       const authTokenManager: IAuthTokenManager = {
         getValidCredentials: async (id: PlatformClientIdentifier): Promise<PlatformCredentials | null> => {
           if (id.platform === platform && (!id.userId || id.userId === userId)) {
@@ -383,10 +384,10 @@ export class EnhancedScannerService {
       try {
         switch (platform) {
           case 'tiktok':
-            this.platformClients.set(platform, new TikTokClient(defaultConfig, authTokenManager, userId));
+            this.platformClients.set(platform, new TikTokClient(accessToken, authTokenManager, this.monitoringSystem, userId));
             break;
           case 'instagram':
-            this.platformClients.set(platform, new InstagramClient(defaultConfig, authTokenManager, userId));
+            this.platformClients.set(platform, new InstagramClient(accessToken, authTokenManager, this.monitoringSystem, userId));
             break;
           // Add other platform initializations here
           default:
@@ -889,13 +890,32 @@ export class EnhancedScannerService {
   
   // Example: initialize platform clients (should be called during service setup)
   public initializePlatformClients(authTokenManager: any, userId?: string) {
+    // TODO: Implement a more robust AuthTokenManagerService for production
+    // This current implementation uses a dummy token manager and should be replaced with a proper one.
+    const dummyAuthTokenManager: IAuthTokenManager = {
+      getAuthToken: async (identifier: PlatformClientIdentifier) => {
+        console.warn(`Dummy AuthTokenManager: Getting token for ${identifier.platform} ${identifier.clientId || identifier.userId}`);
+        return { accessToken: 'mock_access_token', strategy: AuthStrategy.OAuth };
+      },
+      refreshAuthToken: async (identifier: PlatformClientIdentifier) => {
+        console.warn(`Dummy AuthTokenManager: Refreshing token for ${identifier.platform} ${identifier.clientId || identifier.userId}`);
+        return { accessToken: 'mock_refreshed_token', strategy: AuthStrategy.OAuth };
+      },
+      invalidateAuthToken: async (identifier: PlatformClientIdentifier) => {
+        console.warn(`Dummy AuthTokenManager: Invalidating token for ${identifier.platform} ${identifier.clientId || identifier.userId}`);
+        return true;
+      }
+    };
+
+    const finalAuthTokenManager = authTokenManager || dummyAuthTokenManager;
+
     for (const platform of [
       'tiktok',
       'instagram',
       'youtube',
     ] as Platform[]) {
       if (PlatformFactory.isPlatformSupported(platform)) {
-        const client = PlatformFactory.createClient(platform, authTokenManager, userId);
+        const client = PlatformFactory.createClient(platform, finalAuthTokenManager, userId);
         this.platformClients.set(platform, client);
       }
     }

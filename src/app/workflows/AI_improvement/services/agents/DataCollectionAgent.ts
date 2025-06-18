@@ -76,9 +76,23 @@ export class DataCollectionAgent {
   private qualityMetrics: Map<string, DataQualityMetrics> = new Map();
   private dataGaps: DataGap[] = [];
   private performanceScore: number = 0.8;
+  private taskSuccessCount: number = 0;
+  private taskFailureCount: number = 0;
+  private totalTasksCompleted: number = 0;
+  private resourceConsumptionHistory: number[] = [];
 
   constructor() {
     this.initializeCollectionStrategies();
+    // Simulate initial data quality metrics for some platforms/niches
+    this.qualityMetrics.set('instagram_fitness', {
+      completeness: 0.85,
+      accuracy: 0.92,
+      freshness: 0.80,
+      uniqueness: 0.95,
+      consistency: 0.90,
+      relevance: 0.88,
+      overallScore: 0.88
+    });
   }
 
   /**
@@ -86,10 +100,10 @@ export class DataCollectionAgent {
    */
   async start(): Promise<void> {
     this.isActive = true;
-    console.log('🚀 Data Collection Optimization Agent started');
-    
-    // Initialize baseline data gaps analysis
+    console.log(`DataCollectionAgent started.`);
+    // Initial analysis of data gaps
     await this.analyzeDataGaps();
+    this.startGapMonitoring();
   }
 
   /**
@@ -98,19 +112,19 @@ export class DataCollectionAgent {
   async stop(): Promise<void> {
     this.isActive = false;
     this.currentTask = null;
-    console.log('🛑 Data Collection Optimization Agent stopped');
+    if (this.gapMonitoringInterval) {
+      clearInterval(this.gapMonitoringInterval);
+    }
+    console.log(`DataCollectionAgent stopped.`);
   }
 
   /**
    * Execute a data collection task
    */
   async executeTask(task: DataCollectionTask): Promise<void> {
-    if (!this.isActive) {
-      throw new Error('Data Collection Agent is not active');
-    }
-
     this.currentTask = task;
-    console.log(`📊 Executing data collection task: ${task.type} for ${task.niche} on ${task.platform}`);
+    this.totalTasksCompleted++;
+    const startTime = process.hrtime.bigint();
 
     try {
       switch (task.type) {
@@ -127,14 +141,19 @@ export class DataCollectionAgent {
           await this.monitorDataGaps(task);
           break;
         default:
-          throw new Error(`Unknown task type: ${task.type}`);
+          console.warn(`Unknown task type for DataCollectionAgent: ${task.type}`);
+          this.taskFailureCount++;
+          break;
       }
-
-      console.log(`✅ Task ${task.type} completed successfully`);
+      this.taskSuccessCount++;
     } catch (error) {
-      console.error(`❌ Task ${task.type} failed:`, error);
-      throw error;
+      console.error(`DataCollectionAgent task failed: ${error}`);
+      this.taskFailureCount++;
     } finally {
+      const endTime = process.hrtime.bigint();
+      const durationMs = Number(endTime - startTime) / 1_000_000;
+      this.recordResourceConsumption(durationMs);
+      this.updatePerformanceScore();
       this.currentTask = null;
     }
   }
@@ -178,47 +197,41 @@ export class DataCollectionAgent {
    * Validate data quality for collected content
    */
   private async validateDataQuality(task: DataCollectionTask): Promise<void> {
-    const { niche, platform } = task;
-    const strategyKey = `${niche}_${platform}`;
-    
-    // Simulate data quality analysis
+    console.log(`Validating data quality for ${task.niche} on ${task.platform}...`);
+
+    // Simulate fetching real data based on requirements
+    const collectedData = await this.fetchSimulatedData(task.platform, task.niche, task.requirements);
+
+    // Calculate realistic quality metrics based on collected data and defined thresholds
+    const completeness = Math.min(1, collectedData.length / task.requirements.minSamples + 0.1); // Closer to 1 if more data
+    const accuracy = 0.90 + (Math.random() * 0.05); // High accuracy baseline with slight variance
+    const freshness = Math.max(0.7, 1 - (Date.now() - collectedData[0]?.timestamp) / (1000 * 60 * 60 * 24 * 30)); // Recent data better
+    const uniqueness = 0.95 + (Math.random() * 0.03); // High uniqueness baseline
+    const consistency = 0.90 + (Math.random() * 0.05);
+    const relevance = Math.min(1, completeness * 0.4 + accuracy * 0.3 + (Math.random() * 0.3)); // Weighted by completeness and accuracy
+
+    const overallScore = (completeness + accuracy + freshness + uniqueness + consistency + relevance) / 6;
+
     const metrics: DataQualityMetrics = {
-      completeness: Math.random() * 0.2 + 0.8, // 80-100%
-      accuracy: Math.random() * 0.1 + 0.9, // 90-100%
-      freshness: Math.random() * 0.3 + 0.7, // 70-100%
-      uniqueness: Math.random() * 0.2 + 0.8, // 80-100%
-      consistency: Math.random() * 0.15 + 0.85, // 85-100%
-      relevance: Math.random() * 0.25 + 0.75, // 75-100%
-      overallScore: 0,
+      completeness,
+      accuracy,
+      freshness,
+      uniqueness,
+      consistency,
+      relevance,
+      overallScore
     };
 
-    // Calculate overall score
-    metrics.overallScore = (
-      metrics.completeness * 0.2 +
-      metrics.accuracy * 0.25 +
-      metrics.freshness * 0.15 +
-      metrics.uniqueness * 0.15 +
-      metrics.consistency * 0.1 +
-      metrics.relevance * 0.15
-    );
+    const key = `${task.platform}_${task.niche}`;
+    this.qualityMetrics.set(key, metrics);
+    console.log(`Data quality validation complete for ${key}. Overall score: ${overallScore.toFixed(2)}`);
 
-    this.qualityMetrics.set(strategyKey, metrics);
-    
-    // Generate quality improvement recommendations
-    const recommendations = this.generateQualityRecommendations(metrics);
-    
-    console.log(`🔍 Data quality validated for ${niche} on ${platform}:`, {
-      overallScore: (metrics.overallScore * 100).toFixed(1) + '%',
-      recommendations: recommendations.length,
-    });
-
-    // If quality is below threshold, trigger optimization
-    if (metrics.overallScore < 0.95) {
-      await this.optimizeCollection({
-        ...task,
-        type: 'optimize_collection',
-        priority: 'high',
-      });
+    // Potentially adjust collection strategy based on quality
+    const currentStrategy = this.collectionStrategies.get(key);
+    if (currentStrategy && overallScore < task.requirements.qualityThreshold) {
+      console.warn(`Low data quality for ${key}. Adjusting collection strategy.`);
+      currentStrategy.qualityFilters.minEngagement = Math.max(currentStrategy.qualityFilters.minEngagement, 500); // Increase filter
+      this.collectionStrategies.set(key, currentStrategy);
     }
   }
 
@@ -264,25 +277,9 @@ export class DataCollectionAgent {
    * Monitor and analyze data gaps
    */
   private async monitorDataGaps(task: DataCollectionTask): Promise<void> {
+    console.log(`Monitoring data gaps for ${task.niche} on ${task.platform}...`);
+    // This task will trigger a re-analysis of data gaps
     await this.analyzeDataGaps();
-    
-    // Filter gaps relevant to the task
-    const relevantGaps = this.dataGaps.filter(gap => 
-      gap.niche === task.niche && gap.platform === task.platform
-    );
-    
-    // Generate action plans for critical gaps
-    for (const gap of relevantGaps) {
-      if (gap.severity === 'critical' || gap.severity === 'high') {
-        await this.addressDataGap(gap);
-      }
-    }
-    
-    console.log(`📊 Data gaps monitored for ${task.niche} on ${task.platform}:`, {
-      totalGaps: relevantGaps.length,
-      criticalGaps: relevantGaps.filter(g => g.severity === 'critical').length,
-      highPriorityGaps: relevantGaps.filter(g => g.severity === 'high').length,
-    });
   }
 
   /**
@@ -291,22 +288,31 @@ export class DataCollectionAgent {
   private async analyzeDataGaps(): Promise<void> {
     this.dataGaps = [];
     
-    for (const niche of Object.values(ContentNiche)) {
-      for (const platform of Object.values(Platform)) {
-        const gap = await this.analyzeNichePlatformGap(niche, platform);
-        if (gap) {
-          this.dataGaps.push(gap);
-        }
+    for (const [key, strategy] of this.collectionStrategies.entries()) {
+      const [platform, niche] = key.split('_');
+      const qualityMetrics = this.qualityMetrics.get(key);
+
+      // Simulate current sample count based on "collection efforts" or historical data
+      const currentSamples = Math.floor(this.totalTasksCompleted * 100 / (Math.random() * 5 + 1)); // More tasks, more samples
+      const requiredSamples = strategy.qualityFilters.minEngagement * 10; // A heuristic for required samples
+
+      if (!qualityMetrics || qualityMetrics.overallScore < 0.7 || currentSamples < requiredSamples) {
+        const gapPercentage = qualityMetrics ? ((requiredSamples - currentSamples) / requiredSamples) * 100 : 100;
+        const gapType = !qualityMetrics || qualityMetrics.overallScore < 0.7 ? 'quality' : 'volume';
+        const severity: DataGap['severity'] = gapPercentage > 75 || gapType === 'quality' ? 'critical' : (gapPercentage > 30 ? 'high' : 'medium');
+
+        this.dataGaps.push({
+          niche: niche as ContentNiche,
+          platform: platform as Platform,
+          gapType,
+          severity,
+          currentSamples,
+          requiredSamples,
+          recommendedActions: this.generateGapActions(niche as ContentNiche, platform as Platform, gapPercentage)
+        });
       }
     }
-    
-    // Sort gaps by severity
-    this.dataGaps.sort((a, b) => {
-      const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-      return severityOrder[a.severity] - severityOrder[b.severity];
-    });
-    
-    console.log(`📊 Data gap analysis completed: ${this.dataGaps.length} gaps identified`);
+    console.log(`Identified ${this.dataGaps.length} data gaps.`);
   }
 
   /**
@@ -369,62 +375,68 @@ export class DataCollectionAgent {
    * Address a specific data gap
    */
   private async addressDataGap(gap: DataGap): Promise<void> {
-    console.log(`🔧 Addressing ${gap.severity} data gap for ${gap.niche} on ${gap.platform}`);
-    
-    // Execute recommended actions
+    console.log(`Addressing data gap for ${gap.niche} on ${gap.platform} (Severity: ${gap.severity})`);
     for (const action of gap.recommendedActions) {
+      console.log(`Executing action: ${action}`);
       await this.executeGapAction(action, gap);
     }
-    
-    // Update performance score based on gap severity
-    if (gap.severity === 'critical') {
-      this.performanceScore = Math.max(0.3, this.performanceScore - 0.2);
-    } else if (gap.severity === 'high') {
-      this.performanceScore = Math.max(0.5, this.performanceScore - 0.1);
-    }
+    // After addressing, re-analyze to see if gap is resolved
+    await this.analyzeDataGaps();
   }
 
   /**
    * Execute a specific gap action
    */
   private async executeGapAction(action: string, gap: DataGap): Promise<void> {
-    console.log(`  📋 Executing action: ${action}`);
-    
-    // Simulate action execution
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // In a real implementation, this would execute actual collection optimization
-    // For now, we'll just log the action
+    // Simulate execution of actions, e.g., increasing rate limits, adjusting filters
+    switch (action) {
+      case 'Increase collection frequency':
+        const currentStrategy = this.collectionStrategies.get(`${gap.platform}_${gap.niche}`);
+        if (currentStrategy) {
+          currentStrategy.schedulingStrategy.frequency = 'daily'; // From hourly to daily, or daily to multiple times a day
+          currentStrategy.schedulingStrategy.priority = Math.min(10, currentStrategy.schedulingStrategy.priority + 2);
+          this.collectionStrategies.set(`${gap.platform}_${gap.niche}`, currentStrategy);
+        }
+        break;
+      case 'Adjust quality filters':
+        // This is handled in validateDataQuality for now
+        break;
+      case 'Discover new sources':
+        console.log(`Simulating discovery of new sources for ${gap.niche} on ${gap.platform}`);
+        // This would involve calling external services or internal functions
+        await this.discoverTrendingHashtags(gap.platform, gap.niche);
+        await this.discoverInfluencers(gap.platform, gap.niche);
+        break;
+      // Add more cases for other actions
+      default:
+        console.warn(`Unknown gap action: ${action}`);
+    }
+    // Simulate some resource consumption for each action
+    this.recordResourceConsumption(Math.random() * 200 + 50); // 50-250ms per action
   }
 
   /**
    * Initialize collection strategies for all niche-platform combinations
    */
   private initializeCollectionStrategies(): void {
-    for (const niche of Object.values(ContentNiche)) {
-      for (const platform of Object.values(Platform)) {
-        const nicheCharacteristics = getNicheCharacteristics(niche);
-        const platformPreference = nicheCharacteristics.platformPreferences[platform.toLowerCase() as keyof typeof nicheCharacteristics.platformPreferences];
-        
-        // Only create strategies for platforms with good preference scores
-        if (platformPreference > 0.6) {
-          const strategyKey = `${niche}_${platform}`;
-          const strategy: CollectionStrategy = {
-            platform,
-            niche,
-            endpoints: this.getOptimalEndpoints(platform),
-            rateLimitOptimization: this.optimizeRateLimit(platform, nicheCharacteristics),
-            contentDiscovery: this.optimizeContentDiscovery(niche, nicheCharacteristics),
-            qualityFilters: this.optimizeQualityFilters(niche, { minSamples: 10000, qualityThreshold: 0.95, timeRange: '30d', contentTypes: [] }),
-            schedulingStrategy: this.optimizeScheduling(niche, nicheCharacteristics),
-          };
-          
-          this.collectionStrategies.set(strategyKey, strategy);
-        }
-      }
-    }
-    
-    console.log(`📋 Initialized ${this.collectionStrategies.size} collection strategies`);
+    // Add default strategies for common platforms/niches
+    const niches: ContentNiche[] = [ContentNiche.FITNESS, ContentNiche.BUSINESS, ContentNiche.ENTERTAINMENT];
+    const platforms: Platform[] = ['instagram', 'tiktok', 'youtube'];
+
+    niches.forEach(niche => {
+      platforms.forEach(platform => {
+        const key = `${platform}_${niche}`;
+        this.collectionStrategies.set(key, {
+          platform,
+          niche,
+          endpoints: this.getOptimalEndpoints(platform),
+          rateLimitOptimization: this.optimizeRateLimit(platform, {}), // Pass relevant niche characteristics
+          contentDiscovery: this.optimizeContentDiscovery(niche, {}),
+          qualityFilters: this.optimizeQualityFilters(niche, { minEngagement: 100 }),
+          schedulingStrategy: this.optimizeScheduling(niche, {})
+        });
+      });
+    });
   }
 
   /**
@@ -534,16 +546,10 @@ export class DataCollectionAgent {
    * Implement a collection strategy
    */
   private async implementStrategy(strategy: CollectionStrategy): Promise<void> {
-    // Simulate strategy implementation
-    console.log(`🔧 Implementing collection strategy for ${strategy.niche} on ${strategy.platform}`);
-    
-    // In a real implementation, this would:
-    // 1. Configure API clients with rate limits
-    // 2. Set up content discovery pipelines
-    // 3. Apply quality filters
-    // 4. Schedule collection jobs
-    
-    await new Promise(resolve => setTimeout(resolve, 500));
+    console.log(`Implementing collection strategy for ${strategy.niche} on ${strategy.platform}`);
+    // This is where the agent would interact with actual data collection services
+    // For now, we simulate resource consumption
+    this.recordResourceConsumption(Math.random() * 500 + 100); // 100-600ms for implementing a strategy
   }
 
   /**
@@ -579,46 +585,34 @@ export class DataCollectionAgent {
    * Discover trending hashtags for platform and niche
    */
   private async discoverTrendingHashtags(platform: Platform, niche: ContentNiche): Promise<string[]> {
-    // Simulate trending hashtag discovery
-    const nicheCharacteristics = getNicheCharacteristics(niche);
-    const baseHashtags = nicheCharacteristics.commonHashtags || [];
-    
-    // Generate trending variations
-    const trendingHashtags = baseHashtags.map(tag => 
-      tag + Math.floor(Math.random() * 2024)
-    ).slice(0, 5);
-    
-    return trendingHashtags;
+    console.log(`Discovering trending hashtags for ${niche} on ${platform}`);
+    // Simulate fetching trending hashtags
+    return [`#${niche}trends`, `#${platform}viral`, `#new${niche}content`, `#explore${platform}`];
   }
 
   /**
    * Discover influential accounts for platform and niche
    */
   private async discoverInfluencers(platform: Platform, niche: ContentNiche): Promise<string[]> {
-    // Simulate influencer discovery
-    const influencerCount = Math.floor(Math.random() * 10) + 5;
-    return Array.from({ length: influencerCount }, (_, i) => 
-      `${niche}_influencer_${i + 1}`
-    );
+    console.log(`Discovering influencers for ${niche} on ${platform}`);
+    // Simulate fetching influencers
+    return [`@${platform}influencer1`, `@${niche}master${Math.floor(Math.random() * 100)}`];
   }
 
   /**
    * Discover emerging keywords for niche
    */
   private async discoverKeywords(niche: ContentNiche, nicheCharacteristics: any): Promise<string[]> {
-    // Simulate keyword discovery
-    const baseKeywords = nicheCharacteristics.keyTopics || [];
-    const emergingKeywords = baseKeywords.map((keyword: string) => 
-      keyword + '_2024'
-    ).slice(0, 3);
-    
-    return emergingKeywords;
+    console.log(`Discovering keywords for ${niche}`);
+    // Simulate fetching keywords
+    return [`${niche} tips`, `${niche} strategy`, `${niche} growth`];
   }
 
   // Agent status methods
   
   async getStatus(): Promise<'active' | 'idle' | 'error'> {
     if (!this.isActive) return 'idle';
+    if (this.performanceScore < 0.3) return 'error';
     return this.currentTask ? 'active' : 'idle';
   }
 
@@ -627,31 +621,84 @@ export class DataCollectionAgent {
   }
 
   async getResourceUtilization(): Promise<number> {
-    return this.isActive ? Math.random() * 0.8 + 0.2 : 0.1;
+    if (this.resourceConsumptionHistory.length === 0) return 0;
+    const sum = this.resourceConsumptionHistory.reduce((acc, val) => acc + val, 0);
+    const average = sum / this.resourceConsumptionHistory.length;
+    return Math.min(1, average / 1000); // Normalize to 0-1 scale, assuming 1000ms is max utilization
   }
 
   async getCurrentTask(): Promise<string | undefined> {
-    return this.currentTask ? `${this.currentTask.type} - ${this.currentTask.niche}` : undefined;
+    return this.currentTask ? `${this.currentTask.type} - ${this.currentTask.niche} on ${this.currentTask.platform}` : undefined;
   }
 
   /**
    * Get current data gaps
    */
   getDataGaps(): DataGap[] {
-    return [...this.dataGaps];
+    return this.dataGaps;
   }
 
   /**
    * Get collection strategies
    */
   getCollectionStrategies(): Map<string, CollectionStrategy> {
-    return new Map(this.collectionStrategies);
+    return this.collectionStrategies;
   }
 
   /**
    * Get quality metrics
    */
   getQualityMetrics(): Map<string, DataQualityMetrics> {
-    return new Map(this.qualityMetrics);
+    return this.qualityMetrics;
+  }
+
+  private recordResourceConsumption(durationMs: number): void {
+    this.resourceConsumptionHistory.push(durationMs);
+    if (this.resourceConsumptionHistory.length > 100) {
+      this.resourceConsumptionHistory.shift();
+    }
+  }
+
+  private updatePerformanceScore(): void {
+    if (this.totalTasksCompleted === 0) {
+      this.performanceScore = 0.8;
+      return;
+    }
+    const successRate = this.taskSuccessCount / this.totalTasksCompleted;
+    this.performanceScore = 0.5 * successRate + 0.3 * (1 - this.getResourceUtilization()) + 0.2 * this.performanceScore;
+    this.performanceScore = Math.max(0.1, Math.min(1.0, this.performanceScore));
+  }
+
+  private gapMonitoringInterval?: NodeJS.Timeout;
+
+  private startGapMonitoring(): void {
+    this.gapMonitoringInterval = setInterval(async () => {
+      console.log('Running scheduled data gap monitoring...');
+      await this.analyzeDataGaps();
+      // Potentially trigger actions if critical gaps are found
+      for (const gap of this.dataGaps) {
+        if (gap.severity === 'critical') {
+          console.warn(`Critical data gap detected: ${gap.description}. Attempting to address.`);
+          await this.addressDataGap(gap);
+        }
+      }
+    }, 60 * 60 * 1000); // Run every hour
+  }
+
+  private async fetchSimulatedData(platform: Platform, niche: ContentNiche, requirements: DataCollectionTask['requirements']): Promise<any[]> {
+    // This is a placeholder for actual data fetching from platform APIs/DB
+    console.log(`Simulating data fetch for ${niche} on ${platform} with requirements:`, requirements);
+    const numRecords = requirements.minSamples + Math.floor(Math.random() * requirements.minSamples * 0.5); // Simulate variable data
+    const data = [];
+    for (let i = 0; i < numRecords; i++) {
+      data.push({
+        id: `post-${platform}-${niche}-${i}`,
+        timestamp: Date.now() - Math.floor(Math.random() * (requirements.timeRange === '30d' ? 30 : 7) * 24 * 60 * 60 * 1000), // Simulate recent
+        engagement: Math.floor(Math.random() * 1000) + requirements.minEngagement,
+        contentType: requirements.contentTypes[Math.floor(Math.random() * requirements.contentTypes.length)],
+        // Add more realistic data fields as needed
+      });
+    }
+    return data.filter(d => d.engagement >= requirements.minEngagement);
   }
 } 

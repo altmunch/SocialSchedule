@@ -1,8 +1,9 @@
 import './globals.css';
+import '../styles/dashboard-components.css';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { SettingsProvider } from '@/providers/SettingsProvider';
-import AppLayout from '@/components/layout/AppLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
 
 const inter = Inter({ 
   subsets: ['latin'], 
@@ -58,7 +59,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className={`${inter.className} antialiased flex flex-col h-screen`}>
+      <body className={`${inter.className} antialiased flex flex-col overflow-x-hidden`}>
         <AuthProvider>
           <SettingsProvider>
             <AppLayout>

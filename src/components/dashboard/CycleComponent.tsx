@@ -1,445 +1,314 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { BarChart, LineChart as LineChartComponent } from '@/components/dashboard/charts';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sparkles, RefreshCw, Lightbulb, TrendingUp, ChevronRight, Target, Award, AlertTriangle, Zap, BarChart3, Brain } from 'lucide-react';
-import { LineChart as LineChartIcon } from 'lucide-react/dist/esm/icons/line-chart';
-import { CircularScore } from '@/components/ui/circular-score';
-import { ChartWrapper } from '@/components/ui/chart-wrapper';
+import { 
+  TrendingUp, 
+  DollarSign, 
+  Users, 
+  Eye, 
+  BarChart3, 
+  Target, 
+  Calendar, 
+  Clock, 
+  Zap, 
+  Brain, 
+  Star, 
+  ArrowUpRight, 
+  CheckCircle2, 
+  AlertTriangle,
+  Lightbulb,
+  TrendingDown,
+  Activity,
+  Award,
+  Twitter,
+  Instagram,
+  Youtube,
+  Facebook,
+  Linkedin
+} from 'lucide-react';
 
-type ContentIdea = {
-  id: string;
-  title: string;
-  description: string;
-  estimated_engagement: number;
-  priority: 'high' | 'medium' | 'low';
-  difficulty: 'easy' | 'medium' | 'hard';
-  before_after?: {
-    before: string;
-    after: string;
-  };
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'positive': return 'text-emerald-400';
+    case 'neutral': return 'text-orange-400';
+    case 'negative': return 'text-red-400';
+    default: return 'text-gray-400';
+  }
 };
 
-type OptimizationSuggestion = {
-  id: string;
-  title: string;
-  description: string;
-  estimated_improvement: number;
-  priority: 'high' | 'medium' | 'low';
-  category: 'scheduling' | 'optimization';
-};
+const PlatformChart = () => (
+  <div className="w-full h-72 mt-3 flex items-center justify-center">
+    <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)' }}>
+      {/* Background circle */}
+      <circle
+        cx="100"
+        cy="100"
+        r="80"
+        fill="transparent"
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth="40"
+      />
 
-type PerformanceMetric = {
-  label: string;
-  current: number;
-  previous: number;
-  target: number;
-  trend: 'up' | 'down' | 'neutral';
-};
+      {/* LinkedIn Segment */}
+      <circle
+        cx="100"
+        cy="100"
+        r="80"
+        fill="transparent"
+        stroke="#0a66c2"
+        strokeWidth="40"
+        strokeDasharray="188.5 377.0" // 50% of 2*PI*80 = 251.3, this is for 50%
+        strokeDashoffset="0"
+      />
+
+      {/* YouTube Segment */}
+      <circle
+        cx="100"
+        cy="100"
+        r="80"
+        fill="transparent"
+        stroke="#e4405f"
+        strokeWidth="40"
+        strokeDasharray="94.2 377.0"
+        strokeDashoffset="-125.6"
+      />
+
+      {/* Instagram Segment */}
+      <circle
+        cx="100"
+        cy="100"
+        r="80"
+        fill="transparent"
+        stroke="#ff0000"
+        strokeWidth="40"
+        strokeDasharray="62.8 377.0"
+        strokeDashoffset="-219.8"
+      />
+
+      {/* TikTok Segment */}
+      <circle
+        cx="100"
+        cy="100"
+        r="80"
+        fill="transparent"
+        stroke="#1877f2"
+        strokeWidth="40"
+        strokeDasharray="94.4 377.0"
+        strokeDashoffset="-282.6"
+      />
+      
+      {/* Center text */}
+      <text x="100" y="95" textAnchor="middle" fontSize="14" fill="white" fontWeight="600">
+        Platform
+      </text>
+      <text x="100" y="110" textAnchor="middle" fontSize="12" fill="#9ca3af">
+        Performance
+      </text>
+    </svg>
+  </div>
+);
 
 export default function CycleComponent() {
   const { user } = useAuth();
-  const [timeRange, setTimeRange] = useState('7d');
-  
-  // TODO: Replace with actual fetching of optimization suggestions from a backend API.
-  const [optimizationSuggestions] = useState<OptimizationSuggestion[]>([
-    // { /* ... dynamic data ... */ }
-  ]);
+  const [animationStage, setAnimationStage] = useState(0);
+  const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
 
-  // TODO: Replace with actual fetching of content ideas from a backend API.
-  const [contentIdeas] = useState<ContentIdea[]>([
-    // { /* ... dynamic data ... */ }
-  ]);
+  // Staggered animation entrance
+  useEffect(() => {
+    const stages = [0, 1, 2, 3];
+    stages.forEach((stage, index) => {
+      setTimeout(() => setAnimationStage(stage), index * 200);
+    });
+  }, []);
 
-  // TODO: Replace with actual fetching of performance metrics from a backend API.
-  const performanceMetrics: PerformanceMetric[] = [
-    // { /* ... dynamic data ... */ }
+  // Mock data - in real app, fetch from API based on selectedTimeframe
+  const metrics = [
+    { id: 'revenue', title: 'Revenue', value: '$8,247', change: '+12.3%', trend: 'up', icon: DollarSign, color: '#059669' },
+    { id: 'reach', title: 'Total Reach', value: '124K', change: '+8.7%', trend: 'up', icon: Users, color: '#7c3aed' },
+    { id: 'engagement', title: 'Engagement', value: '4.8%', change: '+2.1%', trend: 'up', icon: Eye, color: '#ea580c' },
+    { id: 'conversion', title: 'Conversion', value: '2.4%', change: '-0.3%', trend: 'down', icon: Target, color: '#0891b2' },
   ];
 
-  const handleGenerateIdeas = () => {
-    // In a real app, this would call an AI service to generate fresh ideas
+  const topPosts = [
+    { id: '1', title: 'Product Launch Video', platform: 'TikTok', views: '2.1M', engagement: '8.3%', revenue: '$1,240' },
+    { id: '2', title: 'Behind the Scenes', platform: 'Instagram', views: '847K', engagement: '6.7%', revenue: '$890' },
+    { id: '3', title: 'Tutorial Series Pt.1', platform: 'YouTube', views: '456K', engagement: '12.1%', revenue: '$2,100' },
+  ];
+
+  const recommendations = [
+    { id: '1', type: 'high', title: 'Post during peak hours', description: '6-8 PM shows 34% higher engagement', impact: '+34%', icon: Clock },
+    { id: '2', type: 'medium', title: 'Use trending audio', description: 'Current trending sounds boost reach by 23%', impact: '+23%', icon: TrendingUp },
+    { id: '3', type: 'high', title: 'Add call-to-action', description: 'Videos with CTA convert 45% better', impact: '+45%', icon: Target },
+  ];
+
+  const getRecommendationColor = (type: string) => {
+    switch (type) {
+      case 'high': return 'text-red-400';
+      case 'medium': return 'text-orange-400';
+      case 'low': return 'text-emerald-400';
+      default: return 'text-gray-400';
+    }
   };
 
-  const getPriorityColor = (priority: 'high' | 'medium' | 'low') => {
-    const colors = {
-      high: 'bg-red-500/20 text-red-400 border-red-500/30',
-      medium: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-      low: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-    };
-    return colors[priority];
-  };
-
-  const getPriorityIcon = (priority: 'high' | 'medium' | 'low') => {
-    const icons = {
-      high: AlertTriangle,
-      medium: Target,
-      low: Award,
-    };
-    return icons[priority];
-  };
-
-  const getDifficultyStars = (difficulty: 'easy' | 'medium' | 'hard') => {
-    const levels = {
-      easy: 1,
-      medium: 3,
-      hard: 5,
-    };
-    return '⭐'.repeat(levels[difficulty]);
+  const platformColors: Record<string, string> = {
+    'TikTok': '#ff0050',
+    'Instagram': '#e4405f',
+    'YouTube': '#ff0000',
+    'Twitter': '#1da1f2',
   };
 
   return (
-    <div className="min-h-screen" style={{
-      background: 'linear-gradient(135deg, #0a0b0f 0%, #111318 50%, #1a1d25 100%)'
-    }}>
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+    <div className="single-view">
+      
+      {/* Compact Header */}
+      <div className={`single-view-header fade-in ${animationStage >= 0 ? 'opacity-100' : 'opacity-0'}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-dynamic-2xl font-bold bg-gradient-to-r from-violet-400 to-emerald-400 bg-clip-text text-transparent">
+              Performance Analytics
+            </h1>
+            <p className="text-dynamic-base text-gray-400 mt-1">Track your content performance and get AI-powered insights</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {['24h', '7d', '30d', '90d'].map((period) => (
+              <button
+                key={period}
+                onClick={() => setSelectedTimeframe(period)}
+                className={`text-dynamic-sm px-3 py-1 rounded-lg transition-colors ${
+                  selectedTimeframe === period 
+                    ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {period}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="single-view-content grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        {/* Enhanced Header */}
-        <div className="text-center space-y-4 animate-fadeIn">
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight gradient-text">Cycle</h1>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            Analyze performance and generate AI-powered improvement strategies
-          </p>
-        </div>
-
-        {/* Enhanced Performance Analytics */}
-        <div className="glass-card animate-slideUp">
-          <div className="p-6 border-b border-gray-700/50">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <BarChart3 className="h-6 w-6 text-violet-400" />
-              Performance Overview
-            </h2>
-            <p className="text-gray-400 mt-1">Track your key metrics with circular progress indicators</p>
-          </div>
-          
-          <div className="p-6">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-              {performanceMetrics.map((metric) => (
-                <div key={metric.label} className="text-center space-y-4 group">
-                  <div className="relative">
-                    <CircularScore 
-                      value={metric.current} 
-                      size={100}
-                      className="mx-auto group-hover:scale-105 transition-transform"
-                    />
-                    {/* Trend Indicator */}
-                    <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                      metric.trend === 'up' ? 'bg-emerald-500 text-white' :
-                      metric.trend === 'down' ? 'bg-red-500 text-white' :
-                      'bg-gray-500 text-white'
-                    }`}>
-                      {metric.trend === 'up' ? '↗' : metric.trend === 'down' ? '↘' : '→'}
+        {/* Key Metrics Row */}
+        <div className={`col-span-full metrics-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 slide-up ${animationStage >= 1 ? 'opacity-100' : 'opacity-0'}`}>
+          {metrics.map((metric) => {
+            const IconComponent = metric.icon;
+            const isPositive = metric.trend === 'up';
+            return (
+              <div key={metric.id} className="metric-card compact-card group relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-violet-500"></div>
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${metric.color}20`, color: metric.color }}>
+                      <IconComponent className="h-5 w-5" />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-white">{metric.label}</h3>
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-center gap-2 text-sm">
-                        <span className="text-gray-400">Current:</span>
-                        <span className="text-white font-medium">{metric.current}%</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-2 text-xs">
-                        <span className="text-gray-500">Previous:</span>
-                        <span className="text-gray-400">{metric.previous}%</span>
-                        <span className="text-gray-500">Target:</span>
-                        <span className="text-violet-400">{metric.target}%</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced AI Optimization Suggestions */}
-        <div className="glass-card animate-slideUp">
-          <div className="p-6 border-b border-gray-700/50">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <Brain className="h-6 w-6 text-violet-400" />
-              AI Optimization Suggestions
-            </h2>
-            <p className="text-gray-400 mt-1">Direct improvements for scheduling and content optimization</p>
-          </div>
-          
-          <div className="p-6 space-y-4">
-            {optimizationSuggestions.map((suggestion) => {
-              const PriorityIcon = getPriorityIcon(suggestion.priority);
-              return (
-                <div key={suggestion.id} className="enhanced-card p-6 hover-lift">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg border ${getPriorityColor(suggestion.priority)}`}>
-                          <PriorityIcon className="h-4 w-4" />
-                        </div>
-                        <h3 className="font-semibold text-white text-lg">{suggestion.title}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(suggestion.priority)}`}>
-                          {suggestion.priority}
-                        </span>
-                      </div>
-                      <p className="text-gray-400 leading-relaxed">{suggestion.description}</p>
-                    </div>
-                    
-                    <div className="flex flex-col items-end gap-3">
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-emerald-400">+{suggestion.estimated_improvement}%</div>
-                        <div className="text-xs text-gray-500">improvement</div>
-                      </div>
-                      <Button className="btn-primary">
-                        Apply Fix
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          <div className="p-6 border-t border-gray-700/50 flex justify-end">
-            <Button className="btn-primary flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              Apply All Optimizations
-            </Button>
-          </div>
-        </div>
-
-        {/* Enhanced Content Ideas */}
-        <div className="glass-card animate-slideUp">
-          <div className="p-6 border-b border-gray-700/50">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-              <Lightbulb className="h-6 w-6 text-violet-400" />
-              Content Ideas & Strategies
-            </h2>
-            <p className="text-gray-400 mt-1">AI-generated suggestions to improve your content strategy and engagement</p>
-          </div>
-          
-          <div className="p-6 space-y-6">
-            {contentIdeas.map((idea) => {
-              const PriorityIcon = getPriorityIcon(idea.priority);
-              return (
-                <div key={idea.id} className="enhanced-card p-6 hover-lift">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg border ${getPriorityColor(idea.priority)}`}>
-                          <PriorityIcon className="h-4 w-4" />
-                        </div>
-                        <h3 className="font-semibold text-white text-lg">{idea.title}</h3>
-                        <span className="text-xs px-3 py-1 bg-gray-700 text-gray-300 rounded-full border border-gray-600">
-                          {getDifficultyStars(idea.difficulty)} {idea.difficulty}
-                        </span>
-                      </div>
-                      <p className="text-gray-400 leading-relaxed">{idea.description}</p>
-                      
-                      {/* Enhanced Before/After Section */}
-                      {idea.before_after && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <div className="text-sm font-medium text-red-400 flex items-center gap-2">
-                              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                              Before
-                            </div>
-                            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-gray-300">
-                              {idea.before_after.before}
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="text-sm font-medium text-emerald-400 flex items-center gap-2">
-                              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                              After
-                            </div>
-                            <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm text-gray-300">
-                              {idea.before_after.after}
-                            </div>
-                          </div>
-                        </div>
+                    <div className="flex items-center gap-1">
+                      {isPositive ? (
+                        <TrendingUp className="h-4 w-4 text-emerald-400" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-red-400" />
                       )}
-                    </div>
-                    
-                    <div className="flex flex-col items-end gap-3">
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-violet-400">+{idea.estimated_engagement}%</div>
-                        <div className="text-xs text-gray-500">estimated engagement</div>
-                      </div>
-                      <Button variant="outline" className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700">
-                        Use Template
-                      </Button>
+                      <span className={`text-dynamic-sm font-medium ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {metric.change}
+                      </span>
                     </div>
                   </div>
+                  <div className="text-2xl font-bold text-white">{metric.value}</div>
+                  <div className="text-sm text-gray-400 mt-1">{metric.title}</div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Charts and Analytics Row */}
+        <div className={`col-span-2 grid grid-cols-12 gap-4 slide-up ${animationStage >= 2 ? 'opacity-100' : 'opacity-0'}`}>
           
-          <div className="p-6 border-t border-gray-700/50 flex justify-between">
-            <Button 
-              variant="outline" 
-              onClick={handleGenerateIdeas}
-              className="bg-gray-800 border-gray-600 text-white hover:bg-gray-700 flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Generate New Ideas
-            </Button>
-            <Button className="btn-primary">
-              Save All Ideas
-            </Button>
+          {/* Revenue Trend Chart */}
+          <div className="col-span-12 compact-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-dynamic-lg font-semibold text-white">Revenue Trend</h3>
+              <div className="flex items-center gap-2 text-dynamic-sm text-emerald-400">
+                <ArrowUpRight className="h-4 w-4" />
+                <span>+12.3% vs last {selectedTimeframe}</span>
+              </div>
+            </div>
+            <div className="h-48 bg-gray-800/30 rounded-lg border border-gray-700/50 flex items-center justify-center relative overflow-hidden">
+              {/* Simplified chart representation */}
+              <div className="absolute inset-0 flex items-end justify-around p-4">
+                {Array.from({ length: 7 }, (_, i) => (
+                  <div 
+                    key={i}
+                    className="bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t"
+                    style={{ 
+                      height: `${Math.random() * 60 + 20}%`,
+                      width: '12px'
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent" />
+            </div>
+          </div>
+
+          {/* Top Performing Posts */}
+          <div className="col-span-12 compact-card p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-dynamic-lg font-semibold text-white flex items-center gap-2">
+                <Award className="h-5 w-5 text-yellow-400" />
+                Top Performing Posts
+              </h3>
+              <button className="text-violet-400 hover:text-violet-300 text-sm font-medium">View All</button>
+            </div>
+            <ul className="space-y-4">
+              {topPosts.map((post) => (
+                <li key={post.id} className="flex items-center gap-4 p-3 bg-gray-800/50 border border-gray-700/50 rounded-lg">
+                  <img src="/images/video-thumbnail.png" alt="Video Thumbnail" className="w-20 h-14 object-cover rounded-md flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="text-white font-medium text-dynamic-base truncate mb-1">{post.title}</h4>
+                    <div className="flex items-center gap-3 text-xs text-gray-400">
+                      <span className="flex items-center gap-1 capitalize"><Youtube className="h-3 w-3" /> {post.platform}</span>
+                      <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {post.views}</span>
+                      <span className="flex items-center gap-1"><Activity className="h-3 w-3" /> {post.engagement}</span>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-white font-bold text-lg">{post.revenue}</p>
+                    <p className="text-gray-400 text-xs">Revenue</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        {/* Enhanced Analytics Tabs */}
-        <div className="glass-card animate-slideUp">
-          <Tabs defaultValue="analytics" className="w-full">
-            <div className="p-6 border-b border-gray-700/50">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                    <LineChartIcon className="h-6 w-6 text-violet-400" />
-                    Detailed Analytics
-                  </h2>
-                  <p className="text-gray-400 mt-1">Deep dive into your content performance</p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <TabsList className="bg-gray-800 border border-gray-700">
-                    <TabsTrigger value="analytics" className="data-[state=active]:bg-violet-500 data-[state=active]:text-white">Analytics</TabsTrigger>
-                    <TabsTrigger value="trends" className="data-[state=active]:bg-violet-500 data-[state=active]:text-white">Trends</TabsTrigger>
-                  </TabsList>
-                  <Select value={timeRange} onValueChange={setTimeRange}>
-                    <SelectTrigger className="w-[150px] bg-gray-800 border-gray-700 text-white">
-                      <SelectValue placeholder="Select period" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
-                      <SelectItem value="7d">Last 7 days</SelectItem>
-                      <SelectItem value="30d">Last 30 days</SelectItem>
-                      <SelectItem value="90d">Last 90 days</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            
-            <TabsContent value="analytics" className="p-6 space-y-6">
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
-                <div className="enhanced-card p-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white">Total Engagement</h3>
-                    <div className="text-3xl font-bold text-white">3,427</div>
-                    <p className="text-sm text-emerald-400 flex items-center gap-1">
-                      <TrendingUp className="h-4 w-4" />
-                      +14.5% from previous period
-                    </p>
-                    <div className="h-[80px] mt-4">
-                      <ChartWrapper>
-                        <LineChartComponent data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} />
-                      </ChartWrapper>
-                    </div>
+        {/* AI Recommendations Column */}
+        <div className={`col-span-1 lg:col-span-1 slide-up ${animationStage >= 3 ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="compact-card p-6 h-full flex flex-col">
+            <h3 className="text-dynamic-lg font-semibold text-white mb-4 flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-yellow-400" />
+              AI Recommendations
+            </h3>
+            <ul className="space-y-4 flex-1">
+              {recommendations.map((rec) => (
+                <li key={rec.id} className="flex items-start gap-3 p-3 bg-gray-800/50 border border-gray-700/50 rounded-lg">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${rec.type === 'high' ? 'bg-red-500/20 text-red-400' : rec.type === 'medium' ? 'bg-orange-500/20 text-orange-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                    {rec.icon && React.createElement(rec.icon, { className: "h-4 w-4" })}
                   </div>
-                </div>
-                
-                <div className="enhanced-card p-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white">Audience Growth</h3>
-                    <div className="text-3xl font-bold text-white">+258</div>
-                    <p className="text-sm text-emerald-400 flex items-center gap-1">
-                      <TrendingUp className="h-4 w-4" />
-                      +5.3% from previous period
-                    </p>
-                    <div className="h-[80px] mt-4">
-                      <ChartWrapper>
-                        <LineChartComponent data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} />
-                      </ChartWrapper>
-                    </div>
+                  <div className="flex-1">
+                    <h4 className="text-white font-medium text-sm mb-1">{rec.title}</h4>
+                    <p className="text-gray-400 text-xs mb-1">{rec.description}</p>
+                    <span className={`text-xs font-semibold ${getRecommendationColor(rec.type)}`}>{rec.impact} Impact</span>
                   </div>
-                </div>
-                
-                <div className="enhanced-card p-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white">Conversion Rate</h3>
-                    <div className="text-3xl font-bold text-white">2.8%</div>
-                    <p className="text-sm text-emerald-400 flex items-center gap-1">
-                      <TrendingUp className="h-4 w-4" />
-                      +0.4% from previous period
-                    </p>
-                    <div className="h-[80px] mt-4">
-                      <ChartWrapper>
-                        <LineChartComponent data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} />
-                      </ChartWrapper>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-                <div className="enhanced-card p-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white">Engagement by Platform</h3>
-                    <p className="text-gray-400">Where your content performs best</p>
-                    <div className="h-[300px]">
-                      <ChartWrapper>
-                        <BarChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} />
-                      </ChartWrapper>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="enhanced-card p-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white">Growth Trends</h3>
-                    <p className="text-gray-400">Follower growth over time</p>
-                    <div className="h-[300px]">
-                      <ChartWrapper>
-                        <LineChartComponent data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} />
-                      </ChartWrapper>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="trends" className="p-6 space-y-6">
-              <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
-                <div className="enhanced-card p-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white">Trending Topics</h3>
-                    <p className="text-gray-400">Popular content themes this week</p>
-                    <div className="h-[300px]">
-                      <ChartWrapper>
-                        <BarChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} />
-                      </ChartWrapper>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="enhanced-card p-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-white">Performance Trends</h3>
-                    <p className="text-gray-400">Content performance over time</p>
-                    <div className="h-[300px]">
-                      <ChartWrapper>
-                        <LineChartComponent data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} />
-                      </ChartWrapper>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="enhanced-card p-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Competitive Analysis</h3>
-                  <p className="text-gray-400">How you compare to similar accounts</p>
-                  <div className="h-[300px]">
-                    <ChartWrapper>
-                      <BarChart data={[{value: 60}, {value: 70}, {value: 50}, {value: 30}, {value:20}, {value:10}, {value:15}]} />
-                    </ChartWrapper>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+                </li>
+              ))}
+            </ul>
+            <button className="btn-secondary w-full mt-6">
+              <Brain className="h-4 w-4 mr-2" /> Generate More Insights
+            </button>
+          </div>
         </div>
       </div>
     </div>

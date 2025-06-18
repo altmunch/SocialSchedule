@@ -39,20 +39,20 @@ import { ClientDetailView } from './ClientDetailView';
 import { PerformanceMonitoringDashboard } from './PerformanceMonitoringDashboard';
 import { WorkflowScheduler } from './WorkflowScheduler';
 import { TeamAnalyticsOverview } from './TeamAnalyticsOverview';
-import { RoleManagementPanel } from './RoleManagementPanel';
+import RoleManagementPanel from './RoleManagementPanel';
 
-// Import automation modules
+// Import automation modules as named imports
 import { ContentAutomationModule } from './modules/ContentAutomationModule';
 import { BulkVideoProcessor } from './modules/BulkVideoProcessor';
 import { AutoPostingScheduler } from './modules/AutoPostingScheduler';
 import { FeedbackModule } from './modules/FeedbackModule';
-import { ContentIdeationModule } from './modules/ContentIdeationModule';
+import ContentIdeationModule from './modules/ContentIdeationModule';
 
-// Import infrastructure components
-import { ScaleManager } from './infrastructure/ScaleManager';
-import { BackgroundProcessor } from './infrastructure/BackgroundProcessor';
-import { DataFlowManager } from './infrastructure/DataFlowManager';
-import { PerformanceOptimizer } from './infrastructure/PerformanceOptimizer';
+// Import infrastructure components as named imports
+import ScaleManager from './infrastructure/ScaleManager';
+import BackgroundProcessor from './infrastructure/BackgroundProcessor';
+import DataFlowManager from './infrastructure/DataFlowManager';
+import PerformanceOptimizer from './infrastructure/PerformanceOptimizer';
 
 interface TeamDashboardProps {
   initialView?: 'overview' | 'automation' | 'analytics' | 'operations' | 'workflows' | 'settings';

@@ -1,7 +1,9 @@
 // difficult: YouTube Data API v3 client implementation
 import { BasePlatformClient } from './BasePlatformClient';
-import { PostMetrics, PaginatedResponse, Pagination } from '../types';
-import { Platform } from '../../../deliverables/types/deliverables_types';
+import { PostMetrics, PaginatedResponse, Pagination, Platform } from '../types';
+import { AuthTokenManagerService } from '../AuthTokenManagerService';
+import { MonitoringSystem } from '../monitoring/MonitoringSystem';
+import { OAuth2Credentials } from '../authTypes';
 
 interface YouTubeVideo {
   id: string;
@@ -97,14 +99,13 @@ export class YouTubeClient extends BasePlatformClient {
   private readonly DEFAULT_LOOKBACK_DAYS = 30;
   private readonly CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour cache TTL
   
-  private cache = new Map<string, {
-    data?: any;
-    expires: number;
-    uploadsPlaylistId?: string;
-  }>();
-
-  constructor(accessToken: string) {
-    super(accessToken, Platform.YOUTUBE);
+  constructor(
+    accessToken: string,
+    authTokenManager: AuthTokenManagerService,
+    monitoringSystem: MonitoringSystem,
+    systemUserId?: string
+  ) {
+    super(accessToken, Platform.YOUTUBE, authTokenManager, monitoringSystem, systemUserId);
   }
   
   /**
@@ -118,22 +119,22 @@ export class YouTubeClient extends BasePlatformClient {
     maxPages: number = 5,
     maxResultsPerPage: number = 20
   ): Promise<PaginatedResponse<PostMetrics>> {
-    const cacheKey = `user_posts_${userId}_${lookbackDays}`;
-    const cached = this.getFromCache<PaginatedResponse<PostMetrics>>(cacheKey);
-    if (cached) {
-      return cached;
-    }
+    const operation = 'YouTubeClient.getUserPosts';
+    return this.throttleRequest(async (span) => {
+      const credentials = await this.getCredentials();
+      if (!credentials) {
+        throw new Error('YouTube credentials not available.');
+      }
 
-    try {
       // Get the uploads playlist ID for the channel
       const uploadsPlaylistId = await this.getUploadsPlaylistId(userId);
+      span.setAttribute('uploadsPlaylistId', uploadsPlaylistId);
       
       // Get videos from the uploads playlist
-      const videos = await this.getVideosFromPlaylist(uploadsPlaylistId, lookbackDays, maxPages);
+      const videos = await this.getVideosFromPlaylist(uploadsPlaylistId, lookbackDays, maxPages, credentials.accessToken);
       
-      // Convert to PostMetrics format and cache the result
+      // Convert to PostMetrics format
       const posts = videos.map(video => this.mapToPostMetrics(video));
-      this.setCache(cacheKey, posts);
       
       return {
         data: posts,
@@ -145,15 +146,12 @@ export class YouTubeClient extends BasePlatformClient {
           cursor: undefined
         }
       };
-    } catch (error) {
-      console.error('Error fetching user posts:', error);
-      throw error;
-    }
+    }, operation);
   }
   
   /**
    * Fetches posts for a competitor's YouTube channel
-   * @param channelId The competitor's YouTube channel ID
+   * @param username The competitor's YouTube channel ID
    * @param lookbackDays Number of days to look back for posts (default: 30)
    */
   async getCompetitorPosts(
@@ -162,8 +160,14 @@ export class YouTubeClient extends BasePlatformClient {
     maxPages: number = 5,
     maxResultsPerPage: number = 20
   ): Promise<PaginatedResponse<PostMetrics>> {
-    // Reuse the same logic as getUserPosts but with username parameter
-    return this.getUserPosts(username, lookbackDays, maxPages, maxResultsPerPage);
+    const operation = 'YouTubeClient.getCompetitorPosts';
+    return this.throttleRequest(async (span) => {
+      // For competitors, we might not have direct channel ID access easily, 
+      // so a public search for the username or a more involved process might be needed.
+      // For now, reuse getUserPosts with the assumption that username can be mapped to userId.
+      console.warn(`[YouTubeClient] getCompetitorPosts is a placeholder and assumes username can be directly used as userId. Real implementation may vary.`);
+      return this.getUserPosts(username, lookbackDays, maxPages, maxResultsPerPage);
+    }, operation);
   }
   
   /**
@@ -171,15 +175,14 @@ export class YouTubeClient extends BasePlatformClient {
    * @param videoId The YouTube video ID
    */
   async getPostMetrics(videoId: string): Promise<PostMetrics> {
-    const cacheKey = `video_${videoId}`;
-    const cached = this.getFromCache(cacheKey);
-    if (cached) {
-      return cached as PostMetrics;
-    }
-    
-    try {
-      const url = `${this.API_BASE}/videos?part=snippet,contentDetails,statistics,player&id=${videoId}&key=${this.accessToken}`;
-      const data = await this.fetchWithRetry<{ items: YouTubeVideo[] }>(url);
+    const operation = 'YouTubeClient.getPostMetrics';
+    return this.throttleRequest(async (span) => {
+      const credentials = await this.getCredentials();
+      if (!credentials) {
+        throw new Error('YouTube credentials not available.');
+      }
+      const url = `${this.API_BASE}/videos?part=snippet,contentDetails,statistics,player&id=${videoId}&key=${credentials.accessToken}`;
+      const data = await this.fetchWithRetry<{ items: YouTubeVideo[] }>(url, span); // Pass span for tracing
       
       if (!data.items || data.items.length === 0) {
         throw new Error('Video not found');
@@ -188,14 +191,8 @@ export class YouTubeClient extends BasePlatformClient {
       const video = data.items[0];
       const metrics = this.mapToPostMetrics(video);
       
-      // Cache the result
-      this.setCache(cacheKey, metrics);
-      
       return metrics;
-    } catch (error) {
-      console.error('Error fetching video metrics:', error);
-      throw error;
-    }
+    }, operation);
   }
 
   /**
@@ -203,101 +200,88 @@ export class YouTubeClient extends BasePlatformClient {
    * @private
    */
   private async getUploadsPlaylistId(channelId: string): Promise<string> {
-    const cacheKey = `channel_${channelId}`;
-    
-    // Define the type for cached channel data
-    interface CachedChannelData {
-      uploadsPlaylistId: string;
-    }
-    
-    // Get cached data with proper type
-    const cached = this.getFromCache<CachedChannelData>(cacheKey);
-    if (cached?.uploadsPlaylistId) {
-      return cached.uploadsPlaylistId;
-    }
+    const operation = 'YouTubeClient.getUploadsPlaylistId';
+    return this.throttleRequest(async (span) => {
+      const credentials = await this.getCredentials();
+      if (!credentials) {
+        throw new Error('YouTube credentials not available.');
+      }
+      // Check cache first
+      const cacheKey = `uploads_playlist_${channelId}`;
+      const cached = this.monitoringSystem.getCacheSystem().get('profiles', cacheKey);
+      if (cached) {
+        span.setAttribute('cache_hit', true);
+        return (await cached).uploadsPlaylistId; // Assuming cached data structure matches
+      }
 
-    const url = `${this.API_BASE}/channels?part=contentDetails&id=${channelId}&key=${this.accessToken}`;
-    const data = await this.fetchWithRetry<{ items: YouTubeChannel[] }>(url);
-    
-    if (!data.items || data.items.length === 0) {
-      throw new Error('Channel not found');
-    }
-    
-    const uploadsPlaylistId = data.items[0].contentDetails.relatedPlaylists.uploads;
-    
-    // Cache the result with proper typing
-    this.setCache(cacheKey, { uploadsPlaylistId } as CachedChannelData);
-    
-    return uploadsPlaylistId;
+      const url = `${this.API_BASE}/channels?part=contentDetails&id=${channelId}&key=${credentials.accessToken}`;
+      const data = await this.fetchWithRetry<{ items: YouTubeChannel[] }>(url, span);
+
+      if (!data.items || data.items.length === 0) {
+        throw new Error(`Channel ${channelId} not found`);
+      }
+      const uploadsPlaylistId = data.items[0].contentDetails.relatedPlaylists.uploads;
+      
+      // Cache the result
+      this.monitoringSystem.getCacheSystem().set('profiles', cacheKey, { uploadsPlaylistId }, { ttl: this.CACHE_TTL_MS });
+      span.setAttribute('cache_hit', false);
+      return uploadsPlaylistId;
+    }, operation);
   }
   
   /**
    * Gets videos from a playlist with optional date filtering
    * @private
    */
-  private async getVideosFromPlaylist(playlistId: string, lookbackDays: number, maxPagesToFetch: number = 5): Promise<YouTubeVideo[]> {
-    const cacheKey = `playlist_${playlistId}_${lookbackDays}`;
-    const cached = this.getFromCache(cacheKey);
-    if (cached) {
-      return cached as YouTubeVideo[];
-    }
+  private async getVideosFromPlaylist(playlistId: string, lookbackDays: number, maxPagesToFetch: number = 5, accessToken: string): Promise<YouTubeVideo[]> {
+    const operation = 'YouTubeClient.getVideosFromPlaylist';
+    return this.throttleRequest(async (span) => {
+      const allVideos: YouTubeVideo[] = [];
+      let nextPageToken: string | undefined = undefined;
+      let pagesFetched = 0;
+      const publishedAfter = new Date(Date.now() - lookbackDays * 24 * 60 * 60 * 1000).toISOString();
 
-    const videos: YouTubeVideo[] = [];
-    let nextPageToken: string | undefined = undefined;
-    let pagesFetched = 0;
-    const publishedAfter = new Date();
-    publishedAfter.setDate(publishedAfter.getDate() - lookbackDays);
-    
-    do {
-      if (pagesFetched >= maxPagesToFetch) break;
-      // Get playlist items
-      const playlistItemsUrl: string = `${this.API_BASE}/playlistItems?part=snippet,contentDetails&playlistId=${playlistId}` +
-        `&maxResults=${this.MAX_RESULTS}&pageToken=${nextPageToken || ''}&key=${this.accessToken}`;
-      
-      const playlistData = await this.fetchWithRetry<YouTubePlaylistItemsApiResponse>(playlistItemsUrl);
-      
-      nextPageToken = playlistData.nextPageToken;
-      pagesFetched++;
-      
-      // Get video details in batches (YouTube allows up to 50 video IDs per request)
-      const videoIds = playlistData.items.map((item: YouTubePlaylistItem) => item.contentDetails.videoId).join(',');
-      const videosUrl = `${this.API_BASE}/videos?part=snippet,contentDetails,statistics,player&id=${videoIds}&key=${this.accessToken}`;
-      
-      const videosData = await this.fetchWithRetry<{ items: YouTubeVideo[] }>(videosUrl);
-      
-      // Filter videos by publish date and add to results
-      const newVideos = (videosData.items || []).filter(video => {
-        const publishedAt = new Date(video.snippet.publishedAt);
-        return publishedAt >= publishedAfter;
-      });
-      
-      videos.push(...newVideos);
-      
-      // Stop if the API returned fewer items than requested (likely end of playlist for the period)
-      // or if we've fetched enough pages.
-      if (newVideos.length < playlistData.items.length) { 
-        // This condition implies that the publishedAfter filter removed some items, 
-        // or it's the last page with fewer than MAX_RESULTS items.
-        // If all fetched items are older than 'publishedAfter', nextPageToken might still exist,
-        // but we should stop if newVideos is empty for the current page of playlistItems.
-        const allFetchedAreOld = playlistData.items.length > 0 && newVideos.length === 0;
-        if (allFetchedAreOld) {
-            // Check if the *oldest* item on this page of playlist items is already older than our lookback.
-            // This is a heuristic to stop early if we are fetching very old playlist items.
-            const oldestPlaylistItemDate = playlistData.items.length > 0 ? new Date(playlistData.items[playlistData.items.length -1].snippet.publishedAt) : new Date(0);
-            if (oldestPlaylistItemDate < publishedAfter) {
-                 break; // All further playlist items will also be too old.
-            }
+      while (pagesFetched < maxPagesToFetch) {
+        const url = `${this.API_BASE}/playlistItems?part=snippet,contentDetails&playlistId=${playlistId}&maxResults=${this.MAX_RESULTS}&key=${accessToken}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
+        const data = await this.fetchWithRetry<{ items: YouTubePlaylistItem[], nextPageToken?: string }>(url, span);
+
+        if (!data.items) {
+          break; // No more items or an error occurred
+        }
+
+        // Filter videos by published date if lookbackDays is used
+        const filteredItems = data.items.filter(item => 
+          new Date(item.snippet.publishedAt) >= new Date(publishedAfter)
+        );
+        
+        const videoIds = filteredItems.map(item => item.contentDetails.videoId);
+        if (videoIds.length > 0) {
+          const videoDetails = await this.getBatchVideoDetails(videoIds, accessToken, span); // Fetch full video details
+          allVideos.push(...videoDetails);
+        }
+
+        nextPageToken = data.nextPageToken;
+        pagesFetched++;
+
+        if (!nextPageToken) {
+          break; // No more pages
         }
       }
-      // The primary stop condition is no nextPageToken or maxPagesFetched reached (handled by the loop condition and initial check)
-      
-    } while (nextPageToken);
-    
-    // Cache the result
-    this.setCache(cacheKey, videos);
-    
-    return videos;
+      return allVideos;
+    }, operation);
+  }
+
+  private async getBatchVideoDetails(videoIds: string[], accessToken: string, parentSpan?: any): Promise<YouTubeVideo[]> {
+    const operation = 'YouTubeClient.getBatchVideoDetails';
+    return this.monitoringSystem.monitor(
+      operation,
+      async (span) => {
+        const url = `${this.API_BASE}/videos?part=snippet,contentDetails,statistics,player&id=${videoIds.join(',')}&key=${accessToken}`;
+        const data = await this.fetchWithRetry<{ items: YouTubeVideo[] }>(url, span); // Pass span for tracing
+        return data.items || [];
+      },
+      { parentSpan, recordMetrics: true, alertOnError: true, errorSeverity: 'error' }
+    );
   }
   
   /**
@@ -305,53 +289,48 @@ export class YouTubeClient extends BasePlatformClient {
    * @private
    */
   private mapToPostMetrics(video: YouTubeVideo): PostMetrics {
-    const isShort = this.isShortVideo(video.contentDetails.duration);
-    const statistics = video.statistics || {
-      viewCount: '0',
-      likeCount: '0',
-      commentCount: '0',
-      favoriteCount: '0'
-    };
-    
-    const views = parseInt(statistics.viewCount) || 0;
-    const likes = parseInt(statistics.likeCount) || 0;
-    const comments = parseInt(statistics.commentCount) || 0;
-    const shares = Math.floor(views * 0.02); // Estimate shares as 2% of views
-    const duration = this.parseDuration(video.contentDetails.duration);
-    
-    // Calculate engagement rate (likes + comments + shares) / views * 100
-    const engagementRate = views > 0 
-      ? ((likes + comments + shares) / views) * 100 
-      : 0;
-    
-    // Extract hashtags from description
-    const hashtags = video.snippet.description 
-      ? this.extractHashtags(video.snippet.description) 
-      : [];
+    if (!video || !video.snippet || !video.statistics) {
+      throw new Error('Invalid video data provided to mapToPostMetrics');
+    }
+
+    const hashtags = this.extractHashtags(video.snippet.description || '');
+    const timestamp = new Date(video.snippet.publishedAt);
+
+    const views = parseInt(video.statistics.viewCount || '0');
+    const likes = parseInt(video.statistics.likeCount || '0');
+    const comments = parseInt(video.statistics.commentCount || '0');
+    const shares = 0; // YouTube API does not directly provide share count
+
+    let contentType: PostMetrics['contentType'] = 'video';
+    // YouTube videos are generally long-form, but check for shorts
+    if (this.isShortVideo(video.contentDetails.duration)) {
+      contentType = 'short';
+    }
 
     return {
-      id: video.id,
+      postId: video.id,
       platform: Platform.YOUTUBE,
-      views,
-      likes,
-      comments,
-      shares,
-      watchTime: duration,
-      engagementRate,
-      timestamp: new Date(video.snippet.publishedAt),
-      caption: video.snippet.title,
-      hashtags,
-      url: `https://youtube.com/watch?v=${video.id}`,
-      metadata: {
-        title: video.snippet.title,
-        thumbnail: video.snippet.thumbnails.high?.url || 
-                 video.snippet.thumbnails.medium?.url || 
-                 video.snippet.thumbnails.default?.url || '',
-        duration,
-        isShort,
-        channelTitle: video.snippet.channelTitle,
-        tags: video.snippet.tags || []
-      }
+      timestamp: timestamp.toISOString(),
+      metrics: {
+        views: views,
+        likes: likes,
+        comments: comments,
+        shares: shares,
+        engagementRate: this.calculateEngagementRate({
+          likes: likes,
+          comments: comments,
+          shares: shares,
+          views: views,
+          followerCount: 0 // YouTube API does not provide channel follower count directly here
+        }),
+      },
+      contentType: contentType,
+      caption: video.snippet.description,
+      hashtags: hashtags,
+      url: `https://www.youtube.com/watch?v=${video.id}`,
+      thumbnailUrl: video.snippet.thumbnails.high.url,
+      videoTitle: video.snippet.title,
+      // Add other relevant fields if available in YouTubeVideo
     };
   }
   
@@ -360,7 +339,8 @@ export class YouTubeClient extends BasePlatformClient {
    * @private
    */
   private isShortVideo(duration: string): boolean {
-    return this.parseDuration(duration) <= this.SHORTS_MAX_DURATION;
+    const durationInSeconds = this.parseDuration(duration);
+    return durationInSeconds <= this.SHORTS_MAX_DURATION;
   }
   
   /**
@@ -368,12 +348,12 @@ export class YouTubeClient extends BasePlatformClient {
    * @private
    */
   private parseDuration(duration: string): number {
-    const match = duration.match(/PT(?:([0-9]+)H)?(?:([0-9]+)M)?(?:([0-9]+)S)?/);
+    const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
     if (!match) return 0;
     
-    const hours = parseInt(match[1] || '0');
-    const minutes = parseInt(match[2] || '0');
-    const seconds = parseInt(match[3] || '0');
+    const hours = parseInt(match[1] || '0', 10);
+    const minutes = parseInt(match[2] || '0', 10);
+    const seconds = parseInt(match[3] || '0', 10);
     
     return hours * 3600 + minutes * 60 + seconds;
   }
@@ -383,79 +363,77 @@ export class YouTubeClient extends BasePlatformClient {
    * @private
    */
   private extractHashtags(text: string): string[] {
-    const matches = text.match(/#[a-zA-Z0-9_]+/g) || [];
-    return matches.map(tag => tag.substring(1)); // Remove the # symbol
+    const hashtagRegex = /#(\w+)/g;
+    const matches = text.match(hashtagRegex);
+    return matches ? matches.map(match => match.substring(1)) : [];
   }
   
   /**
    * Fetches data from URL with retry logic
    * @private
    */
-  private async fetchWithRetry<T>(url: string, retries = 3): Promise<T> {
-    try {
-      const response = await this.throttleRequest<Response>(() => fetch(url));
-      
-      if (!response.ok) {
-        if (response.status === 429 && retries > 0) {
-          // Exponential backoff
-          await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
-          return this.fetchWithRetry<T>(url, retries - 1);
+  private async fetchWithRetry<T>(url: string, span: any, retries = 3, delay = 1000): Promise<T> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = `HTTP error! Status: ${response.status} - ${errorData.error?.message || response.statusText}`;
+          span.addEvent('api_call_failed', { attempt: i + 1, status: response.status, error: errorMessage, url });
+          if (response.status === 429) {
+            const retryAfter = parseInt(response.headers.get('Retry-After') || '5');
+            await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+          } else if (response.status >= 500) {
+            await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+          }
+          throw new Error(errorMessage);
         }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        span.addEvent('api_call_successful', { attempt: i + 1, url });
+        return await response.json();
+      } catch (error: any) {
+        if (i === retries - 1) {
+          span.recordException(error);
+          this.monitoringSystem.getAlertManager().fireAlert(
+            `youtube_api_critical_failure`,
+            `YouTube API call failed after ${retries} retries for URL ${url}: ${error.message}`,
+            'critical',
+            { url, error: error.message, attempt: i + 1 }
+          );
+          throw error;
+        }
+        span.addEvent('retrying_api_call', { attempt: i + 1, error: error.message });
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
       }
-      
-      return await response.json();
-    } catch (error) {
-      if (retries > 0) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return this.fetchWithRetry<T>(url, retries - 1);
-      }
-      throw error;
     }
+    throw new Error('Failed to fetch data after multiple retries.'); // Should not be reached
   }
   
   /**
-   * Gets a value from cache if it exists and is not expired
-   * @private
+   * Placeholder for fetching comments for a given YouTube video.
+   * YouTube Data API has strict quotas and permissions for comments. This will return mock data.
+   * @param videoId The ID of the video.
+   * @returns A promise resolving to an array of mock comments.
    */
-  private getFromCache<T>(key: string): T | null {
-    const cached = this.cache.get(key);
-    if (!cached) return null;
-    
-    if (cached.expires < Date.now()) {
-      this.cache.delete(key);
-      return null;
-    }
-    
-    // Handle special case for channel data with uploadsPlaylistId
-    if (key.startsWith('channel_') && 'uploadsPlaylistId' in cached) {
-      return { uploadsPlaylistId: cached.uploadsPlaylistId } as unknown as T;
-    }
-    
-    // For non-channel data, return the cached data
-    return (cached.data ?? cached) as T;
-  }
-  
-  /**
-   * Sets a value in the cache
-   * @private
-   */
-  private setCache(key: string, data: any): void {
-    const cacheEntry: {
-      data?: any;
-      expires: number;
-      uploadsPlaylistId?: string;
-    } = {
-      expires: Date.now() + this.CACHE_TTL_MS
-    };
-
-    // Special handling for channel data with uploadsPlaylistId
-    if (key.startsWith('channel_') && data?.uploadsPlaylistId) {
-      cacheEntry.uploadsPlaylistId = data.uploadsPlaylistId;
-    } else {
-      cacheEntry.data = data;
-    }
-
-    this.cache.set(key, cacheEntry);
+  async getPostComments(videoId: string): Promise<any[]> {
+    console.warn(`[YouTubeClient] getPostComments is a placeholder and returns mock data. YouTube API for comments has strict quotas.`);
+    return this.monitoringSystem.monitor(
+      'YouTubeClient.getPostComments',
+      async (span) => {
+        // Simulate API call and latency
+        await new Promise(resolve => setTimeout(resolve, 250));
+        const mockComments = [
+          { id: `yt-comment-${videoId}-1`, text: 'Awesome video!', author: 'yt_user_1', timestamp: new Date().toISOString() },
+          { id: `yt-comment-${videoId}-2`, text: 'Very informative!', author: 'yt_user_2', timestamp: new Date().toISOString() },
+        ];
+        span.setAttribute('mock_data', true);
+        span.setAttribute('video_id', videoId);
+        return mockComments;
+      },
+      {
+        recordMetrics: true,
+        alertOnError: false,
+        errorSeverity: 'info'
+      }
+    );
   }
 }

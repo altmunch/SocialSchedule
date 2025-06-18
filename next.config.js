@@ -9,19 +9,22 @@ const nextConfig = {
   
   // Performance optimizations
   experimental: {
+    optimizeCss: true,
+    scrollRestoration: true,
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',
       'framer-motion',
       '@heroicons/react',
       'recharts',
-      'react-virtualized'
+      'react-virtualized',
+      '@mui/material',
+      '@mui/icons-material'
     ],
-    webVitalsAttribution: ['CLS', 'LCP'],
-    optimizeCss: true,
-    scrollRestoration: true,
-    // Note: instrumentationHook is no longer needed as instrumentation.js is loaded by default
   },
+
+  // Server external packages (moved from experimental for Next.js 15)
+  serverExternalPackages: ['sharp', 'onnxruntime-node'],
 
   turbopack: {
     rules: {
@@ -112,15 +115,26 @@ const nextConfig = {
       },
     ];
 
-    // Bundle splitting optimizations
+    // Enhanced bundle splitting optimizations
     if (!isServer && !dev) {
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
+          },
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             priority: 10,
+            reuseExistingChunk: true,
+          },
+          mui: {
+            test: /[\\/]node_modules[\\/]@mui[\\/]/,
+            name: 'mui',
+            priority: 40,
             reuseExistingChunk: true,
           },
           ui: {
@@ -159,21 +173,29 @@ const nextConfig = {
             priority: 30,
             reuseExistingChunk: true,
           },
+          icons: {
+            test: /[\\/]node_modules[\\/](lucide-react|@heroicons[\\/]react)[\\/]/,
+            name: 'icons',
+            priority: 30,
+            reuseExistingChunk: true,
+          },
         },
       };
     }
 
     // Tree shaking optimizations
-    // config.optimization.usedExports = true;
-    // config.optimization.sideEffects = false;
+    if (!dev) {
+      config.optimization.usedExports = true;
+      config.optimization.sideEffects = false;
+    }
+
+    // Webpack experiments for backCompat
+    config.experiments = {
+      ...config.experiments,
+      backCompat: false,
+    };
 
     return config;
-  },
-
-  compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
   },
 
   // Build optimizations
@@ -196,6 +218,12 @@ const nextConfig = {
         permanent: true,
       },
     ];
+  },
+
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
   },
 };
 

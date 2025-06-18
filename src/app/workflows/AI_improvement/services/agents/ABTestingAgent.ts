@@ -27,6 +27,10 @@ export class ABTestingAgent {
   private isActive: boolean = false;
   private currentTask: ABTestingTask | null = null;
   private performanceScore: number = 0.8;
+  private taskSuccessCount: number = 0;
+  private taskFailureCount: number = 0;
+  private totalTasksCompleted: number = 0;
+  private resourceConsumptionHistory: number[] = [];
   private activeExperiments: Map<string, Experiment> = new Map();
 
   constructor() {
@@ -35,22 +39,19 @@ export class ABTestingAgent {
 
   async start(): Promise<void> {
     this.isActive = true;
-    console.log('🚀 A/B Testing Agent started');
+    console.log(`ABTestingAgent started.`);
   }
 
   async stop(): Promise<void> {
     this.isActive = false;
     this.currentTask = null;
-    console.log('🛑 A/B Testing Agent stopped');
+    console.log(`ABTestingAgent stopped.`);
   }
 
   async executeTask(task: ABTestingTask): Promise<any> {
-    if (!this.isActive) {
-      throw new Error('A/B Testing Agent is not active');
-    }
-
     this.currentTask = task;
-    console.log(`📊 Executing A/B Testing task: ${task.type}`);
+    this.totalTasksCompleted++;
+    const startTime = process.hrtime.bigint();
     let result: any = null;
 
     try {
@@ -65,22 +66,25 @@ export class ABTestingAgent {
           result = await this.prioritizeExperiments(task);
           break;
         case 'manage_experiment_lifecycle':
-          result = await this.manageExperimentLifecycle(task);
+          await this.manageExperimentLifecycle(task);
           break;
         default:
-          const exhaustiveCheck: never = task.type;
-          throw new Error(`Unknown task type: ${exhaustiveCheck}`);
+          console.warn(`Unknown task type for ABTestingAgent: ${task.type}`);
+          this.taskFailureCount++;
+          break;
       }
-      console.log(`✅ Task ${task.type} completed successfully`);
-      this.performanceScore = Math.min(1, this.performanceScore + 0.05);
+      this.taskSuccessCount++;
     } catch (error) {
-      console.error(`❌ Task ${task.type} failed:`, error);
-      this.performanceScore = Math.max(0.1, this.performanceScore - 0.1);
-      throw error;
+      console.error(`ABTestingAgent task failed: ${error}`);
+      this.taskFailureCount++;
     } finally {
+      const endTime = process.hrtime.bigint();
+      const durationMs = Number(endTime - startTime) / 1_000_000;
+      this.recordResourceConsumption(durationMs);
+      this.updatePerformanceScore();
       this.currentTask = null;
+      return result;
     }
-    return result;
   }
 
   private async createExperiment(task: ABTestingTask): Promise<Experiment | null> {
@@ -169,10 +173,30 @@ export class ABTestingAgent {
   }
 
   async getResourceUtilization(): Promise<number> {
-    return this.currentTask ? Math.random() * 0.4 + 0.2 : Math.random() * 0.1;
+    if (this.resourceConsumptionHistory.length === 0) return 0;
+    const sum = this.resourceConsumptionHistory.reduce((acc, val) => acc + val, 0);
+    const average = sum / this.resourceConsumptionHistory.length;
+    return Math.min(1, average / 1000);
   }
 
   async getCurrentTask(): Promise<string | undefined> {
-    return this.currentTask ? `${this.currentTask.type} for experiment: ${this.currentTask.experimentId || 'N/A'}` : undefined;
+    return this.currentTask ? `${this.currentTask.type}${this.currentTask.experimentId ? ` - ${this.currentTask.experimentId}` : ''}` : undefined;
+  }
+
+  private recordResourceConsumption(durationMs: number): void {
+    this.resourceConsumptionHistory.push(durationMs);
+    if (this.resourceConsumptionHistory.length > 100) {
+      this.resourceConsumptionHistory.shift();
+    }
+  }
+
+  private updatePerformanceScore(): void {
+    if (this.totalTasksCompleted === 0) {
+      this.performanceScore = 0.8;
+      return;
+    }
+    const successRate = this.taskSuccessCount / this.totalTasksCompleted;
+    this.performanceScore = 0.5 * successRate + 0.3 * (1 - this.getResourceUtilization()) + 0.2 * this.performanceScore;
+    this.performanceScore = Math.max(0.1, Math.min(1.0, this.performanceScore));
   }
 } 

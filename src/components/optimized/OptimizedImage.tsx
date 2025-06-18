@@ -1,202 +1,129 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import Image, { ImageProps } from 'next/image';
-import { useIntersectionObserver } from '@/hooks/usePerformanceOptimization';
+import Image from 'next/image';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-interface OptimizedImageProps extends Omit<ImageProps, 'onLoad' | 'onError'> {
-  fallbackSrc?: string;
-  showLoadingSpinner?: boolean;
-  enableProgressiveLoading?: boolean;
-  onLoadComplete?: () => void;
-  onLoadError?: (error: Error) => void;
+interface OptimizedImageProps {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
   className?: string;
+  priority?: boolean;
+  quality?: number;
+  fill?: boolean;
+  sizes?: string;
+  placeholder?: 'blur' | 'empty';
+  blurDataURL?: string;
+  fallbackSrc?: string;
+  onLoad?: () => void;
+  onError?: () => void;
 }
 
 export function OptimizedImage({
   src,
   alt,
-  fallbackSrc,
-  showLoadingSpinner = true,
-  enableProgressiveLoading = true,
-  onLoadComplete,
-  onLoadError,
+  width,
+  height,
   className,
   priority = false,
+  quality = 90,
+  fill = false,
+  sizes,
+  placeholder = 'blur',
+  blurDataURL,
+  fallbackSrc = '/images/placeholder.jpg',
+  onLoad,
+  onError,
   ...props
 }: OptimizedImageProps) {
+  const [imageSrc, setImageSrc] = useState(src);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState(src);
-  const [shouldLoad, setShouldLoad] = useState(priority);
-  const loadStartTime = useRef<number>(0);
 
-  // Intersection observer for lazy loading
-  const [ref, entry] = useIntersectionObserver({
-    threshold: 0.1,
-    rootMargin: '50px',
-  });
-
-  // Trigger loading when image enters viewport
-  useEffect(() => {
-    if (entry?.isIntersecting && !shouldLoad) {
-      setShouldLoad(true);
-    }
-  }, [entry?.isIntersecting, shouldLoad]);
-
-  // Handle image load success
-  const handleLoad = () => {
-    const loadTime = performance.now() - loadStartTime.current;
-    console.log(`[Image Load] ${alt}: ${loadTime.toFixed(2)}ms`);
+  // Generate a blur placeholder if none provided
+  const getBlurDataURL = () => {
+    if (blurDataURL) return blurDataURL;
     
-    setIsLoading(false);
-    setHasError(false);
-    onLoadComplete?.();
-  };
-
-  // Handle image load error
-  const handleError = () => {
-    console.warn(`[Image Error] Failed to load: ${currentSrc}`);
-    setIsLoading(false);
-    setHasError(true);
-    
-    // Try fallback image if available
-    if (fallbackSrc && currentSrc !== fallbackSrc) {
-      setCurrentSrc(fallbackSrc);
-      setIsLoading(true);
-      setHasError(false);
-    } else {
-      onLoadError?.(new Error(`Failed to load image: ${currentSrc}`));
-    }
-  };
-
-  // Start timing when loading begins
-  useEffect(() => {
-    if (shouldLoad && isLoading) {
-      loadStartTime.current = performance.now();
-    }
-  }, [shouldLoad, isLoading]);
-
-  // Progressive loading with low-quality placeholder
-  const getBlurDataURL = (width: number = 10, height: number = 10) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d');
-    
-    if (ctx) {
-      // Create a simple gradient as placeholder
-      const gradient = ctx.createLinearGradient(0, 0, width, height);
-      gradient.addColorStop(0, '#f3f4f6');
-      gradient.addColorStop(1, '#e5e7eb');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, width, height);
-    }
-    
-    return canvas.toDataURL();
-  };
-
-  // Render loading skeleton
-  const LoadingSkeleton = () => (
-    <div 
-      className={cn(
-        "animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%]",
-        "flex items-center justify-center",
-        className
-      )}
-      style={{ 
-        width: props.width || '100%', 
-        height: props.height || '200px' 
-      }}
-    >
-      {showLoadingSpinner && (
-        <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-      )}
-    </div>
-  );
-
-  // Render error state
-  const ErrorState = () => (
-    <div 
-      className={cn(
-        "bg-gray-100 border-2 border-dashed border-gray-300",
-        "flex flex-col items-center justify-center text-gray-500",
-        className
-      )}
-      style={{ 
-        width: props.width || '100%', 
-        height: props.height || '200px' 
-      }}
-    >
-      <svg 
-        className="w-12 h-12 mb-2" 
-        fill="none" 
-        stroke="currentColor" 
-        viewBox="0 0 24 24"
-      >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={2} 
-          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
-        />
+    // Create a simple base64 encoded blur placeholder
+    const svg = `
+      <svg width="${width || 100}" height="${height || 100}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#f3f4f6;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#e5e7eb;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#gradient)" />
       </svg>
-      <span className="text-sm">Failed to load image</span>
-    </div>
-  );
+    `;
+    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`;
+  };
 
-  // Don't render anything until we should load (for non-priority images)
-  if (!shouldLoad && !priority) {
-    return (
-      <div 
-        ref={ref}
-        className={cn("bg-gray-100", className)}
-        style={{ 
-          width: props.width || '100%', 
-          height: props.height || '200px' 
-        }}
-      />
-    );
-  }
+  const handleLoad = () => {
+    setIsLoading(false);
+    onLoad?.();
+  };
 
-  // Show error state
-  if (hasError && !fallbackSrc) {
-    return <ErrorState />;
-  }
-
-  // Show loading state
-  if (isLoading && showLoadingSpinner) {
-    return <LoadingSkeleton />;
-  }
+  const handleError = () => {
+    setHasError(true);
+    setIsLoading(false);
+    if (fallbackSrc && imageSrc !== fallbackSrc) {
+      setImageSrc(fallbackSrc);
+    }
+    onError?.();
+  };
 
   return (
-    <div ref={ref} className="relative">
+    <div className={cn('relative overflow-hidden', className)}>
       <Image
-        src={currentSrc}
+        src={imageSrc}
         alt={alt}
+        width={fill ? undefined : width}
+        height={fill ? undefined : height}
+        fill={fill}
+        priority={priority}
+        quality={quality}
+        sizes={sizes}
+        placeholder={placeholder}
+        blurDataURL={placeholder === 'blur' ? getBlurDataURL() : undefined}
         onLoad={handleLoad}
         onError={handleError}
-        priority={priority}
-        quality={85}
-        placeholder={enableProgressiveLoading ? 'blur' : 'empty'}
-        blurDataURL={enableProgressiveLoading ? getBlurDataURL() : undefined}
         className={cn(
-          "transition-opacity duration-300",
-          isLoading ? "opacity-0" : "opacity-100",
-          className
+          'transition-opacity duration-300',
+          isLoading ? 'opacity-0' : 'opacity-100',
+          hasError ? 'opacity-50' : ''
         )}
         {...props}
       />
       
-      {/* Loading overlay */}
+      {/* Loading skeleton */}
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          {showLoadingSpinner && (
-            <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-          )}
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse" />
+      )}
+      
+      {/* Error state */}
+      {hasError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
+          <svg
+            className="w-8 h-8"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
         </div>
       )}
     </div>
   );
-} 
+}
+
+export default OptimizedImage; 

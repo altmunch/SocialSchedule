@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Bell, UserCircle, LogOut, Menu, X, Rocket, Users, Briefcase } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Sidebar } from './Sidebar'; // Assuming Sidebar is in the same common directory or accessible
+import { Sidebar } from '@/components/tailwind-dashboard-ui/Sidebar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HeaderProps {

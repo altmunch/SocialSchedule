@@ -175,16 +175,17 @@ export default function ValueStatementSection() {
       
       <div className="max-w-4xl mx-auto px-6 sm:px-12 lg:px-16 relative z-10 text-center">
         <motion.h2
-          className="text-4xl md:text-6xl font-bold mb-6 text-white"
+          className="text-center text-4xl md:text-5xl font-bold mb-6 text-white"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          Stop creating content that gets likes.<br />Start creating content that gets <span className="text-[#5afcc0] text-5xl md:text-7xl font-extrabold inline-block px-2">SALES</span>.
+          <span className="whitespace-nowrap">Stop creating content that gets likes.</span><br />
+          <span className="whitespace-nowrap">Start creating content that gets <span className="text-[#5afcc0] text-5xl md:text-7xl font-extrabold inline-block px-2">SALES</span>.</span>
         </motion.h2>
         <Link href="/dashboard">
-          <button className="mt-8 bg-[#8D5AFF] text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#8D5AFF]/30 hover:bg-[#8D5AFF]/90 transition-all">
+          <button className="mt-8 bg-[#A860B7] text-white px-10 py-5 rounded-lg font-bold text-lg shadow-xl shadow-[#A860B7]/30 hover:bg-[#A860B7]/90 transition-all">
             Get Started
           </button>
         </Link>

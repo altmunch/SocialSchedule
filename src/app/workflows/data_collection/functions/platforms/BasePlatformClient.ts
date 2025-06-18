@@ -2,53 +2,131 @@
 import { PostMetrics, Platform, PaginatedResponse } from '../types';
 import { RateLimiter } from '../utils/RateLimiter';
 import EventEmitter from 'events';
+import { AuthTokenManagerService } from '../AuthTokenManagerService';
+import { MonitoringSystem } from '../monitoring/MonitoringSystem';
+import { OAuth2Credentials, PlatformCredentials } from '../authTypes';
 
+/**
+ * Base class for all social media platform clients.
+ * Provides common functionality like rate limiting, error handling, and metric reporting.
+ */
 export abstract class BasePlatformClient extends EventEmitter {
   protected accessToken: string;
   protected platform: Platform;
   protected rateLimiter: RateLimiter;
-  protected rateLimitQueue: Array<() => Promise<any>> = [];
-  protected isProcessingQueue = false;
-  protected readonly RATE_LIMIT = 5; // 5 requests per second
-  protected lastRequestTime = 0;
+  protected authTokenManager: AuthTokenManagerService;
+  protected monitoringSystem: MonitoringSystem;
+  protected systemUserId?: string;
 
-  constructor(accessToken: string, platform: Platform, rateLimiter?: RateLimiter) {
+  protected readonly DEFAULT_RATE_LIMIT_RPM = 500; // Default requests per minute
+  protected readonly DEFAULT_BURST_CAPACITY = 10; // Default burst capacity
+
+  constructor(
+    accessToken: string,
+    platform: Platform,
+    authTokenManager: AuthTokenManagerService,
+    monitoringSystem: MonitoringSystem,
+    systemUserId?: string,
+    rateLimiterOptions?: { requestsPerMinute?: number; burstCapacity?: number }
+  ) {
     super();
-    this.accessToken = accessToken;
+    this.accessToken = accessToken; // This might be a temporary token if refreshed later
     this.platform = platform;
-    this.rateLimiter = rateLimiter || new RateLimiter({ requestsPerMinute: 60 });
-    this.rateLimiter.on('tokenUsed', (data) => this.emit('rateLimitTokenUsed', data));
-    this.rateLimiter.on('rateLimitUpdated', (data) => this.emit('rateLimitUpdated', data));
-    this.rateLimiter.on('rateLimitDepleted', (data) => this.emit('rateLimitDepleted', data));
+    this.authTokenManager = authTokenManager;
+    this.monitoringSystem = monitoringSystem;
+    this.systemUserId = systemUserId;
+
+    this.rateLimiter = new RateLimiter({
+      requestsPerMinute: rateLimiterOptions?.requestsPerMinute || this.DEFAULT_RATE_LIMIT_RPM,
+      burstCapacity: rateLimiterOptions?.burstCapacity || this.DEFAULT_BURST_CAPACITY,
+    });
   }
 
-  protected async throttleRequest<T>(fn: () => Promise<T>, correlationId?: string): Promise<T> {
-    await this.rateLimiter.acquire();
-    this.log('info', 'API request throttled', { correlationId });
-    return fn();
+  /**
+   * Wraps an API request with rate limiting, error handling, and monitoring.
+   * @param fn The function that performs the actual API call.
+   * @param operationName A descriptive name for the operation (for monitoring).
+   * @returns A promise that resolves with the result of the API call.
+   */
+  protected async throttleRequest<T>(fn: () => Promise<T>, operationName: string): Promise<T> {
+    return this.monitoringSystem.monitor(
+      operationName,
+      async (span) => {
+        // Ensure we have valid credentials before making the request
+        const credentials = await this.getCredentials();
+        if (!credentials) {
+          const errorMessage = `No valid credentials for ${this.platform} (user: ${this.systemUserId || 'N/A'}).`;
+          span.recordException(new Error(errorMessage));
+          throw new Error(errorMessage);
+        }
+        
+        // Update accessToken if it was refreshed
+        this.accessToken = credentials.accessToken;
+
+        await this.rateLimiter.acquire(); // Wait for a token
+        span.addEvent('rate_limit_token_acquired');
+
+        try {
+          const result = await fn();
+          // Simulate parsing rate limit headers from a hypothetical response object
+          // In a real scenario, the 'fn' would return a response object from which headers are extracted.
+          // For now, we'll manually update the rate limiter with simulated values or rely on its internal refill.
+          // this.rateLimiter.updateLimits({ limit: 500, remaining: 499, resetAt: new Date(Date.now() + 60 * 1000) });
+          return result;
+        } catch (error: any) {
+          span.recordException(error);
+          this.monitoringSystem.getAlertManager().fireAlert(
+            `platform_api_error_${this.platform}`,
+            `API call failed for ${operationName} on ${this.platform}: ${error.message}`,
+            'error',
+            { platform: this.platform, operation: operationName, error: error.message, userId: this.systemUserId }
+          );
+          throw error; // Re-throw the error after logging/alerting
+        }
+      },
+      {
+        recordMetrics: true,
+        alertOnError: true,
+        errorSeverity: 'error',
+        attributes: { platform: this.platform, userId: this.systemUserId }
+      }
+    );
   }
 
-  updateRateLimit(options: Partial<{ requestsPerMinute: number; burstCapacity: number }>) {
+  public updateRateLimit(options: Partial<{ requestsPerMinute: number; burstCapacity: number }>) {
     this.rateLimiter.updateOptions(options);
   }
 
   protected log(level: string, message: string, context: Record<string, any> = {}) {
-    // Add correlationId to all logs for traceability
-    if (!context.correlationId) context.correlationId = 'N/A';
-    console.log(`[${level.toUpperCase()}][${this.platform}] ${message}`, context);
+    this.monitoringSystem.getMetricsCollector().recordMetric({
+      name: 'platform_client_log',
+      type: 'info',
+      labels: { level, platform: this.platform, userId: this.systemUserId || 'N/A' },
+      value: 1,
+      timestamp: new Date(),
+      attributes: { message, ...context }
+    });
   }
 
-  private async processQueue() {
-    if (this.rateLimitQueue.length === 0) {
-      this.isProcessingQueue = false;
-      return;
+  /**
+   * Retrieves valid credentials for the platform, refreshing if necessary.
+   */
+  protected async getCredentials(): Promise<OAuth2Credentials | null> {
+    if (!this.systemUserId) {
+      this.log('error', 'Attempted to get credentials without systemUserId');
+      return null;
     }
-
-    this.isProcessingQueue = true;
-    const nextRequest = this.rateLimitQueue.shift();
-    if (nextRequest) {
-      await nextRequest();
+    const credentials = await this.authTokenManager.getValidCredentials(this.platform, this.systemUserId);
+    if (!credentials || credentials.strategy !== 'oauth2') {
+      this.monitoringSystem.getAlertManager().fireAlert(
+        'platform_auth_critical',
+        `No valid OAuth2 credentials found for ${this.platform} and user ${this.systemUserId}`,
+        'critical',
+        { userId: this.systemUserId, platform: this.platform }
+      );
+      return null;
     }
+    return credentials as OAuth2Credentials;
   }
 
   // Abstract methods that must be implemented by platform-specific clients
@@ -92,13 +170,15 @@ export abstract class BasePlatformClient extends EventEmitter {
   ): Promise<T_Output[]> {
     const results: T_Output[] = [];
     for (let i = 0; i < items.length; i += batchSize) {
-      const batchItems = items.slice(i, i + batchSize);
-      // Process items in the current batch. 
-      // Each call to processItemFn will be individually throttled by throttleRequest.
-      const batchPromises = batchItems.map(item => processItemFn(item));
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
-
+      const batch = items.slice(i, i + batchSize);
+      const batchPromises = batch.map(item => processItemFn(item));
+      try {
+        results.push(...await Promise.all(batchPromises));
+      } catch (error) {
+        this.log('error', `Batch processing failed for ${this.platform}`, { batchSize, error: error.message });
+        // Depending on desired behavior, rethrow, return partial, or handle gracefully
+        throw error;
+      }
       if (delayBetweenBatchesMs > 0 && i + batchSize < items.length) {
         await new Promise(resolve => setTimeout(resolve, delayBetweenBatchesMs));
       }
@@ -114,13 +194,12 @@ export abstract class BasePlatformClient extends EventEmitter {
     views?: number;
     followerCount: number;
   }): number {
-    const { likes, comments, shares, views, followerCount } = metrics;
-    const totalEngagement = likes + (comments * 2) + (shares * 3);
-    
-    if (views && views > 0) {
-      return (totalEngagement / views) * 100; // Engagement rate based on views
+    const totalEngagement = metrics.likes + metrics.comments + metrics.shares;
+    if (metrics.views !== undefined && metrics.views > 0) {
+      return totalEngagement / metrics.views;
+    } else if (metrics.followerCount > 0) {
+      return totalEngagement / metrics.followerCount;
     }
-    
-    return (totalEngagement / followerCount) * 100; // Engagement rate based on followers
+    return 0; // No views or followers to calculate rate
   }
 }

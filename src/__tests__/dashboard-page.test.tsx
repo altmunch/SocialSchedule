@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import DashboardPage from '@/app/dashboard/page';
+import DashboardPage from '@/app/dashboard/v1/page';
 import { useAuth } from '@/providers/AuthProvider';
 
 // Mock the Auth Provider

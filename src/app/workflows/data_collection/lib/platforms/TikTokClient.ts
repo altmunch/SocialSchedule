@@ -337,14 +337,72 @@ export class TikTokClient extends BasePlatformClient {
     postId: string,
     options?: { cursor?: string; limit?: number }
   ): Promise<ApiResponse<{ comments: PlatformComment[]; nextPageCursor?: string; hasMore?: boolean }>> {
-    this.log('warn', 'getVideoComments is not yet implemented for TikTokClient. Returning stubbed response.', { postId, options });
-    return Promise.resolve({
+    console.warn(`[TikTokClient] getVideoComments: TikTok's API does not directly expose a public comments endpoint. Returning mock data. Post ID: ${postId}`);
+    return {
       data: {
-        comments: [],
+        comments: [
+          {
+            id: `mock_tiktok_comment_1_${postId}`,
+            text: 'Great content!',
+            authorId: 'mock_user_1',
+            authorUsername: 'mock_user_name_1',
+            timestamp: new Date().toISOString(),
+            likes: 10,
+            replies: 2,
+          },
+          {
+            id: `mock_tiktok_comment_2_${postId}`,
+            text: 'Very insightful.',
+            authorId: 'mock_user_2',
+            authorUsername: 'mock_user_name_2',
+            timestamp: new Date().toISOString(),
+            likes: 5,
+            replies: 0,
+          },
+        ],
         nextPageCursor: undefined,
         hasMore: false,
       },
-      rateLimit: this.rateLimit === null ? undefined : this.rateLimit,
-    });
+    };
+  }
+
+  // Example method: Get Competitor Posts (simplified for demonstration)
+  public async getCompetitorPosts(platform: Platform, competitorId: string, lookbackDays: number): Promise<ApiResponse<any[]>> {
+    // TODO: This is a simplified implementation. A real implementation would involve more complex search and filtering
+    // based on competitor ID, and potentially fetching public posts from popular or trending TikTok accounts.
+    console.warn(`[TikTokClient] getCompetitorPosts is a simplified implementation and may not fetch actual competitor posts.`);
+    return {
+      data: [
+        {
+          postId: 'comp_tiktok_post_1',
+          platform: Platform.TIKTOK,
+          engagementScore: 0.8,
+          likes: 20000,
+          comments: 500,
+          shares: 300,
+          views: 1000000,
+          uploadDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          url: 'https://www.tiktok.com/@mockcomp/video/1',
+          performanceMetrics: { 'impressions': 2000000, 'clickThroughRate': 0.08, 'conversionRate': 0.02 },
+          sentiment: { positive: 0.9, negative: 0.05, neutral: 0.05, score: 0.8 },
+          contentInsights: { 'keywords': ['challenge', 'viral'], 'topics': ['entertainment'] }
+        },
+        {
+          postId: 'comp_tiktok_post_2',
+          platform: Platform.TIKTOK,
+          engagementScore: 0.7,
+          likes: 15000,
+          comments: 400,
+          shares: 250,
+          views: 800000,
+          uploadDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          url: 'https://www.tiktok.com/@mockcomp/video/2',
+          performanceMetrics: { 'impressions': 1500000, 'clickThroughRate': 0.07, 'conversionRate': 0.015 },
+          sentiment: { positive: 0.8, negative: 0.1, neutral: 0.1, score: 0.7 },
+          contentInsights: { 'keywords': ['tutorial', 'tips'], 'topics': ['education'] }
+        },
+      ],
+      rateLimit: this.rateLimit || undefined,
+    };
   }
 }

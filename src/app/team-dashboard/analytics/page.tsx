@@ -30,8 +30,8 @@ import {
   Globe,
   Zap
 } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { AnimatedButton } from '@/components/ui/animated-button';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 
 // Mock analytics data
 interface AnalyticsData {

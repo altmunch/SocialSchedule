@@ -129,9 +129,9 @@ export default function FinalCTASection({ onGetStarted }: FinalCTASectionProps) 
             >
               <button
                 onClick={() => window.location.href = '/dashboard'}
-                className="bg-gradient-to-r from-[#8D5AFF] to-[#5afcc0] hover:from-[#8D5AFF]/90 hover:to-[#5afcc0]/90 text-white px-10 py-5 rounded-xl text-xl font-bold flex items-center shadow-lg shadow-[#8D5AFF]/20 transition-all duration-300"
+                className="bg-gradient-to-r from-[#A860B7] to-[#5afcc0] hover:from-[#A860B7]/90 hover:to-[#5afcc0]/90 text-white px-10 py-5 rounded-xl text-xl font-bold flex items-center shadow-lg shadow-[#A860B7]/20 transition-all duration-300"
                 style={{
-                  boxShadow: '0 10px 25px -5px rgba(141, 90, 255, 0.4)'
+                  boxShadow: '0 10px 25px -5px rgba(168, 96, 183, 0.4)'
                 }}
               >
                 <span>Get Started Today</span>

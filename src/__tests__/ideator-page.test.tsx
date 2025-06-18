@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import IdeatorPage from '@/app/dashboard/ideator/page';
+import IdeatorPage from '@/app/dashboard/v1/blitz';
 
 describe('IdeatorPage', () => {
   it('renders the ideator page with expanded input box', () => {

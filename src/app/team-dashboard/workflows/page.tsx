@@ -35,7 +35,7 @@ import {
   PlusCircle,
   FolderKanban
 } from 'lucide-react';
-import GlassCard from '@/components/ui/GlassCard';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 // Mock workflow data
 interface Workflow {

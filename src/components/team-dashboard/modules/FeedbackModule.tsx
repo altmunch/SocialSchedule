@@ -53,7 +53,7 @@ interface EmailTemplate {
 }
 
 export function FeedbackModule() {
-  const { clients, selectedClients } = useTeamMode();
+  const { clients } = useTeamMode();
   const [reports, setReports] = useState<FeedbackReport[]>([]);
   const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);

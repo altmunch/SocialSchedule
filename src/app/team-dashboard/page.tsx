@@ -73,8 +73,8 @@ import {
 } from 'lucide-react';
 import { ChartWrapper } from '@/components/ui/chart-wrapper';
 import { LineChart as LineChartComponent, BarChart as BarChartComponent } from '@/components/dashboard/charts';
-import { GlassCard } from '@/components/ui/glass-card';
-import { AnimatedButton } from '@/components/ui/animated-button';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
 import { ClientOverviewGrid } from '@/components/ui/client-overview-grid';
 import { WorkflowStatusOverview } from '@/components/ui/workflow-status-overview';
 import { TeamActivityStream } from '@/components/ui/team-activity-stream';

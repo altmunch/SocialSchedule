@@ -112,8 +112,8 @@ export default function FeaturesSection({ onGetStarted }: FeatureSectionProps) {
         >
           <motion.button 
             onClick={onGetStarted}
-            className="bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] hover:from-[#8b5cf6]/90 hover:to-[#a855f7]/90 text-white px-8 py-4 rounded-lg font-bold text-lg shadow-lg shadow-purple-500/30 transition-all duration-300"
-            whileHover={{ scale: 1.03, boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.4)' }}
+            className="bg-gradient-to-r from-[#A860B7] to-[#a855f7] hover:from-[#A860B7]/90 hover:to-[#a855f7]/90 text-white px-8 py-4 rounded-lg font-bold text-lg shadow-lg shadow-[#A860B7]/30 transition-all duration-300"
+            whileHover={{ scale: 1.03, boxShadow: '0 10px 25px -5px rgba(168, 96, 183, 0.4)' }}
             whileTap={{ scale: 0.98 }}
           >
             Start Selling Smarter with AI
